@@ -43,8 +43,8 @@ df3 = pd.DataFrame(columns=cols)
 if not os.path.isfile(os.path.join(save_path,'search_alg_results.csv')):
     df3.to_csv(os.path.join(save_path,'search_alg_results.csv'),index=False)
     #%%
-    n_pop = 25
-    itr = 10
+n_pop = 25
+itr = 10
 for alg in range(len(algorithms)):
  
     clf = LSSVR(kernel='rbf')
