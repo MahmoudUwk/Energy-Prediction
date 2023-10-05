@@ -8,64 +8,18 @@ import pandas as pd
 import numpy as np
 import time
 from matplotlib import pyplot as plt
-import os.path
+import os
+from preprocess_data import preprocess,RMSE,MAE,MAPE
 
 
-def scaling_input(X,a,b):
-    return (X - a) / (b-a)
-
-def RMSE(test,pred):
-    return np.sqrt(np.mean((test - pred)**2))
-
-def MAE(test,pred):
-    return np.mean(np.abs(pred - test))
-
-def MAPE(test,pred):
-    return np.mean(np.abs(pred - test)/np.abs(test))
-
-def sliding_windows(data, seq_length, k_step):
-    x = np.zeros((len(data)-seq_length-k_step+1,seq_length))
-    y = np.zeros((len(data)-seq_length-k_step+1,k_step))
-    #print(x.shape,y.shape)
-    for ind in range(len(x)):
-        #print((i,(i+seq_length)))
-        x[ind,:] = data[ind:ind+seq_length]
-        #print(data[ind+seq_length:ind+seq_length+k_step])
-        y[ind,:] = data[ind+seq_length:ind+seq_length+k_step]
-    return x,y
-
-def slice_data(data, seq_length,k_step):
-    #if the data is not divisable by the seq_length+k_step, remove the last few values to make it divisable,...
-    #so that all segments are of the same length
-    if (len(data)%(seq_length+k_step))!= 0: 
-        rem = len(data)%(seq_length+k_step)
-        data = data[:-rem]
-    data_sliced = np.array(data).reshape(-1,seq_length+k_step)
-    return data_sliced[:,:seq_length],np.squeeze(data_sliced[:,seq_length:seq_length+k_step])
-
-df = pd.read_csv("C:/Users/mahmo/OneDrive/Desktop/kuljeet/pwr data paper 2/1Hz/1477227096132.csv")
-df.set_index(pd.to_datetime(df.timestamp), inplace=True)
-df.drop(columns=["timestamp"], inplace=True)
-
-training_size = int(len(df) * 0.7)
-#%%
-seq_length = 64
+data_path = "C:/Users/msallam/Desktop/Kuljeet/1Hz/1477227096132.csv"
+save_path = "C:/Users/msallam/Desktop/Kuljeet/results"
+percentage_train = 0.7
+seq_length = 10
 k_step = 1
-target_col = "P"
-X_train , y_train= slice_data(df[target_col][:training_size], seq_length,k_step)
-X_test , y_test= slice_data(df[target_col][training_size:], seq_length,k_step)
+slide_or_slice = 1 #0 for slide and  1 for slice
+X_train,y_train,X_test,y_test,const_max,const_min = preprocess(data_path,percentage_train,seq_length,k_step,slide_or_slice)
 
-const_max = X_train.max()
-const_min = X_train.min()
-X_train = scaling_input(X_train,const_min,const_max)
-y_train = scaling_input(y_train,const_min,const_max)
-X_test = scaling_input(X_test,const_min,const_max)
-y_test = scaling_input(y_test,const_min,const_max)
-#%%
-# X_train , y_train= sliding_windows(df[target_col][:training_size], seq_length,k_step)
-# X_test , y_test= sliding_windows(df[target_col][training_size:], seq_length,k_step)
-
-del df
 #%%
 algorithm = Mod_FireflyAlgorithm.Mod_FireflyAlgorithm()
 # algorithm = FireflyAlgorithm()
@@ -86,9 +40,11 @@ param_grid = {
 #%%
 cols = ["Algorithm", "RMSE", "MAE", "MAPE", "time (s)","C","gamma"]
 df3 = pd.DataFrame(columns=cols)
-if not os.path.isfile('search_alg_results_50.csv'):
-    df3.to_csv('search_alg_results_50.csv',index=False)
+if not os.path.isfile(os.path.join(save_path,'search_alg_results.csv')):
+    df3.to_csv(os.path.join(save_path,'search_alg_results.csv'),index=False)
     #%%
+    n_pop = 25
+    itr = 10
 for alg in range(len(algorithms)):
  
     clf = LSSVR(kernel='rbf')
@@ -97,8 +53,8 @@ for alg in range(len(algorithms)):
         clf,
         param_grid,
         algorithm = algorithms[alg], # hybrid bat algorithm
-        population_size=50,
-        max_n_gen=25,
+        population_size=n_pop,
+        max_n_gen=itr,
         max_stagnating_gen=10,
         runs=3,
         random_state=None, # or any number if you want same results on each run
@@ -131,10 +87,10 @@ for alg in range(len(algorithms)):
     print('LLSVR FF:',rmse)
     row = [algorithms[alg].Name[0],rmse,mae,mape,time_passed,nia_search.best_params_['C'],nia_search.best_params_['gamma']]
     #%%
-    df = pd.read_csv('search_alg_results_50.csv')
+    df = pd.read_csv(os.path.join(save_path,'search_alg_results.csv'))
     df.loc[len(df)] = row
     print(df)
-    df.to_csv('search_alg_results_50.csv',mode='w', index=False,header=True)
+    df.to_csv(os.path.join(save_path,'search_alg_results.csv'),mode='w', index=False,header=True)
 #%%
 
 # df2 = pd.read_csv('search_alg_results.csv')
