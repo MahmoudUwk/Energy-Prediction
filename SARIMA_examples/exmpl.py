@@ -41,18 +41,19 @@ fig = result.plot()
 
 py.iplot_mpl(fig)
 # Try "py.plot_mpl(fig)" on your local Anaconda, it'll show greater plot than this one
-#SARIMA(p, d, q)×(P, D, Q)S, #  p is the nonseasonal AR,  d is nonseasonal diferencing,  q is the nonseasonal MA
+#SARIMA(p, d, q)×(P, D, Q)S, 
+# p is the nonseasonal AR,  d is nonseasonal diferencing,  q is the nonseasonal MA
 # P is the seasonal AR, D is seasonal diferencing,  Q is the seasonal MA order,  S is the season length
 #SARIMA (1, 0, 1)×(48, 0, 48)48
 # The Pmdarima library for Python allows us to quickly perform this grid search 
 from pmdarima import auto_arima
 
 stepwise_model = auto_arima(data, start_p=1, start_q=1,
-                           max_p=3, max_q=3, m=12,
-                           start_P=0, seasonal=True,
-                           d=1, D=1, trace=True,
+                           max_p=3, max_q=3, m=48,
+                           P=48, seasonal=True,
+                           d=0, D=0,Q=48, trace=True,
                            error_action='ignore',  
                            suppress_warnings=True, 
                            stepwise=True)
 
-print(stepwise_model.aic())
+# print(stepwise_model.aic())
