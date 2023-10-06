@@ -12,8 +12,10 @@ import os
 from preprocess_data import preprocess,RMSE,MAE,MAPE
 
 
-data_path = "C:/Users/msallam/Desktop/Kuljeet/1Hz/1477227096132.csv"
-save_path = "C:/Users/msallam/Desktop/Kuljeet/results"
+# data_path = "C:/Users/msallam/Desktop/Kuljeet/1Hz/1477227096132.csv"
+# save_path = "C:/Users/msallam/Desktop/Kuljeet/results"
+data_path = "C:/Users/mahmo/OneDrive/Desktop/kuljeet/pwr data paper 2/1Hz/1477227096132.csv"
+save_path = "C:/Users/mahmo/OneDrive/Desktop/kuljeet/results"
 percentage_train = 0.7
 seq_length = 10
 k_step = 1
@@ -21,6 +23,9 @@ slide_or_slice = 1 #0 for slide and  1 for slice
 X_train,y_train,X_test,y_test,const_max,const_min = preprocess(data_path,percentage_train,seq_length,k_step,slide_or_slice)
 
 #%%
+n_pop = 25
+itr = 10
+save_name = 'search_alg_results'+'pop'+str(n_pop)+'itr'+str(itr)+'.csv'
 algorithm = Mod_FireflyAlgorithm.Mod_FireflyAlgorithm()
 # algorithm = FireflyAlgorithm()
 
@@ -40,11 +45,10 @@ param_grid = {
 #%%
 cols = ["Algorithm", "RMSE", "MAE", "MAPE", "time (s)","C","gamma"]
 df3 = pd.DataFrame(columns=cols)
-if not os.path.isfile(os.path.join(save_path,'search_alg_results.csv')):
-    df3.to_csv(os.path.join(save_path,'search_alg_results.csv'),index=False)
+if not os.path.isfile(os.path.join(save_path,save_name)):
+    df3.to_csv(os.path.join(save_path,save_name),index=False)
     #%%
-n_pop = 25
-itr = 10
+
 for alg in range(len(algorithms)):
  
     clf = LSSVR(kernel='rbf')
@@ -87,10 +91,10 @@ for alg in range(len(algorithms)):
     print('LLSVR FF:',rmse)
     row = [algorithms[alg].Name[0],rmse,mae,mape,time_passed,nia_search.best_params_['C'],nia_search.best_params_['gamma']]
     #%%
-    df = pd.read_csv(os.path.join(save_path,'search_alg_results.csv'))
+    df = pd.read_csv(os.path.join(save_path,save_name))
     df.loc[len(df)] = row
     print(df)
-    df.to_csv(os.path.join(save_path,'search_alg_results.csv'),mode='w', index=False,header=True)
+    df.to_csv(os.path.join(save_path,save_name),mode='w', index=False,header=True)
 #%%
 
 # df2 = pd.read_csv('search_alg_results.csv')
