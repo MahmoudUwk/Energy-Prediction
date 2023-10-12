@@ -43,8 +43,9 @@ def slice_data(data, seq_length,k_step):
         data = data[:-rem]
     data_sliced = np.array(data).reshape(-1,seq_length+k_step)
     return data_sliced[:,:seq_length],np.squeeze(data_sliced[:,seq_length:seq_length+k_step])
-
-df = pd.read_csv("C:/Users/mahmo/OneDrive/Desktop/kuljeet/pwr data paper 2/1Hz/1477227096132.csv")
+path = 'C:/Users/msallam/Desktop/Kuljeet/1Hz'
+# path = 'C:/Users/mahmo/OneDrive/Desktop/kuljeet/pwr data paper 2'
+df = pd.read_csv(path+"/1477227096132.csv")
 df.set_index(pd.to_datetime(df.timestamp), inplace=True)
 df.drop(columns=["timestamp"], inplace=True)
 
