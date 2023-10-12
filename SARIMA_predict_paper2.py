@@ -21,7 +21,7 @@ test_len = 60
 df = df["P"][:3*3600+test_len]
 # train_len = int(0.7*len(df))
 train_len = len(df)-test_len
-#%%
+
 from pmdarima.model_selection import train_test_split
 train, test = train_test_split(df, train_size=train_len)
 #%%
