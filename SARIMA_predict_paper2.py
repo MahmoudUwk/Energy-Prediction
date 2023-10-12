@@ -17,7 +17,7 @@ slide_or_slice = 1 #0 for slide and  1 for slice
 df = pd.read_csv(data_path)
 df.set_index(pd.to_datetime(df.timestamp), inplace=True)
 df.drop(columns=["timestamp"], inplace=True)
-df = df["P"]
+df = df["P"][:100000]
 # train_len = int(0.7*len(df))
 test_len = 10*3600
 train_len = len(df)-test_len
@@ -25,13 +25,13 @@ train_len = len(df)-test_len
 from pmdarima.model_selection import train_test_split
 train, test = train_test_split(df, train_size=train_len)
 
-model = pm.auto_arima(train, seasonal=True, m=2,stepwise=True)
+model = pm.auto_arima(train, p=1,d=0,q=1,P=48,seasonal=True, m=24,stepwise=True,maxiter=10)
 print(test.shape[0])
 forecasts = model.predict(test.shape[0])
 
 x = np.arange(df.shape[0])
-plt.plot(x[:150], train, c='blue')
-plt.plot(x[150:], forecasts, c='green')
+plt.plot(x[:train_len], train, c='blue')
+plt.plot(x[train_len:], forecasts, c='green')
 plt.show()
 
 # stepwise_model = auto_arima(train, p=1, q=1 , m=48,
