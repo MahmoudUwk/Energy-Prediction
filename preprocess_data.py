@@ -1,6 +1,6 @@
 import pandas as pd
 import numpy as np
-
+import os
 def scaling_input(X,a,b):
     return (X - a) / (b-a)
 
@@ -33,49 +33,33 @@ def slice_data(data, seq_length,k_step):
     data_sliced = np.array(data).reshape(-1,seq_length+k_step)
     return data_sliced[:,:seq_length],np.squeeze(data_sliced[:,seq_length:seq_length+k_step])
 
-def sarima_preprocess(data_path,percentage_train,seq_length,k_step,slide_or_slice):
-    df = pd.read_csv(data_path)
-    df.set_index(pd.to_datetime(df.timestamp), inplace=True)
-    df.drop(columns=["timestamp"], inplace=True)
     
-    training_size = int(len(df) *percentage_train )
-    #%%
-    target_col = "P"
-    if slide_or_slice == 0:
-        X_train , y_train= sliding_windows(df[target_col][:training_size], seq_length,k_step)
-        X_test , y_test= sliding_windows(df[target_col][training_size:], seq_length,k_step)       
-    else:       
-        X_train , y_train= slice_data(df[target_col][:training_size], seq_length,k_step)
-        X_test , y_test= slice_data(df[target_col][training_size:], seq_length,k_step)
     
-    const_max = X_train.max()
-    const_min = X_train.min()
-    X_train = scaling_input(X_train,const_min,const_max)
-    y_train = scaling_input(y_train,const_min,const_max)
-    X_test = scaling_input(X_test,const_min,const_max)
-    y_test = scaling_input(y_test,const_min,const_max)
-    return X_train,y_train,X_test,y_test,const_max,const_min
-
-def preprocess(data_path,percentage_train,seq_length,k_step,slide_or_slice):
-    df = pd.read_csv(data_path)
-    df.set_index(pd.to_datetime(df.timestamp), inplace=True)
-    df.drop(columns=["timestamp"], inplace=True)
+def get_SAMFOR_data(df,seq_length,k_step,percentage_data_use,percentage_train,SARIMA_len,option,SARIMA_pred_path=''):
+    df = np.array(df["P"])
+    df = np.array(df[:int(len(df)*percentage_data_use)])
+    train_per = percentage_train
+    len_data = df.shape[0]
+    train_len = int(train_per*len_data)
+    train_len_SARIMA = SARIMA_len#int(SARIMA_per*train_len)
+    train_len_LSSVR = train_len-train_len_SARIMA
+    test_len = len_data - train_len
+    a = df[:train_len].min()
+    b = df[:train_len].max()
+    df_normalized = np.array(scaling_input(df,a,b))
+    if option == 0:
+        return df_normalized[:train_len_SARIMA],train_len_LSSVR,test_len
     
-    training_size = int(len(df) *percentage_train )
-
-    target_col = "P"
-    if slide_or_slice == 0:
-        X_train , y_train= sliding_windows(df[target_col][:training_size], seq_length,k_step)
-        X_test , y_test= sliding_windows(df[target_col][training_size:], seq_length,k_step)       
-    else:       
-        X_train , y_train= slice_data(df[target_col][:training_size], seq_length,k_step)
-        X_test , y_test= slice_data(df[target_col][training_size:], seq_length,k_step)
-    
-    const_max = X_train.max()
-    const_min = X_train.min()
-    X_train = scaling_input(X_train,const_min,const_max)
-    y_train = scaling_input(y_train,const_min,const_max)
-    X_test = scaling_input(X_test,const_min,const_max)
-    y_test = scaling_input(y_test,const_min,const_max)
+    else:
+        SARIMA_linear_pred = np.array(pd.read_csv(os.path.join(SARIMA_pred_path,'SARIMA_linear_prediction.csv')))
+        train_LSSVR = df_normalized[train_len_SARIMA:train_len_SARIMA+train_len_LSSVR]
+        testset = df_normalized[train_len:]
+        del df,df_normalized
+        X_LSSVR ,y_LSSVR  = sliding_windows(train_LSSVR, seq_length, k_step)
+        X_LSSVR = np.concatenate((X_LSSVR,SARIMA_linear_pred[seq_length:train_len_LSSVR]),axis=1)
+        del train_LSSVR
+        X_test ,y_test  = sliding_windows(testset, seq_length, k_step)
+        X_test = np.concatenate((X_test,SARIMA_linear_pred[train_len_LSSVR+seq_length-1:train_len_LSSVR+test_len-1]),axis=1)
+        del testset
         
-    return X_train,y_train,X_test,y_test,const_max,const_min
+        return X_LSSVR,y_LSSVR,X_test,y_test
