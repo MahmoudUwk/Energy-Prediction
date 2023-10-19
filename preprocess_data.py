@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 import os
 def scaling_input(X,a,b):
-    X["P"] = (X["P"] - a) / (b-a)
+    X= (X - a) / (b-a)
     return X
 
 def RMSE(test,pred):

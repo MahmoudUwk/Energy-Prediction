@@ -13,27 +13,27 @@ save_path = "C:/Users/mahmo/OneDrive/Desktop/kuljeet/results"
 df = pd.read_csv(data_path)
 df.set_index(pd.to_datetime(df.timestamp), inplace=True)
 df.drop(columns=["timestamp"], inplace=True)
-#%%
+#%%dfsdf
 seq_length = 6
 percentage_data_use = 0.2
 k_step = 1
 percentage_train = 0.8
-SARIMA_len = 3600*5
+SARIMA_len = 3600
 option = 0
 #%%
 op = 1
 if op == 1:
-    train_SARIMA,train_len_LSSVR,test_len = get_SAMFOR_data(df,seq_length,k_step,percentage_data_use,percentage_train,SARIMA_len,option,SARIMA_pred_path='')
+    train_SARIMA,train_len_LSSVR,test_len = get_SAMFOR_data(df,seq_length,k_step,percentage_data_use,percentage_train,SARIMA_len,option,SARIMA_pred='')
     print(train_SARIMA.shape)
     del df
-    model = pm.auto_arima(train_SARIMA, p=1,p_max=3, q=2, m=60,
-                                  P=0, seasonal=True,
-                                  d=0, D=0,Q=0, trace=True,
-                                  error_action='ignore',  # don't want to know if an order does not work
-                                  suppress_warnings=True,  # don't want convergence warnings
-                                  stepwise=True)
-    # model = pm.ARIMA(order=(1, 0, 1), seasonal_order=(1, 0, 1, 60),verbose=2)
-    # model.fit(train_SARIMA)
+    # model = pm.auto_arima(train_SARIMA['P'], p=1,p_max=3, q=2, m=60,
+    #                               P=0, seasonal=True,
+    #                               d=0, D=0,Q=0, trace=True,
+    #                               error_action='ignore',  # don't want to know if an order does not work
+    #                               suppress_warnings=True,  # don't want convergence warnings
+    #                               stepwise=True)
+    model = pm.ARIMA(order=(1, 0, 1), seasonal_order=(60, 0, 60, 60),verbose=2)
+    model.fit(train_SARIMA['P'])
     print("training done")
     
     with open(os.path.join(save_path,'arima.pkl'), 'wb') as pkl:
