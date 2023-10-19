@@ -28,7 +28,7 @@ k_step = 1
 percentage_train = 0.8
 SARIMA_len = 3600*5
 option = 1
-
+SARIMA_pred = os.path.join(save_path, 'SARIMA_linear_prediction.csv')
 X_LSSVR,y_LSSVR,X_test,y_test = get_SAMFOR_data(df,seq_length,k_step,percentage_data_use,percentage_train,SARIMA_len,option,SARIMA_pred_path=save_path)
 print(X_LSSVR.shape,X_test.shape)
 #%%
