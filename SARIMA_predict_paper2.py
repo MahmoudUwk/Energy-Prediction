@@ -6,23 +6,10 @@ import numpy as np
 import os
 import matplotlib.pyplot as plt
 import pickle
-# data_path = "C:/Users/msallam/Desktop/Kuljeet/1Hz/1477227096132.csv"
-# save_path = "C:/Users/msallam/Desktop/Kuljeet/results"
-data_path = "C:/Users/mahmo/OneDrive/Desktop/kuljeet/pwr data paper 2/1Hz/1477227096132.csv"
-save_path = "C:/Users/mahmo/OneDrive/Desktop/kuljeet/results"
-df = pd.read_csv(data_path)
-df.set_index(pd.to_datetime(df.timestamp), inplace=True)
-df.drop(columns=["timestamp"], inplace=True)
-#%%dfsdf
-seq_length = 6
-percentage_data_use = 0.15
-k_step = 1
-percentage_train = 0.8
-SARIMA_len = 3600
+
 option = 0
-#%%
-train_SARIMA,train_len_LSSVR,test_len = get_SAMFOR_data(df,seq_length,k_step,percentage_data_use,percentage_train,SARIMA_len,option,SARIMA_pred='')
-del df
+save_path = "C:/Users/mahmo/OneDrive/Desktop/kuljeet/results"
+train_SARIMA,train_len_LSSVR,test_len = get_SAMFOR_data(option)
 op = 1
 if op == 1:
     print(train_SARIMA.shape)
@@ -32,8 +19,8 @@ if op == 1:
     #                               error_action='ignore',  # don't want to know if an order does not work
     #                               suppress_warnings=True,  # don't want convergence warnings
     #                               stepwise=True)
-    model = pm.ARIMA(order=(1, 0, 1), seasonal_order=(2, 0, 2, 60),verbose=2)
-    model.fit(train_SARIMA['P'])
+    model = pm.ARIMA(order=(1, 0, 1), seasonal_order=(1, 0, 1, 30),verbose=2)
+    model.fit(train_SARIMA)
     print("training done")
 #%%
     del train_SARIMA

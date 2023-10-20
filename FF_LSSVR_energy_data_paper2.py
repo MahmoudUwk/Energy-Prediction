@@ -3,7 +3,8 @@ from sklearn_nature_inspired_algorithms.model_selection import NatureInspiredSea
 # from sklearn.svm import LinearSVR
 from niapy.algorithms.basic import Mod_FireflyAlgorithm
 from niapy.algorithms.basic import *
-from lssvr import LSSVR
+# from lssvr import LSSVR
+from sklearn.svm import SVR
 import pandas as pd
 import numpy as np
 import time
@@ -11,22 +12,9 @@ from matplotlib import pyplot as plt
 import os
 from preprocess_data import RMSE,MAE,MAPE,get_SAMFOR_data
 
-# data_path = "C:/Users/msallam/Desktop/Kuljeet/1Hz/1477227096132.csv"
-# save_path = "C:/Users/msallam/Desktop/Kuljeet/results"
-data_path = "C:/Users/mahmo/OneDrive/Desktop/kuljeet/pwr data paper 2/1Hz/1477227096132.csv"
-save_path = "C:/Users/mahmo/OneDrive/Desktop/kuljeet/results"
-df = pd.read_csv(data_path)
-df.set_index(pd.to_datetime(df.timestamp), inplace=True)
-df.drop(columns=["timestamp"], inplace=True)
-#%%
-seq_length = 6
-percentage_data_use = 0.15
-k_step = 1
-percentage_train = 0.8
-SARIMA_len = 3600
+save_path = 'C:/Users/mahmo/OneDrive/Desktop/kuljeet/results/Models'
 option = 1
-SARIMA_pred = os.path.join(save_path, 'SARIMA_linear_prediction.csv')
-X_train,y_train,X_test,y_test = get_SAMFOR_data(df,seq_length,k_step,percentage_data_use,percentage_train,SARIMA_len,option,SARIMA_pred)
+X_train,y_train,X_test,y_test = get_SAMFOR_data(option)
 print(X_train.shape,X_test.shape)
 #%%
 n_pop = 25
@@ -46,7 +34,8 @@ algorithms = [BeesAlgorithm(),Mod_FireflyAlgorithm.Mod_FireflyAlgorithm(),Firefl
 #%%
 param_grid = { 
     'C': [10**c for c in range(-3,3)], 
-    'gamma': [10**g for g in range(-3,3)],
+    'epsilon': [10**g for g in range(-3,3)]
+    #'gamma': [10**g for g in range(-3,3)],
 }
 #%%
 cols = ["Algorithm", "RMSE", "MAE", "MAPE", "time (s)","C","gamma"]
@@ -57,7 +46,7 @@ if not os.path.isfile(os.path.join(save_path,save_name)):
 
 for alg in range(len(algorithms)):
  
-    clf = LSSVR(kernel='rbf')
+    clf = SVR(kernel='rbf')
     
     nia_search = NatureInspiredSearchCV(
         clf,
@@ -70,7 +59,7 @@ for alg in range(len(algorithms)):
         random_state=None, # or any number if you want same results on each run
     )
     start_time = time.time()
-    nia_search.fit(X_train, y_train)
+    nia_search.fit(X_train, np.squeeze(y_train))
     end_time = time.time()
     time_passed = end_time - start_time
     # the best params are stored in nia_search.best_params_
@@ -78,8 +67,8 @@ for alg in range(len(algorithms)):
     #%%
 
     print("best parameters",nia_search.best_params_)
-    new_clf = LSSVR(**nia_search.best_params_)
-    new_clf.fit(X_train, y_train)
+    new_clf = SVR(**nia_search.best_params_)
+    new_clf.fit(X_train, np.squeeze(y_train))
     
     y_test_pred = new_clf.predict(X_test).reshape(-1,1)
     #%%
