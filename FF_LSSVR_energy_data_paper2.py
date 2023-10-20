@@ -9,28 +9,34 @@ import numpy as np
 import time
 from matplotlib import pyplot as plt
 import os
-from preprocess_data import preprocess,RMSE,MAE,MAPE
-
+from preprocess_data import RMSE,MAE,MAPE,get_SAMFOR_data
 
 # data_path = "C:/Users/msallam/Desktop/Kuljeet/1Hz/1477227096132.csv"
 # save_path = "C:/Users/msallam/Desktop/Kuljeet/results"
 data_path = "C:/Users/mahmo/OneDrive/Desktop/kuljeet/pwr data paper 2/1Hz/1477227096132.csv"
 save_path = "C:/Users/mahmo/OneDrive/Desktop/kuljeet/results"
-percentage_train = 0.7
-seq_length = 10
+df = pd.read_csv(data_path)
+df.set_index(pd.to_datetime(df.timestamp), inplace=True)
+df.drop(columns=["timestamp"], inplace=True)
+#%%
+seq_length = 6
+percentage_data_use = 0.15
 k_step = 1
-slide_or_slice = 1 #0 for slide and  1 for slice
-X_train,y_train,X_test,y_test,const_max,const_min = preprocess(data_path,percentage_train,seq_length,k_step,slide_or_slice)
-
+percentage_train = 0.8
+SARIMA_len = 3600
+option = 1
+SARIMA_pred = os.path.join(save_path, 'SARIMA_linear_prediction.csv')
+X_train,y_train,X_test,y_test = get_SAMFOR_data(df,seq_length,k_step,percentage_data_use,percentage_train,SARIMA_len,option,SARIMA_pred)
+print(X_train.shape,X_test.shape)
 #%%
 n_pop = 25
 itr = 10
-save_name = 'search_alg_results'+'pop'+str(n_pop)+'itr'+str(itr)+'.csv'
+save_name = 'search_alg_LSSVR'+'pop'+str(n_pop)+'itr'+str(itr)+'.csv'
 algorithm = Mod_FireflyAlgorithm.Mod_FireflyAlgorithm()
 # algorithm = FireflyAlgorithm()
 
-algorithms = [Mod_FireflyAlgorithm.Mod_FireflyAlgorithm(),FireflyAlgorithm(), ArtificialBeeColonyAlgorithm(),BatAlgorithm(),
-              BeesAlgorithm(),BacterialForagingOptimization(),ClonalSelectionAlgorithm(),
+algorithms = [BeesAlgorithm(),Mod_FireflyAlgorithm.Mod_FireflyAlgorithm(),FireflyAlgorithm(), ArtificialBeeColonyAlgorithm(),BatAlgorithm()
+              ,BacterialForagingOptimization(),ClonalSelectionAlgorithm(),
               CuckooSearch(),CatSwarmOptimization(),ForestOptimizationAlgorithm(),
               FlowerPollinationAlgorithm(),BareBonesFireworksAlgorithm(),
               GravitationalSearchAlgorithm(),GlowwormSwarmOptimization(),GreyWolfOptimizer(),HarrisHawksOptimization(),

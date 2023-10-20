@@ -62,8 +62,18 @@ def get_SAMFOR_data(df,seq_length,k_step,percentage_data_use,percentage_train,SA
     df_normalized = df
     if option == 0:
         return df_normalized[:train_len_SARIMA],train_len_LSSVR,test_len
+    elif option==2:
+        train_clf = np.array(df_normalized[train_len_SARIMA:train_len_SARIMA+train_len_LSSVR])
+        testset = np.array(df_normalized[train_len:])
+        del df,df_normalized
+        X_clf ,y_clf  = sliding_windows2d(train_clf, seq_length, k_step,train_clf.shape[1])
+        del train_clf
+        X_test ,y_test  = sliding_windows2d(testset, seq_length, k_step,testset.shape[1])
+        del testset
+        
+        return X_clf,y_clf,X_test,y_test        
     
-    else:
+    elif option==1:
         SARIMA_linear_pred = np.array(pd.read_csv(SARIMA_pred))
         train_LSSVR = np.array(df_normalized[train_len_SARIMA:train_len_SARIMA+train_len_LSSVR])
         testset = np.array(df_normalized[train_len:])

@@ -2,51 +2,26 @@ from sklearn.svm import SVR
 import pandas as pd
 import numpy as np
 # from sklearn.datasets import fetch_openml
-
-
-
-
-def slice_data(data, seq_length,k_step):
-    if (len(data)%(seq_length+k_step))!= 0: 
-        rem = len(data)%(seq_length+k_step)
-        data = data[:-rem]
-    data_sliced = np.array(data).reshape(-1,seq_length+k_step)
-    return data_sliced[:,:seq_length],np.squeeze(data_sliced[:,seq_length:seq_length+k_step])
-
-df = pd.read_csv("C:/Users/mahmo/OneDrive/Desktop/kuljeet/pwr data paper 2/1Hz/1477227096132.csv")
+from preprocess_data import get_SAMFOR_data
+import os
+from preprocess_data import RMSE,MAE,MAPE
+# data_path = "C:/Users/msallam/Desktop/Kuljeet/1Hz/1477227096132.csv"
+# save_path = "C:/Users/msallam/Desktop/Kuljeet/results"
+data_path = "C:/Users/mahmo/OneDrive/Desktop/kuljeet/pwr data paper 2/1Hz/1477227096132.csv"
+save_path = "C:/Users/mahmo/OneDrive/Desktop/kuljeet/results"
+df = pd.read_csv(data_path)
 df.set_index(pd.to_datetime(df.timestamp), inplace=True)
 df.drop(columns=["timestamp"], inplace=True)
-
-training_size = int(len(df) * 0.7)
-
-def RMSE(test,pred):
-    return np.sqrt(np.mean((test - pred)**2))
-
-def MAE(test,pred):
-    return np.mean(np.abs(pred - test))
-
-def MAPE(test,pred):
-    return np.mean(np.abs(pred - test)/np.abs(test))
-
-def scaling_input(X,a,b):
-    return (X - a) / (b-a)
 #%%
-seq_length = 64
+seq_length = 6
+percentage_data_use = 0.15
 k_step = 1
-target_col = "P"
-X_train , y_train= slice_data(df[target_col][:training_size], seq_length,k_step)
-X_test , y_test= slice_data(df[target_col][training_size:], seq_length,k_step)
-const_max = X_train.max()
-const_min = X_train.min()
-X_train = scaling_input(X_train,const_min,const_max)
-y_train = scaling_input(y_train,const_min,const_max)
-X_test = scaling_input(X_test,const_min,const_max)
-y_test = scaling_input(y_test,const_min,const_max)
-#%%
-# X_train , y_train= sliding_windows(df[target_col][:training_size], seq_length,k_step)
-# X_test , y_test= sliding_windows(df[target_col][training_size:], seq_length,k_step)
-del df
-
+percentage_train = 0.8
+SARIMA_len = 3600
+option = 2
+SARIMA_pred = os.path.join(save_path, 'SARIMA_linear_prediction.csv')
+X_train,y_train,X_test,y_test = get_SAMFOR_data(df,seq_length,k_step,percentage_data_use,percentage_train,SARIMA_len,option,SARIMA_pred)
+print(X_train.shape,X_test.shape)
 #%%
 from matplotlib import pyplot as plt
 from sklearn.metrics import mean_squared_error
