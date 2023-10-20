@@ -59,7 +59,6 @@ def get_SAMFOR_data(df,seq_length,k_step,percentage_data_use,percentage_train,SA
     a = df["P"][:train_len].min()
     b = df["P"][:train_len].max()
     df_normalized = scaling_input(df,a,b)
-    df_normalized = df
     if option == 0:
         return df_normalized[:train_len_SARIMA],train_len_LSSVR,test_len
     elif option==2:
