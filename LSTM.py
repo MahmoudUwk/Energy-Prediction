@@ -54,8 +54,8 @@ X_test = expand_dims(X_test)
 #units = 5
 adam=Adam(learning_rate=1e-3)
 rmspr = RMSprop()
-opt_chosen = adam
-epochs_num = 80
+opt_chosen = rmspr
+epochs_num = 150
 drop_out = 0
 #model_name = "CPU_WLP_TF"
 #filepath = 'C:/Users/mahmo/OneDrive/Desktop/IS-Wireless/Code/paper_models/models/'+model_name
@@ -63,16 +63,16 @@ drop_out = 0
 def get_LSTM_model(units,input_dim,output_dim):
     
     model = Sequential()
-    model.add(LSTM(units=units,  input_shape=input_dim,return_sequences = False,dropout = drop_out))
+    model.add(LSTM(units=units,  input_shape=input_dim,return_sequences = True,dropout = drop_out))
     # model.add(BatchNormalization())
-    # model.add(LSTM(units=units,return_sequences = True,dropout = drop_out))
-    # model.add(LSTM(units=units,return_sequences = False,dropout = drop_out))
+    model.add(LSTM(units=units,return_sequences = True,dropout = drop_out))
+    model.add(LSTM(units=units,return_sequences = False,dropout = drop_out))
 
     #model.add(LSTM(units=output_dim,return_sequences = False,dropout = drop_out))
     model.add(Dense(output_dim))
     return model
 #model.add(Dense(y_test.shape[-1]))
-units = 8
+units = 16
 input_dim=(X_train.shape[1],X_train.shape[2])
 output_dim = y_test.shape[-1]
 model = get_LSTM_model(units,input_dim,output_dim)

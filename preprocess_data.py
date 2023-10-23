@@ -112,7 +112,8 @@ def get_SAMFOR_data(option):
         return X_clf,y_clf,X_test,y_test        
     
     elif option==1:
-        SARIMA_pred = os.path.join("C:/Users/mahmo/OneDrive/Desktop/kuljeet/results",'SARIMA_linear_prediction.csv')
+        # SARIMA_pred = os.path.join("C:/Users/mahmo/OneDrive/Desktop/kuljeet/results",'SARIMA_linear_prediction.csv')
+        SARIMA_pred = 'C:/Users/mahmo/OneDrive/Desktop/kuljeet/results/Models/SARIMA_linear_prediction_2.csv'
         SARIMA_linear_pred = np.array(pd.read_csv(SARIMA_pred))
         train_LSSVR = np.array(df_normalized[train_len_SARIMA:train_len_SARIMA+train_len_LSSVR])
         testset = np.array(df_normalized[train_len:])
