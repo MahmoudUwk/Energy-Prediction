@@ -29,7 +29,8 @@ for counter , file in enumerate(onlyfiles):
     if counter == 0:
         df = pd.read_csv(full_path)
     else:
-        df = pd.concat([df, pd.read_csv(full_path)]).sort_values('timestamp').reset_index(drop=True)
+        df = pd.concat([df, pd.read_csv(full_path)])#.sort_values('timestamp').reset_index(drop=True)
+    df
 print(df.shape)
 #%%
 df.set_index(pd.to_datetime(df.timestamp), inplace=True)
