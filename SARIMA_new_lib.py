@@ -7,7 +7,8 @@ import numpy as np
 import os
 import matplotlib.pyplot as plt
 import pickle
-save_path = 'C:/Users/mahmo/OneDrive/Desktop/kuljeet/results/Models'
+# save_path = 'C:/Users/mahmo/OneDrive/Desktop/kuljeet/results/Models'
+save_path =  'C:/Users/msallam/Desktop/Kuljeet/results'
 option = 0
 #%%
 op = 1
@@ -17,7 +18,7 @@ if op == 1:
     # train_SARIMA = np.squeeze(np.array(train_SARIMA[['P']]))
     print(train_SARIMA.shape)
     # sf = ARIMA(order=(1, 0, 1),season_length=60, seasonal_order=(1, 0, 1))
-    sf = AutoARIMA(season_length = 60)
+    sf = AutoARIMA(season_length = 30)
     sf.fit(np.array(train_SARIMA))
     # model = pm.ARIMA(order=(1, 0, 1), seasonal_order=(1, 0, 1, 60),verbose=2)
     # model.fit(train_SARIMA)

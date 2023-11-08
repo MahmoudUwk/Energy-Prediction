@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 import os
 def scaling_input(X,a,b):
-    X= 2*((X - a) / (b-a))-1
+    X= (2*((X - a) / (b-a))) - 1
     return X
 
 def RMSE(test,pred):
@@ -48,7 +48,7 @@ def slice_data(data, seq_length,k_step):
 def log_results(row):
     save_path = 'C:/Users/msallam/Desktop/Kuljeet/results'
     # save_path = 'C:/Users/mahmo/OneDrive/Desktop/kuljeet/results/Models'
-    save_name = 'results_1T_10seq.csv'
+    save_name = 'results_50Hz_10seq.csv'
     cols = ["Algorithm", "RMSE", "MAE", "MAPE"]
 
     df3 = pd.DataFrame(columns=cols)
@@ -61,22 +61,17 @@ def log_results(row):
     df.to_csv(os.path.join(save_path,save_name),mode='w', index=False,header=True)
     
 def get_SAMFOR_data(option):
-    path = "C:/Users/msallam/Desktop/Kuljeet/"
-    path = "C:/Users/msallam/Desktop/Kuljeet/1Hz"
-    # data_path = "C:/Users/msallam/Desktop/Kuljeet/1Hz/1477227096132.csv"
-    # save_path = "C:/Users/msallam/Desktop/Kuljeet/results"
-    # data_path = "C:/Users/mahmo/OneDrive/Desktop/kuljeet/pwr data paper 2/1Hz/1477227096132.csv"
-    # data_path = 'C:/Users/mahmo/OneDrive/Desktop/kuljeet/pwr data paper 2/1Hz/1T.csv'
-    # data_path = os.path.join(path,'1T.csv')
-    data_path = os.path.join(path,'1T.csv')
-    SARIMA_len = 3000
+    # path = "C:/Users/msallam/Desktop/Kuljeet/"
+    path = "C:/Users/msallam/Desktop/Kuljeet/resampled data"
+    data_path = os.path.join(path,'30T.csv')
+    SARIMA_len = 1500
     percentage_data_use = 1
     df = pd.read_csv(data_path)
     df.set_index(pd.to_datetime(df.timestamp), inplace=True)
     df.drop(columns=["timestamp"], inplace=True)
     df = df['P']
     
-    seq_length = 10
+    seq_length = 6
     
     k_step = 1
     percentage_train = 0.8
@@ -118,6 +113,7 @@ def get_SAMFOR_data(option):
     
     elif option==1:
         # SARIMA_pred = os.path.join("C:/Users/mahmo/OneDrive/Desktop/kuljeet/results",'SARIMA_linear_prediction.csv')
+        
         SARIMA_pred = 'C:/Users/msallam/Desktop/Kuljeet/results/SARIMA_linear_prediction.csv'
         SARIMA_linear_pred = np.array(pd.read_csv(SARIMA_pred))
         train_LSSVR = np.array(df_normalized[train_len_SARIMA:train_len_SARIMA+train_len_LSSVR])

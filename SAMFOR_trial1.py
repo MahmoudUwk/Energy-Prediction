@@ -19,7 +19,7 @@ opt = 0
 #%%
 if opt ==0:
     from sklearn.svm import LinearSVR
-    alg_name ='SAMFOR_SARIMA2'
+    alg_name ='SAMFOR_SARIMA'
     clf = LinearSVR(C=10,epsilon=0.01)
     # clf = LSSVR(C=1,gamma=0.001,kernel='rbf')
     clf.fit(X_LSSVR, np.squeeze(y_LSSVR))

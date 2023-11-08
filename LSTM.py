@@ -72,7 +72,7 @@ def get_LSTM_model(units,input_dim,output_dim):
     model.add(Dense(output_dim))
     return model
 #model.add(Dense(y_test.shape[-1]))
-units = 10
+units = 20
 input_dim=(X_train.shape[1],X_train.shape[2])
 output_dim = y_test.shape[-1]
 model = get_LSTM_model(units,input_dim,output_dim)
