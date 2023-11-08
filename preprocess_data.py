@@ -48,7 +48,7 @@ def slice_data(data, seq_length,k_step):
 def log_results(row):
     save_path = 'C:/Users/msallam/Desktop/Kuljeet/results'
     # save_path = 'C:/Users/mahmo/OneDrive/Desktop/kuljeet/results/Models'
-    save_name = 'results_30T_10seq.csv'
+    save_name = 'results_1T_6seq.csv'
     cols = ["Algorithm", "RMSE", "MAE", "MAPE"]
 
     df3 = pd.DataFrame(columns=cols)
@@ -63,15 +63,15 @@ def log_results(row):
 def get_SAMFOR_data(option):
     # path = "C:/Users/msallam/Desktop/Kuljeet/"
     path = "C:/Users/msallam/Desktop/Kuljeet/resampled data"
-    data_path = os.path.join(path,'30T.csv')
-    SARIMA_len = 1500
+    data_path = os.path.join(path,'1T.csv')
+    SARIMA_len = 5*3600
     percentage_data_use = 1
     df = pd.read_csv(data_path)
     df.set_index(pd.to_datetime(df.timestamp), inplace=True)
     df.drop(columns=["timestamp"], inplace=True)
     df = df['P']
     
-    seq_length = 10
+    seq_length = 6
     
     k_step = 1
     percentage_train = 0.8

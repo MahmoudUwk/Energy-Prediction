@@ -15,7 +15,7 @@ save_path = 'C:/Users/msallam/Desktop/Kuljeet/results'
 option = 1
 X_LSSVR,y_LSSVR,X_test,y_test = get_SAMFOR_data(option)
 print(X_LSSVR.shape,X_test.shape)
-opt = 0
+opt = 1
 #%%
 if opt ==0:
     from sklearn.svm import LinearSVR

@@ -14,7 +14,7 @@ train_SARIMA,train_len_LSSVR,test_len = get_SAMFOR_data(option)
 op = 1
 if op == 1:
     print(train_SARIMA.shape)
-    model = pm.auto_arima(train_SARIMA, p=1,p_max=3, q=2, m=6,
+    model = pm.auto_arima(train_SARIMA, p=1,p_max=3, q=2, m=60,
                                   P=0, seasonal=True,
                                   d=0, D=0,Q=0, trace=True,
                                   error_action='ignore',  # don't want to know if an order does not work
