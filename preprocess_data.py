@@ -46,8 +46,9 @@ def slice_data(data, seq_length,k_step):
     return data_sliced[:,:seq_length],np.squeeze(data_sliced[:,seq_length:seq_length+k_step])
 
 def log_results(row):
-    save_path = 'C:/Users/mahmo/OneDrive/Desktop/kuljeet/results/Models'
-    save_name = 'results_1s_6seq.csv'
+    save_path = 'C:/Users/msallam/Desktop/Kuljeet/results'
+    # save_path = 'C:/Users/mahmo/OneDrive/Desktop/kuljeet/results/Models'
+    save_name = 'results_1T_6seq.csv'
     cols = ["Algorithm", "RMSE", "MAE", "MAPE"]
 
     df3 = pd.DataFrame(columns=cols)
@@ -60,12 +61,16 @@ def log_results(row):
     df.to_csv(os.path.join(save_path,save_name),mode='w', index=False,header=True)
     
 def get_SAMFOR_data(option):
+    path = "C:/Users/msallam/Desktop/Kuljeet/"
+    path = "C:/Users/msallam/Desktop/Kuljeet/1Hz"
     # data_path = "C:/Users/msallam/Desktop/Kuljeet/1Hz/1477227096132.csv"
     # save_path = "C:/Users/msallam/Desktop/Kuljeet/results"
-    data_path = "C:/Users/mahmo/OneDrive/Desktop/kuljeet/pwr data paper 2/1Hz/1477227096132.csv"
+    # data_path = "C:/Users/mahmo/OneDrive/Desktop/kuljeet/pwr data paper 2/1Hz/1477227096132.csv"
     # data_path = 'C:/Users/mahmo/OneDrive/Desktop/kuljeet/pwr data paper 2/1Hz/1T.csv'
-    SARIMA_len = 3600*4
-    percentage_data_use = 0.2
+    # data_path = os.path.join(path,'1T.csv')
+    data_path = os.path.join(path,'1T.csv')
+    SARIMA_len = 3000
+    percentage_data_use = 1
     df = pd.read_csv(data_path)
     df.set_index(pd.to_datetime(df.timestamp), inplace=True)
     df.drop(columns=["timestamp"], inplace=True)
@@ -96,7 +101,7 @@ def get_SAMFOR_data(option):
     if option == 0:
         return df_normalized[:train_len_SARIMA],train_len_LSSVR,test_len
     elif option==2:
-        train_clf = np.array(df_normalized[train_len_SARIMA:train_len_SARIMA+train_len_LSSVR])
+        train_clf = np.array(df_normalized[:train_len_SARIMA+train_len_LSSVR])
         testset = np.array(df_normalized[train_len:])
         del df,df_normalized
         if dim>1:
@@ -113,7 +118,7 @@ def get_SAMFOR_data(option):
     
     elif option==1:
         # SARIMA_pred = os.path.join("C:/Users/mahmo/OneDrive/Desktop/kuljeet/results",'SARIMA_linear_prediction.csv')
-        SARIMA_pred = 'C:/Users/mahmo/OneDrive/Desktop/kuljeet/results/Models/SARIMA_linear_prediction_2.csv'
+        SARIMA_pred = 'C:/Users/msallam/Desktop/Kuljeet/results/SARIMA_linear_prediction.csv'
         SARIMA_linear_pred = np.array(pd.read_csv(SARIMA_pred))
         train_LSSVR = np.array(df_normalized[train_len_SARIMA:train_len_SARIMA+train_len_LSSVR])
         testset = np.array(df_normalized[train_len:])

@@ -11,7 +11,7 @@ from matplotlib import pyplot as plt
 import os
 from preprocess_data import RMSE,MAE,MAPE,log_results,get_SAMFOR_data
 # from lssvr import LSSVR
-save_path = "C:/Users/mahmo/OneDrive/Desktop/kuljeet/results"
+save_path = 'C:/Users/msallam/Desktop/Kuljeet/results'
 option = 1
 X_LSSVR,y_LSSVR,X_test,y_test = get_SAMFOR_data(option)
 print(X_LSSVR.shape,X_test.shape)
@@ -39,7 +39,7 @@ print('rmse:',rmse,'||mape:',mape,'||mae:',mae)
 row = [alg_name,rmse,mae,mape]
 log_results(row)
 #%%
-save_path = 'C:/Users/mahmo/OneDrive/Desktop/kuljeet/results/Models'
+# save_path = 'C:/Users/mahmo/OneDrive/Desktop/kuljeet/results/Models'
 plt.figure(figsize=(10,5))
 plt.plot(y_test, color = 'red', linewidth=2.0, alpha = 0.6)
 plt.plot(y_test_pred, color = 'blue', linewidth=0.8)
