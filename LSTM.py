@@ -41,7 +41,7 @@ class SaveBestModel(tf.keras.callbacks.Callback):
 def expand_dims(X):
     return np.expand_dims(X, axis = len(X.shape))
 #%%
-save_path = 'C:/Users/mahmo/OneDrive/Desktop/kuljeet/results/Models'
+save_path = 'C:/Users/msallam/Desktop/Kuljeet/results'
 option = 2
 X_train,y_train,X_test,y_test = get_SAMFOR_data(option)
 print(X_train.shape,X_test.shape)
@@ -55,7 +55,7 @@ X_test = expand_dims(X_test)
 adam=Adam(learning_rate=1e-3)
 rmspr = RMSprop()
 opt_chosen = rmspr
-epochs_num = 150
+epochs_num = 400
 drop_out = 0
 #model_name = "CPU_WLP_TF"
 #filepath = 'C:/Users/mahmo/OneDrive/Desktop/IS-Wireless/Code/paper_models/models/'+model_name
@@ -72,7 +72,7 @@ def get_LSTM_model(units,input_dim,output_dim):
     model.add(Dense(output_dim))
     return model
 #model.add(Dense(y_test.shape[-1]))
-units = 16
+units = 10
 input_dim=(X_train.shape[1],X_train.shape[2])
 output_dim = y_test.shape[-1]
 model = get_LSTM_model(units,input_dim,output_dim)

@@ -5,7 +5,8 @@ import numpy as np
 import os
 from preprocess_data import RMSE,MAE,MAPE,get_SAMFOR_data,log_results
 
-save_path = 'C:/Users/mahmo/OneDrive/Desktop/kuljeet/results/Models'
+# save_path = 'C:/Users/mahmo/OneDrive/Desktop/kuljeet/results/Models'
+save_path = 'C:/Users/msallam/Desktop/Kuljeet/results'
 option = 2
 X_train,y_train,X_test,y_test = get_SAMFOR_data(option)
 print(X_train.shape,X_test.shape)
