@@ -23,24 +23,31 @@ for counter , file in enumerate(onlyfiles):
     if counter == 0:
         df = pd.read_csv(full_path)
     else:
-        df = df.append(pd.read_csv(full_path))
+        # df = df.append(pd.read_csv(full_path))
+        
+        df = pd.concat([df, pd.read_csv(full_path)]).sort_values('timestamp').reset_index(drop=True)
 print(df.shape)
 #%%
 df.set_index(pd.to_datetime(df.timestamp), inplace=True)
+df = df.dropna()
 df.to_csv(os.path.join(sav_path,'1Hz.csv'))
 # df = pd.read_csv(data_path)
 
 df_downsampled = df.resample('1T').mean()
+df_downsampled = df_downsampled.dropna()
 df_downsampled.to_csv(os.path.join(sav_path,'1T.csv'))
 
 df_downsampled10 = df.resample('10T').mean()
+df_downsampled10 = df_downsampled10.dropna()
 df_downsampled10.to_csv(os.path.join(sav_path,'10T.csv'))
 
 df_downsampled15 = df.resample('15T').mean()
+df_downsampled15 = df_downsampled15.dropna()
 df_downsampled15.to_csv(os.path.join(sav_path,'15T.csv'))
 
 
 df_downsampled30 = df.resample('30T').mean()
+df_downsampled30 = df_downsampled30.dropna()
 df_downsampled30.to_csv(os.path.join(sav_path,'30T.csv'))
 # df.drop(columns=["timestamp"], inplace=True)
 # df = df['P']

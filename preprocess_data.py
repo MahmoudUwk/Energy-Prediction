@@ -96,7 +96,7 @@ def get_SAMFOR_data(option):
     if option == 0:
         return df_normalized[:train_len_SARIMA],train_len_LSSVR,test_len
     elif option==2:
-        train_clf = np.array(df_normalized[:train_len_SARIMA+train_len_LSSVR])
+        train_clf = np.array(df_normalized[:train_len])
         testset = np.array(df_normalized[train_len:])
         del df,df_normalized
         if dim>1:
