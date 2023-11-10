@@ -46,10 +46,11 @@ def slice_data(data, seq_length,k_step):
     return data_sliced[:,:seq_length],np.squeeze(data_sliced[:,seq_length:seq_length+k_step])
 
 def log_results(row):
-    save_path = 'C:/Users/msallam/Desktop/Kuljeet/results'
+    save_path = 'C:/Users/msallam/Desktop/Energy Prediction/results'
+    # save_path = 'C:/Users/msallam/Desktop/Kuljeet/results'
     # save_path = 'C:/Users/mahmo/OneDrive/Desktop/kuljeet/results/Models'
-    save_name = 'results_1T_6seq.csv'
-    cols = ["Algorithm", "RMSE", "MAE", "MAPE"]
+    save_name = 'results_15T_seq.csv'
+    cols = ["Algorithm", "RMSE", "MAE", "MAPE","seq"]
 
     df3 = pd.DataFrame(columns=cols)
     if not os.path.isfile(os.path.join(save_path,save_name)):
@@ -62,9 +63,9 @@ def log_results(row):
     
 def get_SAMFOR_data(option):
     # path = "C:/Users/msallam/Desktop/Kuljeet/"
-    path = "C:/Users/msallam/Desktop/Kuljeet/resampled data"
-    data_path = os.path.join(path,'1T.csv')
-    SARIMA_len = 5*3600
+    path = "C:/Users/msallam/Desktop/Energy Prediction/resampled data"
+    data_path = os.path.join(path,'15T.csv')
+    SARIMA_len = 2400
     percentage_data_use = 1
     df = pd.read_csv(data_path)
     df.set_index(pd.to_datetime(df.timestamp), inplace=True)
@@ -113,8 +114,8 @@ def get_SAMFOR_data(option):
     
     elif option==1:
         # SARIMA_pred = os.path.join("C:/Users/mahmo/OneDrive/Desktop/kuljeet/results",'SARIMA_linear_prediction.csv')
-        
-        SARIMA_pred = 'C:/Users/msallam/Desktop/Kuljeet/results/SARIMA_linear_prediction.csv'
+        SARIMA_pred = 'C:/Users/msallam/Desktop/Energy Prediction/results/SARIMA_linear_prediction.csv'
+        # SARIMA_pred = 'C:/Users/msallam/Desktop/Kuljeet/results/SARIMA_linear_prediction.csv'
         SARIMA_linear_pred = np.array(pd.read_csv(SARIMA_pred))
         train_LSSVR = np.array(df_normalized[train_len_SARIMA:train_len_SARIMA+train_len_LSSVR])
         testset = np.array(df_normalized[train_len:])

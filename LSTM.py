@@ -41,9 +41,10 @@ class SaveBestModel(tf.keras.callbacks.Callback):
 def expand_dims(X):
     return np.expand_dims(X, axis = len(X.shape))
 #%%
-save_path = 'C:/Users/msallam/Desktop/Kuljeet/results'
+save_path = 'C:/Users/msallam/Desktop/Energy Prediction/results'
 option = 2
 X_train,y_train,X_test,y_test = get_SAMFOR_data(option)
+seq = X_train.shape[1]
 print(X_train.shape,X_test.shape)
 X_train = expand_dims(X_train)
 y_train = expand_dims(y_train)
@@ -72,7 +73,7 @@ def get_LSTM_model(units,input_dim,output_dim):
     model.add(Dense(output_dim))
     return model
 #model.add(Dense(y_test.shape[-1]))
-units = 20
+units = 12
 input_dim=(X_train.shape[1],X_train.shape[2])
 output_dim = y_test.shape[-1]
 model = get_LSTM_model(units,input_dim,output_dim)
@@ -95,7 +96,7 @@ mape = MAPE(y_test,y_test_pred)
 print(rmse,mae,mape)
 
 alg_name = 'LSTM'
-row = [alg_name,rmse,mae,mape]
+row = [alg_name,rmse,mae,mape,seq]
 log_results(row)
 #%%
 plt.figure(figsize=(10,5))

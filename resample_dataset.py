@@ -11,8 +11,9 @@ import os
 from os import listdir
 from os.path import isfile, join
 
-data_path = "C:/Users/msallam/Desktop/Kuljeet/1Hz"
-sav_path = "C:/Users/msallam/Desktop/Kuljeet/resampled data"
+# data_path = "C:/Users/msallam/Desktop/Kuljeet/1Hz"
+data_path = 'C:/Users/msallam/Desktop/Energy Prediction/1Hz'
+sav_path = "C:/Users/msallam/Desktop/Energy Prediction/resampled data"
 # data_path = "C:/Users/mahmo/OneDrive/Desktop/kuljeet/pwr data paper 2/1Hz"
 
 onlyfiles = [f for f in listdir(data_path) if isfile(join(data_path, f)) and '.csv' in f]
@@ -30,10 +31,11 @@ for counter , file in enumerate(onlyfiles):
         df = pd.read_csv(full_path)
     else:
         df = pd.concat([df, pd.read_csv(full_path)])#.sort_values('timestamp').reset_index(drop=True)
-    df
+    print(df)
 print(df.shape)
 #%%
 df.set_index(pd.to_datetime(df.timestamp), inplace=True)
+df.drop(columns=["timestamp"], inplace=True)
 # df = df.dropna()
 # df.to_csv(os.path.join(sav_path,'1Hz.csv'))
 # df = pd.read_csv(data_path)

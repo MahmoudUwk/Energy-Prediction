@@ -6,9 +6,12 @@ import os
 from preprocess_data import RMSE,MAE,MAPE,get_SAMFOR_data,log_results
 
 # save_path = 'C:/Users/mahmo/OneDrive/Desktop/kuljeet/results/Models'
-save_path = 'C:/Users/msallam/Desktop/Kuljeet/results'
+# save_path = 'C:/Users/msallam/Desktop/Kuljeet/results'
+save_path = 'C:/Users/msallam/Desktop/Energy Prediction/results'
+
 option = 2
 X_train,y_train,X_test,y_test = get_SAMFOR_data(option)
+seq = X_train.shape[1]
 print(X_train.shape,X_test.shape)
 #%%
 from matplotlib import pyplot as plt
@@ -32,7 +35,7 @@ mape = MAPE(y_test,y_test_pred)
 print(rmse,mae,mape)
 #%%
 alg_name = 'SVR'
-row = [alg_name,rmse,mae,mape]
+row = [alg_name,rmse,mae,mape,seq]
 log_results(row)
 #%%
 from sklearn.ensemble import RandomForestRegressor
@@ -55,5 +58,5 @@ mape = MAPE(y_test,y_test_pred)
 print(rmse,mae,mape)
 #%%
 alg_name = 'RFR'
-row = [alg_name,rmse,mae,mape]
+row = [alg_name,rmse,mae,mape,seq]
 log_results(row)
