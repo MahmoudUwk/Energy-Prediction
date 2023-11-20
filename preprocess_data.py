@@ -64,7 +64,7 @@ def log_results(row):
 def get_SAMFOR_data(option):
     # path = "C:/Users/msallam/Desktop/Kuljeet/"
     path = "C:/Users/msallam/Desktop/Energy Prediction/resampled data"
-    data_path = os.path.join(path,'15T.csv')
+    data_path = os.path.join(path,'30T.csv')
     SARIMA_len = 2400
     percentage_data_use = 1
     df = pd.read_csv(data_path)
