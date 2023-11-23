@@ -46,9 +46,9 @@ def slice_data(data, seq_length,k_step):
     return data_sliced[:,:seq_length],np.squeeze(data_sliced[:,seq_length:seq_length+k_step])
 
 def log_results(row):
-    save_path = 'C:/Users/msallam/Desktop/Energy Prediction/results'
+    # save_path = 'C:/Users/msallam/Desktop/Energy Prediction/results'
     # save_path = 'C:/Users/msallam/Desktop/Kuljeet/results'
-    # save_path = 'C:/Users/mahmo/OneDrive/Desktop/kuljeet/results/Models'
+    save_path = 'C:/Users/mahmo/OneDrive/Desktop/kuljeet/results/Models'
     save_name = 'results_1T_seq.csv'
     cols = ["Algorithm", "RMSE", "MAE", "MAPE","seq"]
 
@@ -64,13 +64,14 @@ def log_results(row):
 def get_SAMFOR_data(option):
     # path = "C:/Users/msallam/Desktop/Kuljeet/"
     path = "C:/Users/msallam/Desktop/Energy Prediction/resampled data"
+    path = "C:/Users/mahmo/OneDrive/Desktop/kuljeet/pwr data paper 2/resampled data"
     data_path = os.path.join(path,'1T.csv')
     SARIMA_len = 2400
     percentage_data_use = 1
     df = pd.read_csv(data_path)
     df.set_index(pd.to_datetime(df.timestamp), inplace=True)
     df.drop(columns=["timestamp"], inplace=True)
-    df = df['P']
+    # df = df['P']
     
     seq_length = 8
     

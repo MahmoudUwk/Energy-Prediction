@@ -11,10 +11,12 @@ import os
 from os import listdir
 from os.path import isfile, join
 
+data_path = "C:/Users/mahmo/OneDrive/Desktop/kuljeet/pwr data paper 2/1Hz"
 # data_path = "C:/Users/msallam/Desktop/Kuljeet/1Hz"
-data_path = 'C:/Users/msallam/Desktop/Energy Prediction/1Hz'
-sav_path = "C:/Users/msallam/Desktop/Energy Prediction/resampled data"
-# data_path = "C:/Users/mahmo/OneDrive/Desktop/kuljeet/pwr data paper 2/1Hz"
+# data_path = 'C:/Users/msallam/Desktop/Energy Prediction/1Hz'
+# sav_path = "C:/Users/msallam/Desktop/Energy Prediction/resampled data"
+sav_path = "C:/Users/mahmo/OneDrive/Desktop/kuljeet/pwr data paper 2/resampled data"
+
 
 onlyfiles = [f for f in listdir(data_path) if isfile(join(data_path, f)) and '.csv' in f]
 
@@ -30,8 +32,9 @@ for counter , file in enumerate(onlyfiles):
     if counter == 0:
         df = pd.read_csv(full_path)
     else:
-        df = pd.concat([df, pd.read_csv(full_path)])#.sort_values('timestamp').reset_index(drop=True)
-    print(df)
+        df_temp = pd.read_csv(full_path)
+        df = pd.concat([df, df_temp])#.sort_values('timestamp').reset_index(drop=True)
+        print(df_temp,full_path)
 print(df.shape)
 #%%
 df.set_index(pd.to_datetime(df.timestamp), inplace=True)

@@ -41,7 +41,7 @@ class SaveBestModel(tf.keras.callbacks.Callback):
 def expand_dims(X):
     return np.expand_dims(X, axis = len(X.shape))
 #%%
-save_path = 'C:/Users/msallam/Desktop/Energy Prediction/results'
+save_path = 'C:/Users/mahmo/OneDrive/Desktop/kuljeet/results/Models'#'C:/Users/msallam/Desktop/Energy Prediction/results'
 option = 2
 X_train,y_train,X_test,y_test = get_SAMFOR_data(option)
 seq = X_train.shape[1]
@@ -56,7 +56,7 @@ X_test = expand_dims(X_test)
 adam=Adam(learning_rate=1e-3)
 rmspr = RMSprop()
 opt_chosen = rmspr
-epochs_num = 400
+epochs_num = 800
 drop_out = 0
 #model_name = "CPU_WLP_TF"
 #filepath = 'C:/Users/mahmo/OneDrive/Desktop/IS-Wireless/Code/paper_models/models/'+model_name
@@ -67,13 +67,15 @@ def get_LSTM_model(units,input_dim,output_dim):
     model.add(LSTM(units=units,  input_shape=input_dim,return_sequences = True,dropout = drop_out))
     # model.add(BatchNormalization())
     model.add(LSTM(units=units,return_sequences = True,dropout = drop_out))
+    model.add(LSTM(units=units,return_sequences = True,dropout = drop_out))
+    model.add(LSTM(units=units,return_sequences = True,dropout = drop_out))
     model.add(LSTM(units=units,return_sequences = False,dropout = drop_out))
 
     #model.add(LSTM(units=output_dim,return_sequences = False,dropout = drop_out))
     model.add(Dense(output_dim))
     return model
 #model.add(Dense(y_test.shape[-1]))
-units = 12
+units = 128
 input_dim=(X_train.shape[1],X_train.shape[2])
 output_dim = y_test.shape[-1]
 model = get_LSTM_model(units,input_dim,output_dim)
@@ -84,7 +86,7 @@ callbacks_list = [checkpoint]
 model.compile(optimizer=opt_chosen, loss='mse')
 # model.summary()
 # ,callbacks=callbacks_list
-history = model.fit(X_train, y_train, epochs=epochs_num, batch_size=64, verbose=1, shuffle=True, validation_split=0.2,callbacks=callbacks_list)
+history = model.fit(X_train, y_train, epochs=epochs_num, batch_size=1024, verbose=1, shuffle=True, validation_split=0.2,callbacks=callbacks_list)
 # model.set_weights(checkpoint.best_weights)
 # model.save(filepath)
 best_epoch = np.argmin(history.history['val_loss'])

@@ -7,9 +7,9 @@ from preprocess_data import RMSE,MAE,MAPE,get_SAMFOR_data,log_results
 from matplotlib import pyplot as plt
 # from sklearn.metrics import mean_squared_error
 from sklearn.ensemble import RandomForestRegressor
-# save_path = 'C:/Users/mahmo/OneDrive/Desktop/kuljeet/results/Models'
+save_path = 'C:/Users/mahmo/OneDrive/Desktop/kuljeet/results/Models'
 # save_path = 'C:/Users/msallam/Desktop/Kuljeet/results'
-save_path = 'C:/Users/msallam/Desktop/Energy Prediction/results'
+# save_path = 'C:/Users/msallam/Desktop/Energy Prediction/results'
 
 option = 2
 X_train,y_train,X_test,y_test = get_SAMFOR_data(option)
