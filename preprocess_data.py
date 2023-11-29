@@ -76,9 +76,9 @@ def log_results(row,datatype_opt):
 def log_results_LSTM(row):
     # save_path = 'C:/Users/msallam/Desktop/Energy Prediction/results'
     # save_path = 'C:/Users/msallam/Desktop/Kuljeet/results'
-    save_path = 'C:/Users/mahmo/OneDrive/Desktop/kuljeet/results/Models'
+    save_path = 'C:/Users/mahmo/OneDrive/Desktop/kuljeet/results/Models/LSTM_res'
     # data_type = ['1T','15T','30T']
-    save_name = 'results_LSTM.csv'
+    save_name = 'results_LSTM3.csv'
     cols = ["Algorithm", "RMSE", "MAE", "MAPE","seq","num_layers","units","best epoch","data_type"]
 
     df3 = pd.DataFrame(columns=cols)
@@ -101,7 +101,7 @@ def feature_creation(data):
     #%%
 def get_SAMFOR_data(option,datatype_opt,seq_length):
     # path = "C:/Users/msallam/Desktop/Kuljeet/"
-    path = "C:/Users/msallam/Desktop/Energy Prediction/resampled data"
+    # path = "C:/Users/msallam/Desktop/Energy Prediction/resampled data"
     path = "C:/Users/mahmo/OneDrive/Desktop/kuljeet/pwr data paper 2/resampled data"
     data_type = ['1T','15T','30T']
     data_path = os.path.join(path,data_type[datatype_opt]+'.csv')
@@ -125,11 +125,11 @@ def get_SAMFOR_data(option,datatype_opt,seq_length):
     df_array = np.array(df)
     #%%
     df_normalized = df.copy()
-    from sklearn.preprocessing import StandardScaler
-    scaler = StandardScaler()
-    scaler.fit(df_array)
-    df_normalized.iloc[:,:] = scaler.transform(df_array)
-    del df_array,df
+    # from sklearn.preprocessing import StandardScaler
+    # scaler = StandardScaler()
+    # scaler.fit(df_array)
+    # df_normalized.iloc[:,:] = scaler.transform(df_array)
+    # del df_array,df
     #%%
     # if dim>1:
     #     a = df.iloc[:train_len,0].min()
@@ -159,6 +159,7 @@ def get_SAMFOR_data(option,datatype_opt,seq_length):
     elif option==3:
         train_clf = np.array(df_normalized[:train_len])
         testset = np.array(df_normalized[train_len:])
+        dim = len(train_clf.shape)
         del df_normalized
         if dim>1:
             X_clf ,y_clf  = sliding_windows2d_lstm(train_clf, seq_length, k_step,train_clf.shape[1])

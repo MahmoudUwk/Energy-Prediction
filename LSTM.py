@@ -55,17 +55,18 @@ save_path = 'C:/Users/mahmo/OneDrive/Desktop/kuljeet/results/Models'#'C:/Users/m
 option = 3
 alg_name = 'LSTM'
 data_types = [0,1,2]
-num_layers_all = [1,2]
-num_units = [8,12,16,32,64]
+num_layers_all = [0,1,2]
+num_units = [8,16,32,64]
 seq = [6,8,10]
 for datatype_opt in data_types:
     for seq_length in seq:
         X_train,y_train,X_test,y_test = get_SAMFOR_data(option,datatype_opt,seq_length)
         seq = X_train.shape[1]
-        
-        # X_train = expand_dims(X_train)
         y_train = expand_dims(expand_dims(y_train))
-        # X_test = expand_dims(X_test)
+        if len(X_train.shape)<3:
+            X_train = expand_dims(X_train)
+            
+            X_test = expand_dims(X_test)
         # y_test = expand_dims(y_test)
         #%%
         #%% LSTM model
@@ -73,7 +74,7 @@ for datatype_opt in data_types:
         adam=Adam()#learning_rate=1e-3)
         rmspr = RMSprop()
         opt_chosen = rmspr
-        epochs_num = 400
+        epochs_num = 120
         drop_out = 0
     
     
@@ -90,7 +91,7 @@ for datatype_opt in data_types:
                 model.compile(optimizer=opt_chosen, loss='mse')
                 # model.summary()
                 # ,callbacks=callbacks_list
-                history = model.fit(X_train, y_train, epochs=epochs_num, batch_size=64, verbose=1, shuffle=True, validation_split=0.2,callbacks=callbacks_list)
+                history = model.fit(X_train, y_train, epochs=epochs_num, batch_size=256, verbose=1, shuffle=True, validation_split=0.2,callbacks=callbacks_list)
                 model.set_weights(checkpoint.best_weights)
                 # model.save(filepath)
                 best_epoch = np.argmin(history.history['val_loss'])
@@ -111,4 +112,9 @@ for datatype_opt in data_types:
                 plt.legend(['Actual','Predicted'])
                 plt.xlabel('Timestamp')
                 plt.show()
-                plt.savefig(os.path.join(save_path,'LSTM'+str(datatype_opt)+'.png'))
+                info_loop = [seq,num_layers+2,units,best_epoch,datatype_opt]
+                name_sav = ""
+                for n in info_loop:
+                    name_sav = name_sav+str(n)+"_" 
+                plt.savefig(os.path.join(save_path,'LSTM'+name_sav+'.png'))
+                plt.close()
