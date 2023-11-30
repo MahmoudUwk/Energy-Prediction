@@ -8,13 +8,14 @@ import matplotlib.pyplot as plt
 import pickle
 
 option = 0
-save_path =  'C:/Users/msallam/Desktop/Energy Prediction/results' #'C:/Users/msallam/Desktop/Kuljeet/results'
-# save_path = "C:/Users/mahmo/OneDrive/Desktop/kuljeet/results"
-train_SARIMA,train_len_LSSVR,test_len = get_SAMFOR_data(option)
+datatype_opt = 0
+seq_length = 6
+train_SARIMA,train_len_LSSVR,test_len,save_path = get_SAMFOR_data(option,datatype_opt,seq_length)
 op = 1
 if op == 1:
     print(train_SARIMA.shape)
-    model = pm.auto_arima(train_SARIMA, m=4,
+    print("training start")
+    model = pm.auto_arima(train_SARIMA, m=60,
                                   seasonal=True,
                                   trace=True,
                                   error_action='ignore',  # don't want to know if an order does not work
@@ -26,6 +27,7 @@ if op == 1:
 #%%
     # del train_SARIMA
     forecasts_linear = model.predict(train_len_LSSVR+test_len)
+    #%%
     save_name = os.path.join(save_path,'SARIMA_linear_prediction.csv')
     np.savetxt(save_name, forecasts_linear, delimiter=",")
     with open(os.path.join(save_path,'arima.pkl'), 'wb') as pkl:

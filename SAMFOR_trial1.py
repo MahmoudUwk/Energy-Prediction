@@ -10,18 +10,19 @@ import numpy as np
 from matplotlib import pyplot as plt
 import os
 from preprocess_data import RMSE,MAE,MAPE,log_results,get_SAMFOR_data
-# from lssvr import LSSVR
-save_path = 'C:/Users/msallam/Desktop/Energy Prediction/results'
+from lssvr import LSSVR
+from sklearn.svm import LinearSVR
 option = 1
-X_LSSVR,y_LSSVR,X_test,y_test = get_SAMFOR_data(option)
+datatype_opt = 0
+seq_length=6
+X_LSSVR,y_LSSVR,X_test,y_test,save_path = get_SAMFOR_data(option,datatype_opt,seq_length)
 print(X_LSSVR.shape,X_test.shape)
 opt = 0
 #%%
 if opt ==0:
-    from sklearn.svm import LinearSVR
-    alg_name ='SAMFOR_SARIMA'
-    clf = LinearSVR(C=10,epsilon=0.01,max_iter=10000)
-    # clf = LSSVR(C=1,gamma=0.001,kernel='rbf')
+    alg_name ='SAMFOR_SARIMA_LSSVR'
+    # clf = LinearSVR(C=10,epsilon=0.01,max_iter=10000)
+    clf = LSSVR(C=1,gamma=0.001,kernel='rbf')
     clf.fit(X_LSSVR, np.squeeze(y_LSSVR))
     
 else:
@@ -36,9 +37,9 @@ mae = MAE(y_test,y_test_pred)
 mape = MAPE(y_test,y_test_pred)
 print('rmse:',rmse,'||mape:',mape,'||mae:',mae)
 #%%
-seq = X_LSSVR.shape[1]-1
-row = [alg_name,rmse,mae,mape,seq]
-log_results(row)
+# seq = X_LSSVR.shape[1]-1
+row = [alg_name,rmse,mae,mape,seq_length]
+log_results(row,datatype_opt,save_path)
 #%%
 # save_path = 'C:/Users/mahmo/OneDrive/Desktop/kuljeet/results/Models'
 plt.figure(figsize=(10,5))

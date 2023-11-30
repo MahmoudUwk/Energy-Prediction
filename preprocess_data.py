@@ -56,13 +56,10 @@ def slice_data(data, seq_length,k_step):
     data_sliced = np.array(data).reshape(-1,seq_length+k_step)
     return data_sliced[:,:seq_length],np.squeeze(data_sliced[:,seq_length:seq_length+k_step])
 
-def log_results(row,datatype_opt):
-    # save_path = 'C:/Users/msallam/Desktop/Energy Prediction/results'
-    # save_path = 'C:/Users/msallam/Desktop/Kuljeet/results'
-    save_path = 'C:/Users/mahmo/OneDrive/Desktop/kuljeet/results/Models'
-    data_type = ['1T','15T','30T']
-    save_name = 'results_'+data_type[datatype_opt]+'seq.csv'
-    cols = ["Algorithm", "RMSE", "MAE", "MAPE","seq","num_layers","units"]
+def log_results(row,datatype_opt,save_path):
+    data_type = ['1s','1T','15T','30T']
+    save_name = 'results_'+data_type[datatype_opt]+'.csv'
+    cols = ["Algorithm", "RMSE", "MAE", "MAPE","seq"]
 
     df3 = pd.DataFrame(columns=cols)
     if not os.path.isfile(os.path.join(save_path,save_name)):
@@ -73,12 +70,9 @@ def log_results(row,datatype_opt):
     print(df)
     df.to_csv(os.path.join(save_path,save_name),mode='w', index=False,header=True)
     
-def log_results_LSTM(row):
-    # save_path = 'C:/Users/msallam/Desktop/Energy Prediction/results'
-    # save_path = 'C:/Users/msallam/Desktop/Kuljeet/results'
-    save_path = 'C:/Users/mahmo/OneDrive/Desktop/kuljeet/results/Models/LSTM_res'
-    # data_type = ['1T','15T','30T']
-    save_name = 'results_LSTM3.csv'
+def log_results_LSTM(row,datatype_opt,save_path):
+    data_type = ['1s','1T','15T','30T']
+    save_name = 'results_LSTM_'+data_type[datatype_opt]+'.csv'
     cols = ["Algorithm", "RMSE", "MAE", "MAPE","seq","num_layers","units","best epoch","data_type"]
 
     df3 = pd.DataFrame(columns=cols)
@@ -100,13 +94,15 @@ def feature_creation(data):
     return df
     #%%
 def get_SAMFOR_data(option,datatype_opt,seq_length):
-    # path = "C:/Users/msallam/Desktop/Kuljeet/"
-    # path = "C:/Users/msallam/Desktop/Energy Prediction/resampled data"
     path = "C:/Users/mahmo/OneDrive/Desktop/kuljeet/pwr data paper 2/resampled data"
-    data_type = ['1T','15T','30T']
+    sav_path = "C:/Users/mahmo/OneDrive/Desktop/kuljeet/results_v2"
+    data_type = ['1s','1T','15T','30T']
     data_path = os.path.join(path,data_type[datatype_opt]+'.csv')
-    SARIMA_len = 3600*2
-    percentage_data_use = 1
+    sav_path = os.path.join(sav_path,data_type[datatype_opt])
+    SARIMA_len_all = [60*12,60*12,4*60,2*120]
+    SARIMA_len = SARIMA_len_all[datatype_opt]
+    pu_all = [0.01,1,1,1]
+    percentage_data_use = pu_all[datatype_opt]
     
     df = pd.read_csv(data_path)
     df.set_index(pd.to_datetime(df.timestamp), inplace=True)
@@ -125,21 +121,13 @@ def get_SAMFOR_data(option,datatype_opt,seq_length):
     df_array = np.array(df)
     #%%
     df_normalized = df.copy()
-    # from sklearn.preprocessing import StandardScaler
-    # scaler = StandardScaler()
-    # scaler.fit(df_array)
-    # df_normalized.iloc[:,:] = scaler.transform(df_array)
-    # del df_array,df
-    #%%
-    # if dim>1:
-    #     a = df.iloc[:train_len,0].min()
-    #     b = df.iloc[:train_len,0].max()
-    # else:
-    #     a = df.iloc[:train_len].min()
-    #     b = df.iloc[:train_len].max()
-    # df_normalized = scaling_input(df,a,b)
+    from sklearn.preprocessing import MinMaxScaler
+    scaler = MinMaxScaler()
+    scaler.fit(df_array)
+    df_normalized.iloc[:,:] = scaler.transform(df_array)
+    del df_array,df
     if option == 0:
-        return df_normalized[:train_len_SARIMA],train_len_LSSVR,test_len
+        return df_normalized.iloc[:train_len_SARIMA,0],train_len_LSSVR,test_len,sav_path
     elif option==2:
         train_clf = np.array(df_normalized[:train_len])
         testset = np.array(df_normalized[train_len:])
@@ -154,7 +142,7 @@ def get_SAMFOR_data(option,datatype_opt,seq_length):
             X_test ,y_test  = sliding_windows(testset, seq_length, k_step)
 
         
-        return X_clf,np.squeeze(y_clf),X_test,np.squeeze(y_test)
+        return X_clf,np.squeeze(y_clf),X_test,np.squeeze(y_test),sav_path
 
     elif option==3:
         train_clf = np.array(df_normalized[:train_len])
@@ -171,16 +159,13 @@ def get_SAMFOR_data(option,datatype_opt,seq_length):
             X_test ,y_test  = sliding_windows(testset, seq_length, k_step)
 
         
-        return X_clf,np.squeeze(y_clf),X_test,np.squeeze(y_test)
+        return X_clf,np.squeeze(y_clf),X_test,np.squeeze(y_test),sav_path
     
     elif option==1:
-        # SARIMA_pred = os.path.join("C:/Users/mahmo/OneDrive/Desktop/kuljeet/results",'SARIMA_linear_prediction.csv')
-        SARIMA_pred = 'C:/Users/msallam/Desktop/Energy Prediction/results/SARIMA_linear_prediction.csv'
-        # SARIMA_pred = 'C:/Users/msallam/Desktop/Kuljeet/results/SARIMA_linear_prediction.csv'
+        SARIMA_pred = os.path.join(sav_path,'SARIMA_linear_prediction.csv')
         SARIMA_linear_pred = np.array(pd.read_csv(SARIMA_pred))
         train_LSSVR = np.array(df_normalized[train_len_SARIMA:train_len_SARIMA+train_len_LSSVR])
         testset = np.array(df_normalized[train_len:])
-        del df,df_normalized
         if dim>1:
             X_LSSVR ,y_LSSVR  = sliding_windows2d(train_LSSVR, seq_length, k_step,train_LSSVR.shape[1])
             X_test ,y_test  = sliding_windows2d(testset, seq_length, k_step,testset.shape[1])
@@ -192,4 +177,4 @@ def get_SAMFOR_data(option,datatype_opt,seq_length):
         X_test = np.concatenate((X_test,SARIMA_linear_pred[train_len_LSSVR+seq_length-1:train_len_LSSVR+test_len-1]),axis=1)
         del testset
         
-        return X_LSSVR,y_LSSVR,X_test,y_test
+        return X_LSSVR,y_LSSVR,X_test,y_test,sav_path

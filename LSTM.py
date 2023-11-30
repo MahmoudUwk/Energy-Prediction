@@ -43,25 +43,24 @@ def expand_dims(X):
 def get_LSTM_model(units,input_dim,output_dim,num_layers):
     
     model = Sequential()
-    model.add(LSTM(units=units,  input_shape=input_dim,return_sequences = True,dropout = drop_out))
+    model.add(LSTM(units=units,  input_shape=input_dim,return_sequences = True))
     # model.add(BatchNormalization())
     for dummy in range(num_layers):
-        model.add(LSTM(units=units,return_sequences = True,dropout = drop_out))
-    model.add(LSTM(units=units,return_sequences = False,dropout = drop_out))  
+        model.add(LSTM(units=units,return_sequences = True))
+    model.add(LSTM(units=units,return_sequences = True))  
+    model.add(Dense(units,activation='relu'))
     model.add(Dense(output_dim))
     return model
 #%%
-save_path = 'C:/Users/mahmo/OneDrive/Desktop/kuljeet/results/Models'#'C:/Users/msallam/Desktop/Energy Prediction/results'
 option = 3
 alg_name = 'LSTM'
-data_types = [0,1,2]
-num_layers_all = [0,1,2]
-num_units = [8,16,32,64]
-seq = [6,8,10]
+data_types = [0]
+num_layers_all = [0]
+num_units = [8]
+seq_all = [6]
 for datatype_opt in data_types:
-    for seq_length in seq:
-        X_train,y_train,X_test,y_test = get_SAMFOR_data(option,datatype_opt,seq_length)
-        seq = X_train.shape[1]
+    for seq in seq_all:
+        X_train,y_train,X_test,y_test,save_path = get_SAMFOR_data(option,datatype_opt,seq)
         y_train = expand_dims(expand_dims(y_train))
         if len(X_train.shape)<3:
             X_train = expand_dims(X_train)
@@ -71,12 +70,11 @@ for datatype_opt in data_types:
         #%%
         #%% LSTM model
         #units = 5
-        adam=Adam()#learning_rate=1e-3)
+        adam=Adam(learning_rate=2e-3)
         rmspr = RMSprop()
-        opt_chosen = rmspr
-        epochs_num = 120
+        opt_chosen = adam
+        epochs_num = 900
         drop_out = 0
-    
     
         input_dim=(X_train.shape[1],X_train.shape[2])
         output_dim = y_train.shape[-1]
@@ -91,7 +89,7 @@ for datatype_opt in data_types:
                 model.compile(optimizer=opt_chosen, loss='mse')
                 # model.summary()
                 # ,callbacks=callbacks_list
-                history = model.fit(X_train, y_train, epochs=epochs_num, batch_size=256, verbose=1, shuffle=True, validation_split=0.2,callbacks=callbacks_list)
+                history = model.fit(X_train, y_train, epochs=epochs_num, batch_size=1024, verbose=1, shuffle=True, validation_split=0.2,callbacks=callbacks_list)
                 model.set_weights(checkpoint.best_weights)
                 # model.save(filepath)
                 best_epoch = np.argmin(history.history['val_loss'])
@@ -104,7 +102,7 @@ for datatype_opt in data_types:
                 
                 
                 row = [alg_name,rmse,mae,mape,seq,num_layers+2,units,best_epoch,datatype_opt]
-                log_results_LSTM(row)
+                log_results_LSTM(row,datatype_opt,save_path)
                 #%%
                 plt.figure(figsize=(10,5))
                 plt.plot(np.squeeze(y_test), color = 'red', linewidth=2.0, alpha = 0.6)
