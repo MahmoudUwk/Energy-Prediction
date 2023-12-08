@@ -25,6 +25,9 @@ def sliding_windows(data, seq_length, k_step):
         y[ind,:] = data[ind+seq_length:ind+seq_length+k_step]
     return x,y
 
+def expand_dims(X):
+    return np.expand_dims(X, axis = len(X.shape))
+
 def sliding_windows2d(data, seq_length, k_step,num_feat):
     x = np.zeros((len(data)-seq_length-k_step+1,seq_length*num_feat))
     y = np.zeros((len(data)-seq_length-k_step+1,k_step))
@@ -45,6 +48,20 @@ def sliding_windows2d_lstm(data, seq_length, k_step,num_feat):
         x[ind,:,:] = np.squeeze(data[ind:ind+seq_length,:])
         #print(data[ind+seq_length:ind+seq_length+k_step])
         y[ind] = data[ind+seq_length:ind+seq_length+k_step,0]
+    return x,y
+
+def sliding_windows2d_lstm_arima(data, seq_length, k_step,num_feat,P_arima,Q_arima,V_arima,I_arima):
+    x = np.zeros((len(data)-seq_length-k_step+1,seq_length+1,num_feat))
+    y = np.zeros((len(data)-seq_length-k_step+1,k_step))
+    #print(x.shape,y.shape)
+    for ind in range(len(x)):
+        #print((i,(i+seq_length)))
+        one_step = np.arange(ind+seq_length,ind+seq_length+k_step)
+        arima_step = np.append(np.array([P_arima[one_step],Q_arima[one_step],V_arima[one_step],I_arima[one_step]]),np.squeeze(data[one_step,4:]))
+        arima_step = np.expand_dims(arima_step, axis = 0)
+        x[ind,:,:] = np.concatenate((np.squeeze(data[ind:ind+seq_length,:]),arima_step),axis=0)
+        #print(data[ind+seq_length:ind+seq_length+k_step])
+        y[ind] = data[one_step,0]
     return x,y
 
 def slice_data(data, seq_length,k_step):
@@ -96,12 +113,13 @@ def feature_creation(data):
 def get_SAMFOR_data(option,datatype_opt,seq_length):
     path = "C:/Users/mahmo/OneDrive/Desktop/kuljeet/pwr data paper 2/resampled data"
     sav_path = "C:/Users/mahmo/OneDrive/Desktop/kuljeet/results_v2"
-    data_type = ['1s','1T','15T','30T']
+    data_type = ['1s_frac','1T','15T','30T']
+    data_sav= ['1s','1T','15T','30T']
     data_path = os.path.join(path,data_type[datatype_opt]+'.csv')
-    sav_path = os.path.join(sav_path,data_type[datatype_opt])
+    sav_path = os.path.join(sav_path,data_sav[datatype_opt])
     SARIMA_len_all = [60*12,60*12,4*60,2*120]
     SARIMA_len = SARIMA_len_all[datatype_opt]
-    pu_all = [0.01,1,1,1]
+    pu_all = [1,1,1,1]
     percentage_data_use = pu_all[datatype_opt]
     
     df = pd.read_csv(data_path)
@@ -127,7 +145,7 @@ def get_SAMFOR_data(option,datatype_opt,seq_length):
     df_normalized.iloc[:,:] = scaler.transform(df_array)
     del df_array,df
     if option == 0:
-        return df_normalized.iloc[:train_len_SARIMA,0],train_len_LSSVR,test_len,sav_path
+        return df_normalized.iloc[:train_len_SARIMA,:],train_len_LSSVR,test_len,sav_path
     elif option==2:
         train_clf = np.array(df_normalized[:train_len])
         testset = np.array(df_normalized[train_len:])
@@ -161,9 +179,33 @@ def get_SAMFOR_data(option,datatype_opt,seq_length):
         
         return X_clf,np.squeeze(y_clf),X_test,np.squeeze(y_test),sav_path
     
+    elif option==4:
+        ind_train = np.arange(train_len_SARIMA,train_len_SARIMA+train_len_LSSVR)
+        train_clf = np.array(df_normalized.iloc[ind_train,:])
+        sarima_ind = np.arange(0,len(ind_train))
+        # sarima_ind_test = np.arange(train_len_LSSVR+seq_length-1,train_len_LSSVR+test_len-1)
+        testset = np.array(df_normalized[train_len:])
+        dim = len(train_clf.shape)
+        feats = ['P', 'Q', 'V', 'I']
+        read_path = 'C:/Users/mahmo/OneDrive/Desktop/kuljeet/results_v2\\1s'
+        P_arima = pd.read_csv(os.path.join(read_path,'SARIMA_prediction_'+feats[0]+'_.csv'),header=None).to_numpy().squeeze()
+        Q_arima = pd.read_csv(os.path.join(read_path,'SARIMA_prediction_'+feats[1]+'_.csv'),header=None).to_numpy().squeeze()
+        V_arima = pd.read_csv(os.path.join(read_path,'SARIMA_prediction_'+feats[2]+'_.csv'),header=None).to_numpy().squeeze()
+        I_arima = pd.read_csv(os.path.join(read_path,'SARIMA_prediction_'+feats[3]+'_.csv'),header=None).to_numpy().squeeze()
+        
+        # del df_normalized
+
+        X_clf ,y_clf  = sliding_windows2d_lstm_arima(train_clf, seq_length, k_step,train_clf.shape[1],P_arima[sarima_ind],Q_arima[sarima_ind],V_arima[sarima_ind],I_arima[sarima_ind])
+    
+        X_test ,y_test  = sliding_windows2d_lstm_arima(testset, seq_length, k_step,testset.shape[1],P_arima[len(ind_train):],Q_arima[len(ind_train):],V_arima[len(ind_train):],I_arima[len(ind_train):])
+
+
+        
+        return X_clf,np.squeeze(y_clf),X_test,np.squeeze(y_test),sav_path
+    
     elif option==1:
-        SARIMA_pred = os.path.join(sav_path,'SARIMA_linear_prediction.csv')
-        SARIMA_linear_pred = np.array(pd.read_csv(SARIMA_pred))
+        read_path = 'C:/Users/mahmo/OneDrive/Desktop/kuljeet/results_v2\\1s'
+        SARIMA_linear_pred = pd.read_csv(os.path.join(read_path,'SARIMA_prediction_P_.csv'),header=None).to_numpy().squeeze()
         train_LSSVR = np.array(df_normalized[train_len_SARIMA:train_len_SARIMA+train_len_LSSVR])
         testset = np.array(df_normalized[train_len:])
         if dim>1:
