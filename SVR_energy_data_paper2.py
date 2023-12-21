@@ -8,11 +8,11 @@ from matplotlib import pyplot as plt
 # from sklearn.metrics import mean_squared_error
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.neural_network import MLPRegressor
-from preprocess_data import RMSE,MAE,MAPE,get_SAMFOR_data,log_results
+from preprocess_data import RMSE,MAE,MAPE,get_SAMFOR_data,log_results,log_results_HOME_C
 
 option = 2
-datatype_opt=0
-seq=6
+datatype_opt=4
+seq=10
 X_train,y_train,X_test,y_test,save_path = get_SAMFOR_data(option,datatype_opt,seq)
 print(X_train.shape,X_test.shape)
 #%%
@@ -36,8 +36,12 @@ mape = MAPE(y_test,y_test_pred)
 print(rmse,mae,mape)
 #%%
 alg_name = 'RFR'
-row = [alg_name,rmse,mae,mape,seq]
-log_results(row,datatype_opt,save_path)
+if datatype_opt == 4:
+    row = [alg_name,rmse,mae,mape,seq,0,0,0,datatype_opt]
+    log_results_HOME_C(row,datatype_opt,save_path)
+else:
+    row = [alg_name,rmse,mae,mape,seq]
+    log_results(row,datatype_opt,save_path)
 #%%
 
 new_clf = SVR(C=10, epsilon=0.01,kernel='rbf')
@@ -59,8 +63,13 @@ mape = MAPE(y_test,y_test_pred)
 print(rmse,mae,mape)
 #%%
 alg_name = 'SVR'
-row = [alg_name,rmse,mae,mape,seq]
-log_results(row,datatype_opt,save_path)
+if datatype_opt == 4:
+    row = [alg_name,rmse,mae,mape,seq,0,0,0,datatype_opt]
+    log_results_HOME_C(row,datatype_opt,save_path)
+else:
+    row = [alg_name,rmse,mae,mape,seq]
+    log_results(row,datatype_opt,save_path)
+
 #%%
 
 new_clf =  MLPRegressor(max_iter=500)
@@ -82,5 +91,9 @@ mape = MAPE(y_test,y_test_pred)
 print(rmse,mae,mape)
 
 alg_name = 'MLP sklearn'
-row = [alg_name,rmse,mae,mape,seq]
-log_results(row,datatype_opt,save_path)
+if datatype_opt == 4:
+    row = [alg_name,rmse,mae,mape,seq,0,0,0,datatype_opt]
+    log_results_HOME_C(row,datatype_opt,save_path)
+else:
+    row = [alg_name,rmse,mae,mape,seq]
+    log_results(row,datatype_opt,save_path)

@@ -89,6 +89,7 @@ def get_LSTM_model(input_dim,output_dim,units,num_layers, name='model_LSTM_PSO')
     model.add(Flatten())
     model.add(Dense(output_dim))
     # model.compile(loss='categorical_crossentropy',optimizer='adam',metrics=['accuracy'])
+    # model.compile(optimizer=adam, loss='mse')
     return model
 #%%
 n_layers = 0

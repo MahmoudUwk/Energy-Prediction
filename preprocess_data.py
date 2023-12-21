@@ -73,6 +73,38 @@ def slice_data(data, seq_length,k_step):
     data_sliced = np.array(data).reshape(-1,seq_length+k_step)
     return data_sliced[:,:seq_length],np.squeeze(data_sliced[:,seq_length:seq_length+k_step])
 
+def load_home_C_data():
+    data2_home_path = 'C:/Users/mahmo/OneDrive/Desktop/kuljeet/HomeC.csv'
+    sav_path = "C:/Users/mahmo/OneDrive/Desktop/kuljeet/results_v2/HomeC_results"
+    data_path = os.path.join(data2_home_path)
+
+    data = pd.read_csv(data_path)[:-1]
+    data['time'] = pd.to_datetime(data['time'], unit='s')
+    data['time'] = pd.DatetimeIndex(pd.date_range('2016-01-01 05:00', periods=len(data),  freq='min'))
+    data = data.set_index('time')
+    data.columns = [i.replace(' [kW]', '') for i in data.columns]
+    data['Furnace'] = data[['Furnace 1','Furnace 2']].sum(axis=1)
+    data['Kitchen'] = data[['Kitchen 12','Kitchen 14','Kitchen 38']].sum(axis=1) #We could also use the mean 
+    data.drop(['Furnace 1','Furnace 2','Kitchen 12','Kitchen 14','Kitchen 38','icon','summary'], axis=1, inplace=True)
+
+    #Replace invalid values in column 'cloudCover' with backfill method
+    data['cloudCover'].replace(['cloudCover'], method='bfill', inplace=True)
+    data['cloudCover'] = data['cloudCover'].astype('float')
+
+    #Reorder columns
+    data = data[['use', 'gen', 'House overall', 'Dishwasher', 'Home office', 'Fridge', 'Wine cellar', 'Garage door', 'Barn',
+                 'Well', 'Microwave', 'Living room', 'Furnace', 'Kitchen', 'Solar', 'temperature', 'humidity', 'visibility', 
+                 'apparentTemperature', 'pressure', 'windSpeed', 'cloudCover', 'windBearing', 'precipIntensity', 
+                 'dewPoint', 'precipProbability']]
+    data.drop(['use', 'gen'], axis=1, inplace=True)
+    data['month'] = data.index.month
+    data['day'] = data.index.day
+    data['weekday'] = data.index.dayofweek
+    data['hour'] = data.index.hour
+    data['minute'] = data.index.minute
+    
+    return data.resample('d').mean(),sav_path
+
 def log_results(row,datatype_opt,save_path):
     data_type = ['1s','1T','15T','30T']
     save_name = 'results_'+data_type[datatype_opt]+'.csv'
@@ -100,6 +132,19 @@ def log_results_LSTM(row,datatype_opt,save_path):
     df.loc[len(df)] = row
     print(df)
     df.to_csv(os.path.join(save_path,save_name),mode='w', index=False,header=True)
+    
+def log_results_HOME_C(row,datatype_opt,save_path):
+    save_name = 'Home_C.csv'
+    cols = ["Algorithm", "RMSE", "MAE", "MAPE","seq","num_layers","units","best epoch","data_type"]
+
+    df3 = pd.DataFrame(columns=cols)
+    if not os.path.isfile(os.path.join(save_path,save_name)):
+        df3.to_csv(os.path.join(save_path,save_name),index=False)
+        
+    df = pd.read_csv(os.path.join(save_path,save_name))
+    df.loc[len(df)] = row
+    print(df)
+    df.to_csv(os.path.join(save_path,save_name),mode='w', index=False,header=True)
     #%%
 def feature_creation(data):
     df = data.copy()
@@ -110,21 +155,34 @@ def feature_creation(data):
     # df['W'] = data.index.week
     return df
     #%%
-def get_SAMFOR_data(option,datatype_opt,seq_length):
+    
+def get_Hzdata(datatype_opt):
     path = "C:/Users/mahmo/OneDrive/Desktop/kuljeet/pwr data paper 2/resampled data"
     sav_path = "C:/Users/mahmo/OneDrive/Desktop/kuljeet/results_v2"
     data_type = ['1s_frac','1T','15T','30T']
     data_sav= ['1s','1T','15T','30T']
     data_path = os.path.join(path,data_type[datatype_opt]+'.csv')
-    sav_path = os.path.join(sav_path,data_sav[datatype_opt])
-    SARIMA_len_all = [60*12,60*12,4*60,2*120]
-    SARIMA_len = SARIMA_len_all[datatype_opt]
-    pu_all = [1,1,1,1]
-    percentage_data_use = pu_all[datatype_opt]
     
     df = pd.read_csv(data_path)
     df.set_index(pd.to_datetime(df.timestamp), inplace=True)
     df.drop(columns=["timestamp"], inplace=True)
+    
+    
+    sav_path = os.path.join(sav_path,data_sav[datatype_opt])
+    return df,sav_path
+    
+def get_SAMFOR_data(option,datatype_opt,seq_length):
+    
+    if datatype_opt == 4:
+        df,sav_path = load_home_C_data()
+    else:
+        df,sav_path = get_Hzdata(datatype_opt)
+    SARIMA_len_all = [60*12,60*12,4*60,2*120,60*24]
+    SARIMA_len = SARIMA_len_all[datatype_opt]
+    pu_all = [1,1,1,1,1]
+    percentage_data_use = pu_all[datatype_opt]
+    
+
  
     k_step = 1
     df = df[:int(len(df)*percentage_data_use)]
@@ -134,7 +192,8 @@ def get_SAMFOR_data(option,datatype_opt,seq_length):
     train_len_SARIMA = SARIMA_len #int(SARIMA_per*train_len)
     train_len_LSSVR = train_len-train_len_SARIMA
     test_len = len_data - train_len
-    df = feature_creation(df)
+    if datatype_opt != 4:
+        df = feature_creation(df)
     dim = df.ndim
     df_array = np.array(df)
     #%%
@@ -187,7 +246,7 @@ def get_SAMFOR_data(option,datatype_opt,seq_length):
         testset = np.array(df_normalized[train_len:])
         dim = len(train_clf.shape)
         feats = ['P', 'Q', 'V', 'I']
-        read_path = 'C:/Users/mahmo/OneDrive/Desktop/kuljeet/results_v2\\1s'
+        read_path = 'C:/Users/mahmo/OneDrive/Desktop/kuljeet/results_v2//1s'
         P_arima = pd.read_csv(os.path.join(read_path,'SARIMA_prediction_'+feats[0]+'_.csv'),header=None).to_numpy().squeeze()
         Q_arima = pd.read_csv(os.path.join(read_path,'SARIMA_prediction_'+feats[1]+'_.csv'),header=None).to_numpy().squeeze()
         V_arima = pd.read_csv(os.path.join(read_path,'SARIMA_prediction_'+feats[2]+'_.csv'),header=None).to_numpy().squeeze()
@@ -204,7 +263,7 @@ def get_SAMFOR_data(option,datatype_opt,seq_length):
         return X_clf,np.squeeze(y_clf),X_test,np.squeeze(y_test),sav_path
     
     elif option==1:
-        read_path = 'C:/Users/mahmo/OneDrive/Desktop/kuljeet/results_v2\\1s'
+        read_path = 'C:/Users/mahmo/OneDrive/Desktop/kuljeet/results_v2//1s'
         SARIMA_linear_pred = pd.read_csv(os.path.join(read_path,'SARIMA_prediction_P_.csv'),header=None).to_numpy().squeeze()
         train_LSSVR = np.array(df_normalized[train_len_SARIMA:train_len_SARIMA+train_len_LSSVR])
         testset = np.array(df_normalized[train_len:])

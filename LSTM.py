@@ -13,7 +13,7 @@ from keras.optimizers import Adam,RMSprop
 from keras.callbacks import ModelCheckpoint
 import tensorflow as tf
 import os
-from preprocess_data import RMSE,MAE,MAPE,get_SAMFOR_data,log_results_LSTM
+from preprocess_data import RMSE,MAE,MAPE,get_SAMFOR_data,log_results_LSTM,log_results_HOME_C
 # from sklearn.datasets import fetch_openml
 columns=['Steps', 'LSTM Units', 'RMSE','NRMSE', 'Best Epoch', 'Num epochs','seq_length']
 
@@ -67,11 +67,11 @@ def get_BiLSTM_model(units,input_dim,output_dim,num_layers):
     return model
 #%%
 option = 3
-alg_name = 'LSTM'
-data_types = [0]
-num_layers_all = [0]
-num_units = [10]
-seq_all = [10]
+alg_name = 'LSTM_data_daily'
+data_types = [4]
+num_layers_all = [0,1,2]
+num_units = [40,50,60,70]
+seq_all = [6,8,10,12,14,16,20]
 for datatype_opt in data_types:
     for seq in seq_all:
         X_train,y_train,X_test,y_test,save_path = get_SAMFOR_data(option,datatype_opt,seq)
@@ -86,7 +86,7 @@ for datatype_opt in data_types:
         #%%
         #%% LSTM model
         #units = 5
-        adam=Adam(learning_rate=2e-3)
+        adam=Adam(learning_rate=1e-3)
         rmspr = RMSprop()
         opt_chosen = adam
         epochs_num = 2500
@@ -107,7 +107,7 @@ for datatype_opt in data_types:
                 model.compile(optimizer=opt_chosen, loss='mse')
                 # model.summary()
                 # ,callbacks=callbacks_list
-                history = model.fit(X_train, y_train, epochs=epochs_num, batch_size=2048, verbose=1, shuffle=True, validation_split=0.2,callbacks=callbacks_list)
+                history = model.fit(X_train, y_train, epochs=epochs_num, batch_size=512, verbose=1, shuffle=True, validation_split=0.2,callbacks=callbacks_list)
                 model.set_weights(checkpoint.best_weights)
                 # model.save(filepath)
                 best_epoch = np.argmin(history.history['val_loss'])
@@ -120,7 +120,10 @@ for datatype_opt in data_types:
                 
                 
                 row = [alg_name,rmse,mae,mape,seq,num_layers+2,units,best_epoch,datatype_opt]
-                log_results_LSTM(row,datatype_opt,save_path)
+                if datatype_opt == 4:
+                    log_results_HOME_C(row,datatype_opt,save_path)
+                else:
+                    log_results_LSTM(row,datatype_opt,save_path)
                 #%%
                 plt.figure(figsize=(10,5))
                 plt.plot(np.squeeze(y_test), color = 'red', linewidth=2.0, alpha = 0.6)

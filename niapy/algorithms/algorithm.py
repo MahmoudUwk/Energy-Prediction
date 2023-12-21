@@ -311,7 +311,7 @@ class Algorithm:
             yield xb, fxb
         while True:
             pop, fpop, xb, fxb, params = self.run_iteration(task, pop, fpop, xb, fxb, **params)
-            yield xb, fxb
+            yield xb, fxb,pop,fpop
 
     def run_task(self, task):
         r"""Start the optimization.
@@ -330,9 +330,32 @@ class Algorithm:
         """
         algo, xb, fxb = self.iteration_generator(task), None, np.inf
         while not task.stopping_condition():
-            xb, fxb = next(algo)
+            xb, fxb,pop,fpop = next(algo)
             task.next_iter()
-        return xb, fxb
+        return xb, fxb,pop,fpop
+
+    def run_task_mod_mahmoud(self, task):
+        r"""Start the optimization.
+
+        Args:
+            task (Task): Task with bounds and objective function for optimization.
+
+        Returns:
+            Tuple[numpy.ndarray, float]:
+                1. Best individuals components found in optimization process.
+                2. Best fitness value found in optimization process.
+
+        See Also:
+            * :func:`niapy.algorithms.Algorithm.iteration_generator`
+
+        """
+        algo, xb, fxb = self.iteration_generator(task), None, np.inf
+
+        while not task.stopping_condition():
+            xb, fxb,pop,fpop = next(algo)
+
+            task.next_iter()
+        return xb, fxb,pop,fpop
 
     def run(self, task):
         r"""Start the optimization.
@@ -350,8 +373,8 @@ class Algorithm:
 
         """
         try:
-            r = self.run_task(task)
-            return r[0], r[1] * task.optimization_type.value
+            r = self.run_task_mod_mahmoud(task)
+            return r[0], r[1] * task.optimization_type.value,r[2],r[3]
         except BaseException as e:
             if threading.current_thread() == threading.main_thread() and multiprocessing.current_process().name == 'MainProcess':
                 raise e

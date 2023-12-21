@@ -127,25 +127,16 @@ class Mod_FireflyAlgorithm(Algorithm):
         })
         return params
     
-    # def FindLimits(self, k,task):
-    #     for i in range(task.dimension):
-    #         if self.Fireflies[k][i] < task.lower[i]:
-    #             self.Fireflies[k][i] = task.lower[i]
-    #         if self.Fireflies[k][i] > task.upper[i]:
-    #             self.Fireflies[k][i] = task.upper[i]
+
 
     def init_ffa(self,task):
         Fireflies = np.zeros((self.population_size,task.dimension))
-        Fitness = np.zeros((self.population_size))
-        I = np.zeros((self.population_size))
+        Fitness = np.ones((self.population_size))
         for j in range(task.dimension):
             Fireflies[0][j] = random.uniform(0, 1) * (task.upper[j]- task.lower[j]) + task.lower[j] #X0
         for i in range(1,self.population_size):
             Fireflies[i] = self.eta * Fireflies[i-1] * (1-Fireflies[i-1]) #logistic map
-            # self.FindLimits(i,task)
-            Fitness[i] = 1.0  # initialize attractiveness
-            I[i] = Fitness[i]
-        return Fireflies,I
+        return Fireflies,Fitness
             
     def init_population(self, task):
         r"""Initialize the starting population.
@@ -165,7 +156,7 @@ class Mod_FireflyAlgorithm(Algorithm):
 
         """
         fireflies, intensity = self.init_ffa(task)
-        print("init_population function")
+        # print("init_population function")
         # fireflies, intensity, _ = super().init_population(task)
         return fireflies, intensity, {'dummy': 0}
 
@@ -196,7 +187,7 @@ class Mod_FireflyAlgorithm(Algorithm):
         # alpha_0 = params.pop('alpha_0') * self.theta
         alpha = self.alpha_0 * self.theta
         self.theta = self.theta*self.theta
-        print(self.theta)
+        # print(self.theta)
         if self.beta_chaos == 0:
             self.beta_chaos = 0
         else:             
@@ -205,15 +196,13 @@ class Mod_FireflyAlgorithm(Algorithm):
             for j in range(self.population_size):
                 if population_fitness[i] >= population_fitness[j]:
                     rij_2 = euclidean(population[i], population[j])
-                    # beta = self.beta0 * np.exp(-self.gamma_sym * r ** 2)
                     beta = (self.beta_chaos - self.beta0) * math.exp(-self.gamma_sym*rij_2) + self.beta0
                     levy_step = np.random.normal(0,self.sigma_u,task.dimension) / (np.abs((np.random.normal(0,self.sigma_v,task.dimension)))**(1/self.tau))
-                    # steps = alpha * (self.random(task.dimension) - 0.5) * task.range
-                    print(levy_step,task.range)
                     steps = alpha * (self.random(task.dimension) - 0.5) * levy_step
                     population[i] += beta * (population[j] - population[i]) + steps
                     population[i] = task.repair(population[i])
                     population_fitness[i] = task.eval(population[i])
+                    print('Fitness ',population_fitness[i])
                     best_x, best_fitness = self.get_best(population, population_fitness, best_x, best_fitness)
 
         return population, population_fitness, best_x, best_fitness, {'alpha': alpha}
