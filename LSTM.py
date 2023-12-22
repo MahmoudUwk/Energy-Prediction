@@ -46,7 +46,7 @@ def get_LSTM_model(units,input_dim,output_dim,num_layers):
     model.add(LSTM(units=units,  input_shape=input_dim,return_sequences = True,dropout=do))
     # model.add(BatchNormalization())
     for dummy in range(num_layers):
-        model.add(LSTM(units=units,return_sequences = True,dropout=do))
+        model.add(LSTM(units=units,return_sequences = True))
     # model.add(LSTM(units=units,return_sequences = True))  
     model.add(tf.keras.layers.Flatten())
     # model.add(Dense(units,activation='relu'))
@@ -67,11 +67,11 @@ def get_BiLSTM_model(units,input_dim,output_dim,num_layers):
     return model
 #%%
 option = 3
-alg_name = 'LSTM_data_daily'
-data_types = [4]
-num_layers_all = [0,1,2]
-num_units = [40,50,60,70]
-seq_all = [6,8,10,12,14,16,20]
+alg_name = 'LSTM'
+data_types = [0]
+num_layers_all = [0]
+num_units = [15]
+seq_all = [7]
 for datatype_opt in data_types:
     for seq in seq_all:
         X_train,y_train,X_test,y_test,save_path = get_SAMFOR_data(option,datatype_opt,seq)
@@ -86,10 +86,10 @@ for datatype_opt in data_types:
         #%%
         #%% LSTM model
         #units = 5
-        adam=Adam(learning_rate=1e-3)
-        rmspr = RMSprop()
+        adam=Adam(learning_rate=0.0010540494547447551)
+        # rmspr = RMSprop()
         opt_chosen = adam
-        epochs_num = 2500
+        epochs_num = 1500
         drop_out = 0
     
         input_dim=(X_train.shape[1],X_train.shape[2])
@@ -119,7 +119,7 @@ for datatype_opt in data_types:
                 print(rmse,mae,mape)
                 
                 
-                row = [alg_name,rmse,mae,mape,seq,num_layers+2,units,best_epoch,datatype_opt]
+                row = [alg_name,rmse,mae,mape,seq,num_layers+1,units,best_epoch,datatype_opt]
                 if datatype_opt == 4:
                     log_results_HOME_C(row,datatype_opt,save_path)
                 else:
