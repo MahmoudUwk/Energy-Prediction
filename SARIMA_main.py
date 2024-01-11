@@ -9,12 +9,12 @@ import pickle
 
 option = 0
 datatype_opt = 0
-seq_length = 6
-train_SARIMA_all,train_len_LSSVR,test_len,save_path = get_SAMFOR_data(option,datatype_opt,seq_length)
+seq_length = 7
+train_SARIMA_all,train_len_LSSVR,test_len,save_path,time_axis = get_SAMFOR_data(option,datatype_opt,seq_length)
 print(train_SARIMA_all.columns)
 # feats = ['P', 'Q', 'V', 'I']
 #P (order=(2,0,0), seasonal_order=(1, 1, 1, 60),verbose=2)
-feats = ['Q', 'V', 'I']
+feats = ['P']
 for feat in feats:
     # train_SARIMA = train_SARIMA_all[feat]
     #%%

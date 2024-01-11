@@ -12,7 +12,17 @@ def MAE(test,pred):
     return np.mean(np.abs(np.squeeze(pred) - np.squeeze(test)))
 
 def MAPE(test,pred):
-    return np.mean(np.abs(np.squeeze(pred) - np.squeeze(test))/np.abs(np.squeeze(test)))
+    ind = np.where(test!=0)[0].flatten()
+    return 100*np.mean(np.abs(np.squeeze(pred[ind]) - np.squeeze(test[ind]))/np.abs(np.squeeze(test[ind])))
+
+def inverse_transf(X,scaler):
+    return np.array((X *(scaler.data_max_[0]-scaler.data_min_[0]) )+scaler.data_min_[0])
+
+def expand_dims(X):
+    return np.expand_dims(X, axis = len(X.shape))
+
+def expand_dims_first(x):
+    return np.expand_dims(x,axis=0)
 
 def sliding_windows(data, seq_length, k_step):
     x = np.zeros((len(data)-seq_length-k_step+1,seq_length))
@@ -25,8 +35,7 @@ def sliding_windows(data, seq_length, k_step):
         y[ind,:] = data[ind+seq_length:ind+seq_length+k_step]
     return x,y
 
-def expand_dims(X):
-    return np.expand_dims(X, axis = len(X.shape))
+
 
 def sliding_windows2d(data, seq_length, k_step,num_feat):
     x = np.zeros((len(data)-seq_length-k_step+1,seq_length*num_feat))
@@ -50,6 +59,24 @@ def sliding_windows2d_lstm(data, seq_length, k_step,num_feat):
         y[ind] = data[ind+seq_length:ind+seq_length+k_step,0]
     return x,y
 
+
+def sliding_windows_walk(data,seq_length,k_walk):
+    ind = 0
+    y = []
+    x = []
+    flag = True
+    while flag:
+        pos = ind*k_walk
+        flag = pos+seq_length<=data.shape[0]
+        if flag:
+            x.append(np.squeeze(data[pos:pos+seq_length,:]))
+            y.append(data[pos+seq_length,0])
+
+        ind+=1
+    y = np.array(y)
+    x = np.array(x)
+    return x,y
+
 def sliding_windows2d_lstm_arima(data, seq_length, k_step,num_feat,P_arima,Q_arima,V_arima,I_arima):
     x = np.zeros((len(data)-seq_length-k_step+1,seq_length+1,num_feat))
     y = np.zeros((len(data)-seq_length-k_step+1,k_step))
@@ -63,6 +90,20 @@ def sliding_windows2d_lstm_arima(data, seq_length, k_step,num_feat,P_arima,Q_ari
         #print(data[ind+seq_length:ind+seq_length+k_step])
         y[ind] = data[one_step,0]
     return x,y
+
+def plot_test(test_time,y_test,y_test_pred,path,alg_name):
+    from matplotlib import pyplot as plt
+    scale_mv = 1000
+    plt.figure(figsize=(10,7),dpi=180)
+    plt.plot(test_time,scale_mv*y_test, color = 'red', linewidth=2.0, alpha = 0.6)
+    plt.plot(test_time,scale_mv*y_test_pred, color = 'blue', linewidth=0.8)
+    plt.legend(['Actual','Predicted'])
+    plt.xlabel('Timestamp')
+    plt.ylabel('mW')
+    plt.title('Energy Prediction using '+alg_name)
+    plt.xticks( rotation=25 )
+    plt.show()
+    plt.savefig(path)
 
 def slice_data(data, seq_length,k_step):
     #if the data is not divisable by the seq_length+k_step, remove the last few values to make it divisable,...
@@ -108,7 +149,7 @@ def load_home_C_data():
 def log_results(row,datatype_opt,save_path):
     data_type = ['1s','1T','15T','30T']
     save_name = 'results_'+data_type[datatype_opt]+'.csv'
-    cols = ["Algorithm", "RMSE", "MAE", "MAPE","seq"]
+    cols = ["Algorithm", "RMSE", "MAE", "MAPE(%)","seq","train_time(min)","test_time(s)"]
 
     df3 = pd.DataFrame(columns=cols)
     if not os.path.isfile(os.path.join(save_path,save_name)):
@@ -120,9 +161,9 @@ def log_results(row,datatype_opt,save_path):
     df.to_csv(os.path.join(save_path,save_name),mode='w', index=False,header=True)
     
 def log_results_LSTM(row,datatype_opt,save_path):
-    data_type = ['1s','1T','15T','30T']
+    data_type = ['1s','1T','15T','30T','home','1s']
     save_name = 'results_LSTM_'+data_type[datatype_opt]+'.csv'
-    cols = ["Algorithm", "RMSE", "MAE", "MAPE","seq","num_layers","units","best epoch","data_type"]
+    cols = ["Algorithm", "RMSE", "MAE", "MAPE(%)","seq","num_layers","units","best epoch","data_type","train_time(min)","test_time(s)"]
 
     df3 = pd.DataFrame(columns=cols)
     if not os.path.isfile(os.path.join(save_path,save_name)):
@@ -135,7 +176,7 @@ def log_results_LSTM(row,datatype_opt,save_path):
     
 def log_results_HOME_C(row,datatype_opt,save_path):
     save_name = 'Home_C.csv'
-    cols = ["Algorithm", "RMSE", "MAE", "MAPE","seq","num_layers","units","best epoch","data_type"]
+    cols = ["Algorithm", "RMSE", "MAE", "MAPE(%)","seq","num_layers","units","best epoch","data_type"]
 
     df3 = pd.DataFrame(columns=cols)
     if not os.path.isfile(os.path.join(save_path,save_name)):
@@ -159,30 +200,30 @@ def feature_creation(data):
 def get_Hzdata(datatype_opt):
     path = "C:/Users/mahmo/OneDrive/Desktop/kuljeet/pwr data paper 2/resampled data"
     sav_path = "C:/Users/mahmo/OneDrive/Desktop/kuljeet/results_v2"
-    data_type = ['1s_frac','1T','15T','30T']
-    data_sav= ['1s','1T','15T','30T']
+    data_type = ['1s_frac','1T','15T','30T','home_data','1s']
+    data_sav= ['1s','1T','15T','30T','home','1s']
     data_path = os.path.join(path,data_type[datatype_opt]+'.csv')
     
     df = pd.read_csv(data_path)
     df.set_index(pd.to_datetime(df.timestamp), inplace=True)
     df.drop(columns=["timestamp"], inplace=True)
+    df.drop(columns=["I"], inplace=True)
     
     
     sav_path = os.path.join(sav_path,data_sav[datatype_opt])
     return df,sav_path
-    
+    #%%
 def get_SAMFOR_data(option,datatype_opt,seq_length):
     
     if datatype_opt == 4:
         df,sav_path = load_home_C_data()
     else:
         df,sav_path = get_Hzdata(datatype_opt)
-    SARIMA_len_all = [60*12,60*12,4*60,2*120,60*24]
+    print('Dataset loaded --- Preprocessing starting')
+    SARIMA_len_all = [60*12,60*12,4*60,2*120,60*24,0,0]
     SARIMA_len = SARIMA_len_all[datatype_opt]
-    pu_all = [1,1,1,1,1]
+    pu_all = [1,1,1,1,1,1,0.0005]
     percentage_data_use = pu_all[datatype_opt]
-    
-
  
     k_step = 1
     df = df[:int(len(df)*percentage_data_use)]
@@ -199,15 +240,16 @@ def get_SAMFOR_data(option,datatype_opt,seq_length):
     #%%
     df_normalized = df.copy()
     from sklearn.preprocessing import MinMaxScaler
-    scaler = MinMaxScaler()
-    scaler.fit(df_array)
+    scaler = MinMaxScaler(feature_range=(0, 1))
+    scaler.fit(df_array[:train_len])
     df_normalized.iloc[:,:] = scaler.transform(df_array)
     del df_array,df
     if option == 0:
-        return df_normalized.iloc[:train_len_SARIMA,:],train_len_LSSVR,test_len,sav_path
+        return df_normalized.iloc[:train_len_SARIMA,:],train_len_LSSVR,test_len,sav_path,scaler
     elif option==2:
         train_clf = np.array(df_normalized[:train_len])
         testset = np.array(df_normalized[train_len:])
+        test_time = df_normalized.index[train_len:-seq_length]
         del df_normalized
         if dim>1:
             X_clf ,y_clf  = sliding_windows2d(train_clf, seq_length, k_step,train_clf.shape[1])
@@ -219,11 +261,12 @@ def get_SAMFOR_data(option,datatype_opt,seq_length):
             X_test ,y_test  = sliding_windows(testset, seq_length, k_step)
 
         
-        return X_clf,np.squeeze(y_clf),X_test,np.squeeze(y_test),sav_path
+        return X_clf,np.squeeze(y_clf),X_test,np.squeeze(y_test),sav_path,test_time,scaler
 
     elif option==3:
         train_clf = np.array(df_normalized[:train_len])
         testset = np.array(df_normalized[train_len:])
+        test_time = df_normalized.index[train_len:-seq_length]
         dim = len(train_clf.shape)
         del df_normalized
         if dim>1:
@@ -236,7 +279,24 @@ def get_SAMFOR_data(option,datatype_opt,seq_length):
             X_test ,y_test  = sliding_windows(testset, seq_length, k_step)
 
         
-        return X_clf,np.squeeze(y_clf),X_test,np.squeeze(y_test),sav_path
+        return X_clf,np.squeeze(y_clf),X_test,np.squeeze(y_test),sav_path,test_time,scaler
+    
+    elif option==5:
+        k_walk = 3#seq_length
+
+        train_clf = np.array(df_normalized[:train_len])
+        testset = np.array(df_normalized[train_len:])
+        test_time = df_normalized.index[train_len:-seq_length]
+        dim = len(train_clf.shape)
+        del df_normalized
+
+        X_clf ,y_clf  = sliding_windows_walk(train_clf, seq_length,k_walk)
+    
+        X_test ,y_test  = sliding_windows2d_lstm(testset, seq_length, k_step,testset.shape[1])
+        print('data preprocessing done')
+
+        
+        return X_clf,np.squeeze(y_clf),X_test,np.squeeze(y_test),sav_path,test_time,scaler
     
     elif option==4:
         ind_train = np.arange(train_len_SARIMA,train_len_SARIMA+train_len_LSSVR)
@@ -260,13 +320,14 @@ def get_SAMFOR_data(option,datatype_opt,seq_length):
 
 
         
-        return X_clf,np.squeeze(y_clf),X_test,np.squeeze(y_test),sav_path
+        return X_clf,np.squeeze(y_clf),X_test,np.squeeze(y_test),sav_path,scaler
     
     elif option==1:
         read_path = 'C:/Users/mahmo/OneDrive/Desktop/kuljeet/results_v2//1s'
-        SARIMA_linear_pred = pd.read_csv(os.path.join(read_path,'SARIMA_prediction_P_.csv'),header=None).to_numpy().squeeze()
+        SARIMA_linear_pred = pd.read_csv(os.path.join(read_path,'SARIMA_prediction_P_.csv'),header=None).to_numpy()
         train_LSSVR = np.array(df_normalized[train_len_SARIMA:train_len_SARIMA+train_len_LSSVR])
         testset = np.array(df_normalized[train_len:])
+        test_time = df_normalized.index[train_len:-seq_length]
         if dim>1:
             X_LSSVR ,y_LSSVR  = sliding_windows2d(train_LSSVR, seq_length, k_step,train_LSSVR.shape[1])
             X_test ,y_test  = sliding_windows2d(testset, seq_length, k_step,testset.shape[1])
@@ -278,4 +339,4 @@ def get_SAMFOR_data(option,datatype_opt,seq_length):
         X_test = np.concatenate((X_test,SARIMA_linear_pred[train_len_LSSVR+seq_length-1:train_len_LSSVR+test_len-1]),axis=1)
         del testset
         
-        return X_LSSVR,y_LSSVR,X_test,y_test,sav_path
+        return X_LSSVR,y_LSSVR,X_test,y_test,sav_path,test_time,scaler
