@@ -22,7 +22,7 @@ from keras.callbacks import ModelCheckpoint
 import tensorflow as tf
 import os
 import keras
-from preprocess_data import RMSE,MAE,MAPE,get_SAMFOR_data,log_results_LSTM,log_results_HOME_C,inverse_transf
+from preprocess_data import *#RMSE,MAE,MAPE,get_SAMFOR_data,log_results_LSTM,log_results_HOME_C,inverse_transf
 # from sklearn.datasets import fetch_openml
 columns=['Steps', 'LSTM Units', 'RMSE','NRMSE', 'Best Epoch', 'Num epochs','seq_length']
 
@@ -62,15 +62,15 @@ def get_LSTM_model(units,input_dim,output_dim,num_layers):
 
 #%%
 option = 3
-alg_name = 'LSTM FF'
-data_types = [0]
-seq_all = [16]#[5,20]
-num_units = [32]#[35]#[8,10,15]
+alg_name = 'LSTM'
+data_types = ['5T']
+seq_all = [7]#[5,20]
+num_units = [10]#[35]#[8,10,15]
 num_layers_all = [1]
 
 # lr = 0.0026105819848050325
 # lr = 0.0005
-lr = 0.0015
+lr = 0.001
 adam=Adam(learning_rate=lr)
 # rmspr = RMSprop()
 opt_chosen = adam
@@ -87,7 +87,7 @@ for datatype_opt in data_types:
             X_train = expand_dims(X_train)
             
             X_test = expand_dims(X_test)
-        print(X_train.shape,y_train.shape)
+        print(X_train.shape,y_train.shape,X_test.shape)
         # y_test = expand_dims(y_test)
         #%%
         #%% LSTM model
@@ -157,3 +157,6 @@ for datatype_opt in data_types:
                 name_sav = name_sav+str(n)+"_" 
             plt.savefig(os.path.join(save_path,'LSTM'+name_sav+'.png'))
             plt.close()
+            filename = os.path.join(save_path,alg_name+'.obj')
+            obj = {'y_test':y_test,'y_test_pred':y_test_pred}
+            save_object(obj, filename)

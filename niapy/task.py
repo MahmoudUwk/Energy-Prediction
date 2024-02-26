@@ -211,7 +211,7 @@ class Task:
                 for j in range(diff - 1):
                     r1.append(v + j + 1)
                     r2.append(self.fitness_evals[i])
-            return np.array(r1), np.array(r2)
+            return np.array(r1), np.array(r2)*self.optimization_type.value
 
     def plot_convergence(self, x_axis='iters', title='Convergence Graph'):
         """Plot a simple convergence graph.
@@ -224,7 +224,7 @@ class Task:
         x, fitness = self.convergence_data(x_axis)
         _, ax = plt.subplots()
         ax.plot(x, fitness)
-        ax.xaxis.set_major_locator(ticker.MaxNLocator(integer=True))
+        # ax.xaxis.set_major_locator(ticker.MaxNLocator(integer=True))
         if x_axis == 'iters':
             plt.xlabel('Iterations')
         else:

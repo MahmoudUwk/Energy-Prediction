@@ -9,11 +9,11 @@ import pandas as pd
 import numpy as np
 from matplotlib import pyplot as plt
 import os
-from preprocess_data import RMSE,MAE,MAPE,log_results,get_SAMFOR_data,plot_test,plot_test,inverse_transf
+from preprocess_data import*# RMSE,MAE,MAPE,log_results,get_SAMFOR_data,plot_test,plot_test,inverse_transf
 from lssvr import LSSVR
 from sklearn.svm import LinearSVR
 option = 1
-datatype_opt = 0
+datatype_opt = '5T'
 seq_length=7
 X_LSSVR,y_LSSVR,X_test,y_test,save_path,test_time_axis,scaler = get_SAMFOR_data(option,datatype_opt,seq_length)
 print(X_LSSVR.shape,X_test.shape)
@@ -59,3 +59,7 @@ log_results(row,datatype_opt,save_path)
 #%%
 name_sav = os.path.join(save_path,'SAMFOR_datatype_opt'+str(datatype_opt)+'.png')
 plot_test(test_time_axis,y_test,y_test_pred,name_sav,alg_name)
+
+filename = os.path.join(save_path,alg_name+'.obj')
+obj = {'y_test':y_test,'y_test_pred':y_test_pred}
+save_object(obj, filename)

@@ -8,16 +8,15 @@ import matplotlib.pyplot as plt
 import pickle
 
 option = 0
-datatype_opt = 0
+datatype_opt = '5T'
 seq_length = 7
 train_SARIMA_all,train_len_LSSVR,test_len,save_path,time_axis = get_SAMFOR_data(option,datatype_opt,seq_length)
 print(train_SARIMA_all.columns)
 # feats = ['P', 'Q', 'V', 'I']
 #P (order=(2,0,0), seasonal_order=(1, 1, 1, 60),verbose=2)
 feats = ['P']
+#%%
 for feat in feats:
-    # train_SARIMA = train_SARIMA_all[feat]
-    #%%
     op = 1
     if op == 1:
         print(train_SARIMA_all[feat].shape)
@@ -57,4 +56,4 @@ for feat in feats:
 # plt.plot(linear_pred, c='blue')
 # plt.plot(forecasts_linear, c='green')
 # plt.show()
-#%%
+

@@ -14,36 +14,6 @@ logger.setLevel('INFO')
 
 
 class Mod_FireflyAlgorithm(Algorithm):
-    r"""Implementation of Firefly algorithm.
-
-    Algorithm:
-        Firefly algorithm
-
-    Date:
-        2016
-
-    Authors:
-        Iztok Fister Jr, Iztok Fister and Klemen Berkovič
-
-    License:
-        MIT
-
-    Reference paper:
-        Fister, I., Fister Jr, I., Yang, X. S., & Brest, J. (2013).
-        A comprehensive review of firefly algorithms. Swarm and Evolutionary Computation, 13, 34-46.
-
-    Attributes:
-        Name (List[str]): List of strings representing algorithm name.
-        alpha_0 (float): Randomness strength.
-        beta0 (float): Attractiveness constant.
-        gamma_sym (float): Absorption coefficient.
-        theta (float): Randomness reduction factor.
-
-    See Also:
-        * :class:`niapy.algorithms.Algorithm`
-
-    """
-
     Name = ['Mod_FireflyAlgorithm', 'ModFA']
 
     @staticmethod
@@ -84,7 +54,7 @@ class Mod_FireflyAlgorithm(Algorithm):
         self.sigma_u = ( gamma(1+self.tau)*np.sin(np.pi*self.tau/2) ) / ( gamma((1+self.tau)/2)*self.tau*2**((self.tau-1)/2) )**(1/self.tau)
         self.sigma_v = 1
 
-    def set_parameters(self, population_size=20, alpha_0=0.5, beta0=0.1, gamma_sym=1, theta=0.9,eta = 0.4,beta_chaos = 0.5,tau = 1.5, **kwargs):
+    def set_parameters(self, population_size=20, alpha_0=0.5, beta0=0.1, gamma_sym=1, theta=0.9,eta = 4,beta_chaos = 0.5,tau = 1.5, **kwargs):
         r"""Set the parameters of the algorithm.
 
         Args:
@@ -134,8 +104,11 @@ class Mod_FireflyAlgorithm(Algorithm):
         Fitness = np.ones((self.population_size))
         for j in range(task.dimension):
             Fireflies[0][j] = random.uniform(0, 1) * (task.upper[j]- task.lower[j]) + task.lower[j] #X0
+       
         for i in range(1,self.population_size):
             Fireflies[i] = self.eta * Fireflies[i-1] * (1-Fireflies[i-1]) #logistic map
+            
+        Fitness = np.apply_along_axis(task.eval, 1, Fireflies)#*task.optimization_type.value
         return Fireflies,Fitness
             
     def init_population(self, task):
@@ -184,6 +157,7 @@ class Mod_FireflyAlgorithm(Algorithm):
             * :func:`niapy.algorithms.basic.FireflyAlgorithm.move_ffa`
 
         """
+        print('-----------------Iteration:',task.iters,'-------------------')
         # alpha_0 = params.pop('alpha_0') * self.theta
         alpha = self.alpha_0 * self.theta
         self.theta = self.theta*self.theta
@@ -194,7 +168,7 @@ class Mod_FireflyAlgorithm(Algorithm):
             self.beta_chaos = (1 / self.beta_chaos) % 1
         for i in range(self.population_size):
             for j in range(self.population_size):
-                if population_fitness[i] >= population_fitness[j]:
+                if population_fitness[i] > population_fitness[j]:
                     rij_2 = euclidean(population[i], population[j])
                     beta = (self.beta_chaos - self.beta0) * math.exp(-self.gamma_sym*rij_2) + self.beta0
                     levy_step = np.random.normal(0,self.sigma_u,task.dimension) / (np.abs((np.random.normal(0,self.sigma_v,task.dimension)))**(1/self.tau))

@@ -12,13 +12,17 @@ import os
 from keras.layers import Dense,LSTM,Flatten
 from keras.models import Sequential
 from keras.optimizers import Adam
+from keras.callbacks import EarlyStopping
 # from preprocess_data import RMSE,MAE,MAPE,get_SAMFOR_data,log_results_LSTM
 import tensorflow as tf
-from preprocess_data import RMSE,MAE,MAPE,get_SAMFOR_data,log_results_LSTM,log_results_HOME_C,inverse_transf
+from preprocess_data import save_object,RMSE,MAE,MAPE,get_SAMFOR_data,log_results_LSTM,log_results_HOME_C,inverse_transf
 from niapy.problems import Problem
 from niapy.task import Task, OptimizationType
 import numpy as np
 from niapy.algorithms.modified import Mod_FireflyAlgorithm
+from niapy.algorithms.basic import FireflyAlgorithm
+
+from niapy.algorithms.basic import BeesAlgorithm
 
 
 class SaveBestModel(tf.keras.callbacks.Callback):
@@ -45,9 +49,9 @@ class SaveBestModel(tf.keras.callbacks.Callback):
 def get_hyperparameters(x):
     """Get hyperparameters for solution `x`."""
     units = int(x[0]*40 + 8)
-    num_layers = int(x[1]*1)+1
+    num_layers = int(x[1]*2)+1
     seq = int(x[2]*23 + 6)
-    lr = 0.0015#x[3]*1e-2 + 0.5e-3
+    lr = x[3]*2e-2 + 0.5e-3
     params =  {
         'units': units,
         'num_layers': num_layers,
@@ -93,7 +97,7 @@ def get_data(x,option,datatype_opt):
 
 class LSTMHyperparameterOptimization(Problem):
     def __init__(self, option,datatype_opt,num_epoc):
-        super().__init__(dimension=3, lower=0, upper=1)
+        super().__init__(dimension=4, lower=0, upper=1)
         self.option = option
         self.datatype_opt = datatype_opt
         self.num_epoc = num_epoc
@@ -107,39 +111,44 @@ class LSTMHyperparameterOptimization(Problem):
         model = get_classifier(x,input_dim,output_dim)
         print(X_train.shape,y_train.shape)
         checkpoint = SaveBestModel()
-        callbacks_list = [checkpoint]
-        model.fit(X_train, y_train, epochs=self.num_epoc , batch_size=2**11, verbose=1, shuffle=True, validation_split=0.2,callbacks=callbacks_list)
+        callback_es = EarlyStopping(monitor='val_loss', patience=20)
+        callbacks_list = [checkpoint,callback_es]
+        model.fit(X_train, y_train, epochs=self.num_epoc , batch_size=2**10, verbose=0, shuffle=True, validation_split=0.2,callbacks=callbacks_list)
         model.set_weights(checkpoint.best_weights)
-#MAPE(inverse_transf(y_test,scaler) , inverse_transf(model.predict(X_test),scaler))
-        # print(y_test.shape)
+        # hp = get_hyperparameters(x)
+        # mse = model.evaluate(X_test,y_test)
+        # row = ['FF_LSTM_search',mse,mse,mse,hp['seq'],hp['num_layers'],hp['units'],0,self.datatype_opt,0,0]
+        # log_results_LSTM(row,self.datatype_opt,save_path)
         return  model.evaluate(X_test,y_test)
 
 option = 3
-datatype_opts = [2]
+datatype_opts = ['5T'] #['1s','1T','15T','30T','home','1s']
 run_search= 1
-num_epoc = 2000
+num_epoc = 2500
 for datatype_opt in datatype_opts:
     #%%
     if run_search: 
         problem = LSTMHyperparameterOptimization(option,datatype_opt,num_epoc)
-        task = Task(problem, max_evals=15, optimization_type=OptimizationType.MINIMIZATION)
-        algorithm = Mod_FireflyAlgorithm.Mod_FireflyAlgorithm(population_size = 5)
-        
+        task = Task(problem, max_iters=20, optimization_type=OptimizationType.MINIMIZATION)
+        # algorithm = FireflyAlgorithm(population_size = 10)
+        algorithm = Mod_FireflyAlgorithm.Mod_FireflyAlgorithm(population_size = 10)
         
         best_params, best_mse = algorithm.run(task)
         
         print('Best parameters:', get_hyperparameters(best_params))
         
+        _,_,_,_,save_path,_,_ = get_data(best_params,option,datatype_opt)
         task.plot_convergence(x_axis='evals')
-        a,b = task.convergence_data(x_axis='evals')
+        # a,b = task.convergence_data(x_axis='evals')
+        plt.savefig(os.path.join(save_path,'Conv_FF_eval'+str(datatype_opt)+'.png'))
+        plt.close()
+        
+        task.plot_convergence()
+        # a,b = task.convergence_data()
+        plt.savefig(os.path.join(save_path,'Conv_FF_itr'+str(datatype_opt)+'.png'))
+        plt.close()
 
-        # best_model = get_classifier(best_params)
-    
-    #extract info, time, convergence change,......,how many iterations,value changes.
-    #make a presentation about everything so far, up and downs and current results
-    #next week meeting, prepare the presentation by tuesday and show it meeting then
-    
-    #pick up paper to get idea for another nature inspired algorithm
+
     #%%
     
     train_option = 1
@@ -150,8 +159,7 @@ for datatype_opt in datatype_opts:
         params = get_hyperparameters(best_params)
 
         X_train,y_train,X_test,y_test,save_path,test_time_axis,scaler = get_data(best_params,option,datatype_opt)
-        plt.savefig(os.path.join(save_path,'Conv_FF_2.png'))
-        plt.close()
+
         y_train = expand_dims(expand_dims(y_train))
         input_dim=(X_train.shape[1],X_train.shape[2])
         output_dim = y_train.shape[-1]
@@ -182,7 +190,7 @@ for datatype_opt in datatype_opts:
     mae = MAE(y_test,y_test_pred)
     mape = MAPE(y_test,y_test_pred)
     print(rmse,mae,mape)
-    alg_name = 'Mof_FF_LSTM'
+    alg_name = algorithm.Name[0]
     
 #%%
     row = [alg_name,rmse,mae,mape,params['seq'],params['num_layers']+1,params['units'],best_epoch,datatype_opt,0,0]
@@ -206,4 +214,7 @@ for datatype_opt in datatype_opts:
         name_sav = name_sav+str(n)+"_" 
     plt.savefig(os.path.join(save_path,'LSTM'+name_sav+'.png'))
     plt.close()
+    filename = os.path.join(save_path,alg_name+'.obj')
+    obj = {'y_test':y_test,'y_test_pred':y_test_pred}
+    save_object(obj, filename)
 

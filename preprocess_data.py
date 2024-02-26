@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
 import os
+import pickle
 def scaling_input(X,a,b):
     X= (2*((X - a) / (b-a))) - 1
     return X
@@ -24,6 +25,15 @@ def expand_dims(X):
 def expand_dims_first(x):
     return np.expand_dims(x,axis=0)
 
+def feature_creation(data):
+    df = data.copy()
+    df['Minute'] = data.index.minute.astype(float)
+    # df['Second'] = data.index.second
+    df['DOW'] = data.index.dayofweek.astype(float)
+    df['H'] = data.index.hour.astype(float)
+    # df['W'] = data.index.week
+    return df
+#%%
 def sliding_windows(data, seq_length, k_step):
     x = np.zeros((len(data)-seq_length-k_step+1,seq_length))
     y = np.zeros((len(data)-seq_length-k_step+1,k_step))
@@ -91,6 +101,25 @@ def sliding_windows2d_lstm_arima(data, seq_length, k_step,num_feat,P_arima,Q_ari
         y[ind] = data[one_step,0]
     return x,y
 
+def slice_data(data, seq_length,k_step):
+    #if the data is not divisable by the seq_length+k_step, remove the last few values to make it divisable,...
+    #so that all segments are of the same length
+    if (len(data)%(seq_length+k_step))!= 0: 
+        rem = len(data)%(seq_length+k_step)
+        data = data[:-rem]
+    data_sliced = np.array(data).reshape(-1,seq_length+k_step)
+    return data_sliced[:,:seq_length],np.squeeze(data_sliced[:,seq_length:seq_length+k_step])
+#%%
+def save_object(obj, filename):
+    with open(filename, 'wb') as outp:  # Overwrites any existing file.
+        pickle.dump(obj, outp, pickle.HIGHEST_PROTOCOL)
+        
+def loadDatasetObj(fname):
+    file_id = open(fname, 'rb') 
+    data_dict = pickle.load(file_id)
+    file_id.close()
+    return data_dict
+
 def plot_test(test_time,y_test,y_test_pred,path,alg_name):
     from matplotlib import pyplot as plt
     scale_mv = 1000
@@ -105,15 +134,35 @@ def plot_test(test_time,y_test,y_test_pred,path,alg_name):
     plt.show()
     plt.savefig(path)
 
-def slice_data(data, seq_length,k_step):
-    #if the data is not divisable by the seq_length+k_step, remove the last few values to make it divisable,...
-    #so that all segments are of the same length
-    if (len(data)%(seq_length+k_step))!= 0: 
-        rem = len(data)%(seq_length+k_step)
-        data = data[:-rem]
-    data_sliced = np.array(data).reshape(-1,seq_length+k_step)
-    return data_sliced[:,:seq_length],np.squeeze(data_sliced[:,seq_length:seq_length+k_step])
 
+
+def log_results(row,datatype_opt,save_path):
+    save_name = 'results_'+datatype_opt+'.csv'
+    cols = ["Algorithm", "RMSE", "MAE", "MAPE(%)","seq","train_time(min)","test_time(s)"]
+
+    df3 = pd.DataFrame(columns=cols)
+    if not os.path.isfile(os.path.join(save_path,save_name)):
+        df3.to_csv(os.path.join(save_path,save_name),index=False)
+        
+    df = pd.read_csv(os.path.join(save_path,save_name))
+    df.loc[len(df)] = row
+    print(df)
+    df.to_csv(os.path.join(save_path,save_name),mode='w', index=False,header=True)
+    
+def log_results_LSTM(row,datatype_opt,save_path):
+
+    save_name = 'results_LSTM_'+datatype_opt+'.csv'
+    cols = ["Algorithm", "RMSE", "MAE", "MAPE(%)","seq","num_layers","units","best epoch","data_type","train_time(min)","test_time(s)"]
+
+    df3 = pd.DataFrame(columns=cols)
+    if not os.path.isfile(os.path.join(save_path,save_name)):
+        df3.to_csv(os.path.join(save_path,save_name),index=False)
+        
+    df = pd.read_csv(os.path.join(save_path,save_name))
+    df.loc[len(df)] = row
+    print(df)
+    df.to_csv(os.path.join(save_path,save_name),mode='w', index=False,header=True)
+#%%
 def load_home_C_data():
     data2_home_path = 'C:/Users/mahmo/OneDrive/Desktop/kuljeet/HomeC.csv'
     sav_path = "C:/Users/mahmo/OneDrive/Desktop/kuljeet/results_v2/HomeC_results"
@@ -145,34 +194,6 @@ def load_home_C_data():
     data['minute'] = data.index.minute
     
     return data.resample('d').mean(),sav_path
-
-def log_results(row,datatype_opt,save_path):
-    data_type = ['1s','1T','15T','30T']
-    save_name = 'results_'+data_type[datatype_opt]+'.csv'
-    cols = ["Algorithm", "RMSE", "MAE", "MAPE(%)","seq","train_time(min)","test_time(s)"]
-
-    df3 = pd.DataFrame(columns=cols)
-    if not os.path.isfile(os.path.join(save_path,save_name)):
-        df3.to_csv(os.path.join(save_path,save_name),index=False)
-        
-    df = pd.read_csv(os.path.join(save_path,save_name))
-    df.loc[len(df)] = row
-    print(df)
-    df.to_csv(os.path.join(save_path,save_name),mode='w', index=False,header=True)
-    
-def log_results_LSTM(row,datatype_opt,save_path):
-    data_type = ['1s','1T','15T','30T','home','1s']
-    save_name = 'results_LSTM_'+data_type[datatype_opt]+'.csv'
-    cols = ["Algorithm", "RMSE", "MAE", "MAPE(%)","seq","num_layers","units","best epoch","data_type","train_time(min)","test_time(s)"]
-
-    df3 = pd.DataFrame(columns=cols)
-    if not os.path.isfile(os.path.join(save_path,save_name)):
-        df3.to_csv(os.path.join(save_path,save_name),index=False)
-        
-    df = pd.read_csv(os.path.join(save_path,save_name))
-    df.loc[len(df)] = row
-    print(df)
-    df.to_csv(os.path.join(save_path,save_name),mode='w', index=False,header=True)
     
 def log_results_HOME_C(row,datatype_opt,save_path):
     save_name = 'Home_C.csv'
@@ -187,22 +208,16 @@ def log_results_HOME_C(row,datatype_opt,save_path):
     print(df)
     df.to_csv(os.path.join(save_path,save_name),mode='w', index=False,header=True)
     #%%
-def feature_creation(data):
-    df = data.copy()
-    df['Minute'] = data.index.minute
-    # df['Second'] = data.index.second
-    df['DOW'] = data.index.dayofweek
-    df['H'] = data.index.hour
-    # df['W'] = data.index.week
-    return df
-    #%%
     
 def get_Hzdata(datatype_opt):
-    path = "C:/Users/mahmo/OneDrive/Desktop/kuljeet/pwr data paper 2/resampled data"
-    sav_path = "C:/Users/mahmo/OneDrive/Desktop/kuljeet/results_v2"
-    data_type = ['1s_frac','1T','15T','30T','home_data','1s']
-    data_sav= ['1s','1T','15T','30T','home','1s']
-    data_path = os.path.join(path,data_type[datatype_opt]+'.csv')
+    path = "C:/Users/mahmo/OneDrive/Desktop/kuljeet/Energy Prediction Project/pwr data paper 2/resampled data"
+    sav_path = "C:/Users/mahmo/OneDrive/Desktop/kuljeet/Energy Prediction Project/results"
+    if not os.path.exists(sav_path):
+        os.makedirs(sav_path)
+    # data_type = ['1s_frac','1T','15T','30T','home_data','1s','5T']
+
+    
+    data_path = os.path.join(path,datatype_opt+'.csv')
     
     df = pd.read_csv(data_path)
     df.set_index(pd.to_datetime(df.timestamp), inplace=True)
@@ -210,7 +225,9 @@ def get_Hzdata(datatype_opt):
     df.drop(columns=["I"], inplace=True)
     
     
-    sav_path = os.path.join(sav_path,data_sav[datatype_opt])
+    sav_path = os.path.join(sav_path,datatype_opt)
+    if not os.path.exists(sav_path):
+        os.makedirs(sav_path)
     return df,sav_path
     #%%
 def get_SAMFOR_data(option,datatype_opt,seq_length):
@@ -220,21 +237,25 @@ def get_SAMFOR_data(option,datatype_opt,seq_length):
     else:
         df,sav_path = get_Hzdata(datatype_opt)
     print('Dataset loaded --- Preprocessing starting')
-    SARIMA_len_all = [60*12,60*12,4*60,2*120,60*24,0,0]
-    SARIMA_len = SARIMA_len_all[datatype_opt]
-    pu_all = [1,1,1,1,1,1,0.0005]
-    percentage_data_use = pu_all[datatype_opt]
+    if option == 1 or option==0:
+        SARIMA_len = 60*12
+    else:
+        SARIMA_len = 0
+    # percentage_data_use = 1
+
+    
+    
  
     k_step = 1
-    df = df[:int(len(df)*percentage_data_use)]
+    # df = df[:int(len(df)*percentage_data_use)]
     train_per = 0.8
     len_data = df.shape[0]
     train_len = int(train_per*len_data)
     train_len_SARIMA = SARIMA_len #int(SARIMA_per*train_len)
     train_len_LSSVR = train_len-train_len_SARIMA
     test_len = len_data - train_len
-    if datatype_opt != 4:
-        df = feature_creation(df)
+
+    df = feature_creation(df)
     dim = df.ndim
     df_array = np.array(df)
     #%%
@@ -323,7 +344,7 @@ def get_SAMFOR_data(option,datatype_opt,seq_length):
         return X_clf,np.squeeze(y_clf),X_test,np.squeeze(y_test),sav_path,scaler
     
     elif option==1:
-        read_path = 'C:/Users/mahmo/OneDrive/Desktop/kuljeet/results_v2//1s'
+        read_path = sav_path
         SARIMA_linear_pred = pd.read_csv(os.path.join(read_path,'SARIMA_prediction_P_.csv'),header=None).to_numpy()
         train_LSSVR = np.array(df_normalized[train_len_SARIMA:train_len_SARIMA+train_len_LSSVR])
         testset = np.array(df_normalized[train_len:])
