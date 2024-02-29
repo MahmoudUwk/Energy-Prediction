@@ -49,17 +49,30 @@ class SaveBestModel(tf.keras.callbacks.Callback):
 
 def expand_dims(X):
     return np.expand_dims(X, axis = len(X.shape))
-def get_LSTM_model(units,input_dim,output_dim,num_layers):
-    model = Sequential()
+# def get_LSTM_model(units,input_dim,output_dim,num_layers):
+#     model = Sequential()
+#     if num_layers == 1:
+#         model.add(LSTM(units=units,  input_shape=input_dim,return_sequences = False))
+#     else:
+#         model.add(LSTM(units=units,  input_shape=input_dim,return_sequences = True))
+#     for dummy in range(num_layers-1):
+#         model.add(LSTM(units=units,return_sequences = False))
+#     model.add(Dense(output_dim))
+#     return model
+
+def get_LSTM_model(units,input_dim,output_dim,num_layers,name='LSTM_HP'):
+    model = Sequential(name=name)
+    flag_seq = True
     if num_layers == 1:
         model.add(LSTM(units=units,  input_shape=input_dim,return_sequences = False))
     else:
         model.add(LSTM(units=units,  input_shape=input_dim,return_sequences = True))
     for dummy in range(num_layers-1):
-        model.add(LSTM(units=units,return_sequences = False))
+        if dummy == num_layers-2:
+            flag_seq = False     
+        model.add(LSTM(units=units,return_sequences = flag_seq))
     model.add(Dense(output_dim))
     return model
-
 #%%
 option = 3
 alg_name = 'LSTM'

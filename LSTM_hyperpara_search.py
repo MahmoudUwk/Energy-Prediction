@@ -72,7 +72,7 @@ def get_LSTM_model(input_dim,output_dim,units,num_layers, seq,lr,name='LSTM_HP')
     else:
         model.add(LSTM(units=units,  input_shape=input_dim,return_sequences = True))
     for dummy in range(num_layers-1):
-        if dummy == num_layers-1:
+        if dummy == num_layers-2:
             flag_seq = False     
         model.add(LSTM(units=units,return_sequences = flag_seq))
     model.add(Dense(output_dim))
@@ -113,7 +113,7 @@ class LSTMHyperparameterOptimization(Problem):
         checkpoint = SaveBestModel()
         callback_es = EarlyStopping(monitor='val_loss', patience=20)
         callbacks_list = [checkpoint,callback_es]
-        model.fit(X_train, y_train, epochs=self.num_epoc , batch_size=2**10, verbose=0, shuffle=True, validation_split=0.2,callbacks=callbacks_list)
+        model.fit(X_train, y_train, epochs=self.num_epoc , batch_size=2**10, verbose=2, shuffle=True, validation_split=0.2,callbacks=callbacks_list)
         model.set_weights(checkpoint.best_weights)
         # hp = get_hyperparameters(x)
         # mse = model.evaluate(X_test,y_test)
@@ -140,12 +140,12 @@ for datatype_opt in datatype_opts:
         _,_,_,_,save_path,_,_ = get_data(best_params,option,datatype_opt)
         task.plot_convergence(x_axis='evals')
         # a,b = task.convergence_data(x_axis='evals')
-        plt.savefig(os.path.join(save_path,'Conv_FF_eval'+str(datatype_opt)+'.png'))
+        plt.savefig(os.path.join(save_path,'Conv_FF_eval'+str(datatype_opt)+algorithm.Name[0]+'.png'))
         plt.close()
         
         task.plot_convergence()
         # a,b = task.convergence_data()
-        plt.savefig(os.path.join(save_path,'Conv_FF_itr'+str(datatype_opt)+'.png'))
+        plt.savefig(os.path.join(save_path,'Conv_FF_itr'+str(datatype_opt)+algorithm.Name[0]+'.png'))
         plt.close()
 
 
@@ -172,7 +172,7 @@ for datatype_opt in datatype_opts:
         history = model.fit(X_train, y_train, epochs=num_epoc, batch_size=2**9, verbose=1, shuffle=True, validation_split=0.2,callbacks=callbacks_list)
         
         model.set_weights(checkpoint.best_weights)
-        model.save('LSTMFF'+str(datatype_opt))
+        model.save(algorithm.Name[0]+str(datatype_opt))
         best_epoch = np.argmin(history.history['val_loss'])
     ##%%
     else:
