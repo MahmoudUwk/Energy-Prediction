@@ -6,8 +6,9 @@ import os
 from os import listdir
 from os.path import isfile, join
 import numpy as np
-data_path = "C:/Users/mahmo/OneDrive/Desktop/kuljeet/Energy Prediction Project/pwr data paper 2/1Hz"
-sav_path = "C:/Users/mahmo/OneDrive/Desktop/kuljeet/Energy Prediction Project/pwr data paper 2/resampled data"
+
+data_path = "C:/Users/Admin/Desktop/New folder/Data/1Hz"
+sav_path = "C:/Users/Admin/Desktop/New folder/Data/resampled data"
 
 onlyfiles = [f for f in listdir(data_path) if isfile(join(data_path, f)) and '.csv' in f]
 

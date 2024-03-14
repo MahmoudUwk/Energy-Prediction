@@ -1,9 +1,3 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Fri Nov 24 10:58:43 2023
-
-@author: mahmo
-"""
 import os
 import pandas as pd
 from preprocess_data import feature_creation

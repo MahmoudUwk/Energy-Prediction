@@ -1,9 +1,4 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Thu Oct 12 17:04:56 2023
 
-@author: mahmo
-"""
 import time
 import pandas as pd
 import numpy as np
@@ -13,7 +8,7 @@ from preprocess_data import*# RMSE,MAE,MAPE,log_results,get_SAMFOR_data,plot_tes
 from lssvr import LSSVR
 from sklearn.svm import LinearSVR
 option = 1
-datatype_opt = '5T'
+datatype_opt = '1s'
 seq_length=7
 X_LSSVR,y_LSSVR,X_test,y_test,save_path,test_time_axis,scaler = get_SAMFOR_data(option,datatype_opt,seq_length)
 print(X_LSSVR.shape,X_test.shape)

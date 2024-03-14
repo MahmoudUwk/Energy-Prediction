@@ -210,8 +210,8 @@ def log_results_HOME_C(row,datatype_opt,save_path):
     #%%
     
 def get_Hzdata(datatype_opt):
-    path = "C:/Users/mahmo/OneDrive/Desktop/kuljeet/Energy Prediction Project/pwr data paper 2/resampled data"
-    sav_path = "C:/Users/mahmo/OneDrive/Desktop/kuljeet/Energy Prediction Project/results"
+    path = "C:/Users/Admin/Desktop/New folder/Data/resampled data"
+    sav_path = "C:/Users/Admin/Desktop/New folder/results"
     if not os.path.exists(sav_path):
         os.makedirs(sav_path)
     # data_type = ['1s_frac','1T','15T','30T','home_data','1s','5T']
@@ -220,9 +220,10 @@ def get_Hzdata(datatype_opt):
     data_path = os.path.join(path,datatype_opt+'.csv')
     
     df = pd.read_csv(data_path)
-    df.set_index(pd.to_datetime(df.timestamp), inplace=True)
-    df.drop(columns=["timestamp"], inplace=True)
-    df.drop(columns=["I"], inplace=True)
+    df.set_index(pd.to_datetime(df.timestamp), inplace=True,drop=True,append=False)
+    # df.drop(columns=["timestamp"], inplace=True)
+    df = df[['P', 'Q', 'V']]
+    # df.drop(columns=["I"], inplace=True)
     
     
     sav_path = os.path.join(sav_path,datatype_opt)
@@ -262,7 +263,7 @@ def get_SAMFOR_data(option,datatype_opt,seq_length):
     df_normalized = df.copy()
     from sklearn.preprocessing import MinMaxScaler
     scaler = MinMaxScaler(feature_range=(0, 1))
-    scaler.fit(df_array[:train_len])
+    scaler.fit(df_array[:train_len,:])
     df_normalized.iloc[:,:] = scaler.transform(df_array)
     del df_array,df
     if option == 0:

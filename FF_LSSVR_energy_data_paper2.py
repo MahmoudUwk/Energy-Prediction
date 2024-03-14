@@ -10,11 +10,11 @@ import numpy as np
 import time
 from matplotlib import pyplot as plt
 import os
-from preprocess_data import RMSE,MAE,MAPE,get_SAMFOR_data
+from preprocess_data2 import *
 
-save_path = 'C:/Users/mahmo/OneDrive/Desktop/kuljeet/results/Models'
+
 option = 1
-X_train,y_train,X_test,y_test = get_SAMFOR_data(option)
+X_train,y_train,X_test,y_test,sav_path,test_time,scaler = get_SAMFOR_data(option)
 print(X_train.shape,X_test.shape)
 #%%
 n_pop = 25
@@ -22,14 +22,14 @@ itr = 10
 save_name = 'search_alg_LSSVR'+'pop'+str(n_pop)+'itr'+str(itr)+'.csv'
 algorithm = Mod_FireflyAlgorithm.Mod_FireflyAlgorithm()
 # algorithm = FireflyAlgorithm()
-
-algorithms = [BeesAlgorithm(),Mod_FireflyAlgorithm.Mod_FireflyAlgorithm(),FireflyAlgorithm(), ArtificialBeeColonyAlgorithm(),BatAlgorithm()
-              ,BacterialForagingOptimization(),ClonalSelectionAlgorithm(),
-              CuckooSearch(),CatSwarmOptimization(),ForestOptimizationAlgorithm(),
-              FlowerPollinationAlgorithm(),BareBonesFireworksAlgorithm(),
-              GravitationalSearchAlgorithm(),GlowwormSwarmOptimization(),GreyWolfOptimizer(),HarrisHawksOptimization(),
-              HarmonySearch(),KrillHerd(),MonarchButterflyOptimization(),MothFlameOptimizer(),ParticleSwarmAlgorithm()
-             , SineCosineAlgorithm()]
+algorithms = [Mod_FireflyAlgorithm.Mod_FireflyAlgorithm(),FireflyAlgorithm()]
+# algorithms = [BeesAlgorithm(),Mod_FireflyAlgorithm.Mod_FireflyAlgorithm(),FireflyAlgorithm(), ArtificialBeeColonyAlgorithm(),BatAlgorithm()
+#               ,BacterialForagingOptimization(),ClonalSelectionAlgorithm(),
+#               CuckooSearch(),CatSwarmOptimization(),ForestOptimizationAlgorithm(),
+#               FlowerPollinationAlgorithm(),BareBonesFireworksAlgorithm(),
+#               GravitationalSearchAlgorithm(),GlowwormSwarmOptimization(),GreyWolfOptimizer(),HarrisHawksOptimization(),
+#               HarmonySearch(),KrillHerd(),MonarchButterflyOptimization(),MothFlameOptimizer(),ParticleSwarmAlgorithm()
+#              , SineCosineAlgorithm()]
 
 #%%
 param_grid = { 

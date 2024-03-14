@@ -1,9 +1,4 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Fri Oct 20 10:43:38 2023
 
-@author: mahmo
-"""
 import pandas as pd
 import os
 pd.set_option('display.expand_frame_repr', False)

@@ -1,9 +1,3 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Thu Sep  7 09:20:40 2023
-
-@author: mahmo
-"""
 
 from sklearn_nature_inspired_algorithms.model_selection import NatureInspiredSearchCV
 # from sklearn.ensemble import RandomForestClassifier
