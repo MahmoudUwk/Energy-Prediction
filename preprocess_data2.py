@@ -121,12 +121,46 @@ def log_results_LSTM(row,datatype_opt,save_path):
     df.loc[len(df)] = row
     print(df)
     df.to_csv(os.path.join(save_path,save_name),mode='w', index=False,header=True)
+#%%
+def load_home_C_data(data2_home_path,sav_path):
+    sav_path = os.path.join(sav_path,'Home')
+    if not os.path.exists(sav_path):
+        os.makedirs(sav_path)
+    data_path = os.path.join(data2_home_path,'HomeC.csv')
+
+    data = pd.read_csv(data_path).iloc[:-1,:]
+    data['time'] = pd.to_datetime(data['time'], unit='s')
+    data['time'] = pd.DatetimeIndex(pd.date_range('2016-01-01 05:00', periods=len(data),  freq='min'))
+    data = data.set_index('time')
+    data.columns = [i.replace(' [kW]', '') for i in data.columns]
+    data['Furnace'] = data[['Furnace 1','Furnace 2']].sum(axis=1)
+    data['Kitchen'] = data[['Kitchen 12','Kitchen 14','Kitchen 38']].sum(axis=1) #We could also use the mean 
+    data.drop(['Furnace 1','Furnace 2','Kitchen 12','Kitchen 14','Kitchen 38','icon','summary'], axis=1, inplace=True)
+
+    #Replace invalid values in column 'cloudCover' with backfill method
+    data['cloudCover'].replace(['cloudCover'], method='bfill', inplace=True)
+    data['cloudCover'] = data['cloudCover'].astype('float')
+
+    #Reorder columns
+    # data = data[['use', 'gen', 'House overall', 'Dishwasher', 'Home office', 'Fridge', 'Wine cellar', 'Garage door', 'Barn',
+    #              'Well', 'Microwave', 'Living room', 'Furnace', 'Kitchen', 'Solar', 'temperature', 'humidity', 'visibility', 
+    #              'apparentTemperature', 'pressure', 'windSpeed', 'cloudCover', 'windBearing', 'precipIntensity', 
+    #              'dewPoint', 'precipProbability']]
+    data = data[['House overall', 'Furnace', 'Living room', 'Barn', 'temperature', 'humidity',
+                   'apparentTemperature', 'pressure', 'cloudCover','windBearing', 'precipIntensity',
+                   'dewPoint', 'precipProbability']]
+    # data.drop(['use', 'gen'], axis=1, inplace=True)
+    # data['month'] = data.index.month
+    # data['day'] = data.index.day
+    # data['weekday'] = data.index.dayofweek
+    # data['hour'] = data.index.hour
+    # data['minute'] = data.index.minute
+    data = data.resample('30T').mean()
+    
+    return data,sav_path
     #%%
     
-def get_Hzdata(datatype_opt):
-
-    path = "C:/Users/Admin/Desktop/New folder/Data/resampled data"
-    sav_path = "C:/Users/Admin/Desktop/New folder/results"
+def get_Hzdata(datatype_opt,path,sav_path):
 
     if not os.path.exists(sav_path):
         os.makedirs(sav_path)
@@ -145,11 +179,19 @@ def get_Hzdata(datatype_opt):
     sav_path = os.path.join(sav_path,datatype_opt)
     if not os.path.exists(sav_path):
         os.makedirs(sav_path)
+    df = feature_creation(df)
     return df,sav_path
     #%%
-def get_SAMFOR_data(option,datatype_opt,seq_length):
-
-    df,sav_path = get_Hzdata(datatype_opt)
+def get_SAMFOR_data(option,datatype_opt,seq_length,get_sav_path = 0):
+    sav_path = "C:/Users/mahmo/OneDrive/Desktop/kuljeet/Energy Prediction Project/results"
+    path = "C:/Users/mahmo/OneDrive/Desktop/kuljeet/Energy Prediction Project/pwr data paper 2/resampled data"
+    if datatype_opt == 'Home':
+        df,sav_path = load_home_C_data(path,sav_path)
+    else:
+        df,sav_path = get_Hzdata(datatype_opt,path,sav_path)
+        
+    if get_sav_path==1:
+        return sav_path
     print(df.columns)
     print('Dataset loaded --- Preprocessing starting')
     if option == 1 or option==0:
@@ -169,7 +211,7 @@ def get_SAMFOR_data(option,datatype_opt,seq_length):
     train_len_LSSVR = train_len-train_len_SARIMA
     test_len = len_data - train_len
 
-    df = feature_creation(df)
+    
     dim = df.ndim
     df_array = np.array(df)
     #%%
@@ -201,7 +243,10 @@ def get_SAMFOR_data(option,datatype_opt,seq_length):
 
     elif option==3:
         train_per_and_val_lstm = 0.8
-        val_per_lstm = 0.3*train_per_and_val_lstm
+        if datatype_opt == 'Home':
+            val_per_lstm = 0.3*train_per_and_val_lstm
+        else: 
+            val_per_lstm = 0.3*train_per_and_val_lstm
         train_per_lstm = train_per_and_val_lstm - val_per_lstm
         train_len_lstm = int(train_per_lstm*len_data)
         val_len_lstm = int(val_per_lstm*len_data)
@@ -214,7 +259,11 @@ def get_SAMFOR_data(option,datatype_opt,seq_length):
         
  
         X_train ,y_train  = sliding_windows2d_lstm(train_x, seq_length)
-        X_val ,y_val  = sliding_windows2d_lstm(val_x, seq_length)
+        if val_per_lstm != 0:
+            X_val ,y_val  = sliding_windows2d_lstm(val_x, seq_length)
+        else:
+            X_val = []
+            y_val = []
         X_test ,y_test  = sliding_windows2d_lstm(test_x, seq_length)
         
         return X_train,np.squeeze(y_train),X_val,np.squeeze(y_val),X_test,np.squeeze(y_test),sav_path,test_time,scaler

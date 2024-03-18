@@ -107,10 +107,10 @@ class LSTMHyperparameterOptimization(Problem):
         return  model.evaluate(X_test,y_test)
 
 option = 3
-datatype_opts = ['1s'] #['1s','1T','15T','30T','home','1s']
+datatype_opts = ['1s_more'] #['1s','1T','15T','30T','home','1s']
 run_search= 0
 num_epoc = 2500
-alg_range = [0]#range(2)
+alg_range = range(2)
 for datatype_opt in datatype_opts:
     for alg_all in alg_range:
         if alg_all == 0:
@@ -148,7 +148,8 @@ for datatype_opt in datatype_opts:
     
     
         #%%
-        _,save_path = get_Hzdata(datatype_opt)
+        save_path = get_SAMFOR_data(0,datatype_opt,0,1)
+
 
         best_params = load_obj(os.path.join(save_path,'Best_param'+algorithm.Name[0]+'.obj'))['best_para_save']
 
@@ -181,21 +182,21 @@ for datatype_opt in datatype_opts:
 
         log_results_LSTM(row,datatype_opt,save_path)
         
-        plt.figure(figsize=(20,7),dpi=120)
-        plt.plot(test_time_axis,1000*np.squeeze(y_test), color = 'red', linewidth=2.0, alpha = 0.6)
-        plt.plot(test_time_axis,1000*np.squeeze(y_test_pred), color = 'blue', linewidth=0.8)
-        plt.legend(['Actual','Predicted'])
-        plt.xlabel('Timestamp')
-        plt.xticks( rotation=25 )
-        plt.ylabel('mW')
-        plt.title('Energy Prediction using '+alg_name)
-        plt.show()
-        info_loop = [best_params['seq'],best_params['num_layers'],best_params['units'],best_epoch,datatype_opt]
-        name_sav = ""
-        for n in info_loop:
-            name_sav = name_sav+str(n)+"_" 
-        plt.savefig(os.path.join(save_path,'LSTM'+name_sav+'.png'))
-        plt.close()
+        # plt.figure(figsize=(20,7),dpi=120)
+        # plt.plot(test_time_axis,1000*np.squeeze(y_test), color = 'red', linewidth=2.0, alpha = 0.6)
+        # plt.plot(test_time_axis,1000*np.squeeze(y_test_pred), color = 'blue', linewidth=0.8)
+        # plt.legend(['Actual','Predicted'])
+        # plt.xlabel('Timestamp')
+        # plt.xticks( rotation=25 )
+        # plt.ylabel('mW')
+        # plt.title('Energy Prediction using '+alg_name)
+        # plt.show()
+        # info_loop = [best_params['seq'],best_params['num_layers'],best_params['units'],best_epoch,datatype_opt]
+        # name_sav = ""
+        # for n in info_loop:
+        #     name_sav = name_sav+str(n)+"_" 
+        # plt.savefig(os.path.join(save_path,'LSTM'+name_sav+'.png'))
+        # plt.close()
         filename = os.path.join(save_path,alg_name+'.obj')
         obj = {'y_test':y_test,'y_test_pred':y_test_pred}
         save_object(obj, filename)

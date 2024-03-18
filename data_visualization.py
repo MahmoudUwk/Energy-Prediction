@@ -1,6 +1,6 @@
 import os
 import pandas as pd
-from preprocess_data import feature_creation
+from preprocess_data2 import feature_creation
 import numpy as np
 import seaborn as sns
 
@@ -15,8 +15,9 @@ def feature_creation(data):
 #7332351
 pd.set_option('display.expand_frame_repr', False)
 pd.options.display.max_columns = None
-path = "C:/Users/mahmo/OneDrive/Desktop/kuljeet/pwr data paper 2/resampled data"
-datatype_opt = 0
+path = "C:/Users/mahmo/OneDrive/Desktop/kuljeet/Energy Prediction Project/pwr data paper 2/resampled data"
+
+datatype_opt = 1
 data_type = ['1s_frac','1s','1T','15T','30T']
 data_path = os.path.join(path,data_type[datatype_opt]+'.csv')
 SARIMA_len = 3600*2
@@ -48,7 +49,7 @@ sns.heatmap(df.corr(), annot=True, annot_kws={"size": 18})
 #%%
 
 
-df[:train_len].plot(title="Energy Consumption Data for one sample per second")
+df.plot(title="Energy Consumption Data for one sample per second")
 
 
 

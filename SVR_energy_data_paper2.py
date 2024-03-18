@@ -8,12 +8,12 @@ from matplotlib import pyplot as plt
 # from sklearn.metrics import mean_squared_error
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.neural_network import MLPRegressor
-from preprocess_data import*
+from preprocess_data2 import*
 import time
 
 option = 2
 datatype_opt= '1s'
-seq = 7 
+seq = 7
 X_train,y_train,X_test,y_test,save_path,test_time_axis,scaler = get_SAMFOR_data(option,datatype_opt,seq)
 
 y_test = inverse_transf(y_test,scaler)
@@ -39,7 +39,7 @@ test_time = end_test - start_test
 
 alg_name = 'RFR'
 name_sav = os.path.join(save_path,'RFR_datatype_opt'+str(datatype_opt)+'.png')
-plot_test(test_time_axis,y_test,y_test_pred,name_sav,alg_name)
+# plot_test(test_time_axis,y_test,y_test_pred,name_sav,alg_name)
 
 
 rmse = RMSE(y_test,y_test_pred)
@@ -73,7 +73,7 @@ test_time = end_test - start_test
 
 alg_name = 'SVR'
 name_sav = os.path.join(save_path,'SVR_datatype_opt'+str(datatype_opt)+'.png')
-plot_test(test_time_axis,y_test,y_test_pred,name_sav,alg_name)
+# plot_test(test_time_axis,y_test,y_test_pred,name_sav,alg_name)
 
 rmse = RMSE(y_test,y_test_pred)
 mae = MAE(y_test,y_test_pred)

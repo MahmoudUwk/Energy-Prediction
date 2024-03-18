@@ -6,8 +6,8 @@ import os
 from os import listdir
 from os.path import isfile, join
 import numpy as np
-data_path = "C:/Users/Admin/Desktop/New folder/Data/1Hz"
-sav_path = "C:/Users/Admin/Desktop/New folder/Data/resampled data"
+data_path = "C:/Users/mahmo/OneDrive/Desktop/kuljeet/Energy Prediction Project/pwr data paper 2/1Hz"
+sav_path = "C:/Users/mahmo/OneDrive/Desktop/kuljeet/Energy Prediction Project/pwr data paper 2/resampled data"
 onlyfiles = [f for f in listdir(data_path) if isfile(join(data_path, f)) and '.csv' in f]
 
 def resample(df,txt):
@@ -23,21 +23,21 @@ for counter , file in enumerate(onlyfiles):
     if counter == 0:
         df = pd.read_csv(full_path)
         # print('Start: ',df['timestamp'][0],'||',file)
-        # print('End: ',df['timestamp'][len(df)-1],'||',file,'\n')
+        # print('End: ',df['timestamp'][len(df)-1],'||',file,'/n')
         # start_end.append(df['timestamp'][0])
         # start_end.append(df['timestamp'][len(df)-1])
     else:
         df_temp = pd.read_csv(full_path)
         # print('Start: ',df_temp['timestamp'][0],'||',file)
-        # print('End: ',df_temp['timestamp'][len(df_temp)-1],'||',file,'\n')
+        # print('End: ',df_temp['timestamp'][len(df_temp)-1],'||',file,'/n')
         # start_end.append(df_temp['timestamp'][0])
         # start_end.append(df_temp['timestamp'][len(df_temp)-1])
         df = pd.concat([df, df_temp])#.sort_values('timestamp').reset_index(drop=True)
         # print(df_temp,full_path)
 # print(df.shape)
 #%%
-len_1s = int(0.01*df.shape[0])
-df.iloc[:len_1s,:].to_csv(os.path.join(sav_path,'1s.csv'))
+len_1s = 3600*24*2
+df.iloc[:len_1s,:].to_csv(os.path.join(sav_path,'1s_more.csv'), index=False)
 # df.to_csv(os.path.join(sav_path,'1s.csv'))
 
 # df.set_index(pd.to_datetdime(df.timestamp), inplace=True)
