@@ -47,7 +47,8 @@ def sliding_windows(data, seq_length, k_step):
 
 
 
-def sliding_windows2d(data, seq_length, k_step,num_feat):
+def sliding_windows2d(data, seq_length, k_step=1,num_feat = 1):
+    num_feat = data.shape[1]
     x = np.zeros((len(data)-seq_length-k_step+1,seq_length*num_feat))
     y = np.zeros((len(data)-seq_length-k_step+1,k_step))
     #print(x.shape,y.shape)
@@ -240,7 +241,34 @@ def get_SAMFOR_data(option,datatype_opt,seq_length,get_sav_path = 0):
 
         
         return X_clf,np.squeeze(y_clf),X_test,np.squeeze(y_test),sav_path,test_time,scaler
-
+    
+    elif option==4:
+        train_per_and_val_lstm = 0.8
+        if datatype_opt == 'Home':
+            val_per_lstm = 0.3*train_per_and_val_lstm
+        else: 
+            val_per_lstm = 0.3*train_per_and_val_lstm
+        train_per_lstm = train_per_and_val_lstm - val_per_lstm
+        train_len_lstm = int(train_per_lstm*len_data)
+        val_len_lstm = int(val_per_lstm*len_data)
+        
+        #val_len_lstm  train_len_lstm
+        train_x = np.array(df_normalized.iloc[:train_len_lstm,:])
+        val_x = np.array(df_normalized.iloc[train_len_lstm:train_len_lstm+val_len_lstm,:])
+        test_x = np.array(df_normalized.iloc[train_len_lstm+val_len_lstm:,:])
+        test_time = df_normalized.index[train_len_lstm+val_len_lstm:-seq_length]
+        
+ 
+        X_train ,y_train  = sliding_windows2d(train_x, seq_length)
+        if val_per_lstm != 0:
+            X_val ,y_val  = sliding_windows2d(val_x, seq_length)
+        else:
+            X_val = []
+            y_val = []
+        X_test ,y_test  = sliding_windows2d(test_x, seq_length)
+        
+        return X_train,np.squeeze(y_train),X_val,np.squeeze(y_val),X_test,np.squeeze(y_test),sav_path,test_time,scaler
+    
     elif option==3:
         train_per_and_val_lstm = 0.8
         if datatype_opt == 'Home':

@@ -244,11 +244,13 @@ plt.gca().grid(True)
 plt.savefig(os.path.join(sav_path,'Conv_eval_comparison'+results+'.png'),bbox_inches='tight')
 
 
-
+data_hp.append([15,1,7,0.001])
 
 #%%
 hp = list(results_i['best_para_save'].keys())
+
 indeces_2 = [alg_rename_itr[f_i] for f_i in result_files]
+indeces_2.append('LSTM default')
 df2 = pd.DataFrame(data=np.array(data_hp),columns=hp,index = indeces_2)
 print(df2)
 

@@ -49,8 +49,6 @@ n = 2**8
 model = Sequential()
 model.add(Dense(n, input_shape=(X_train.shape[1],), activation='relu'))
 model.add(Dense(n, activation='relu'))
-model.add(Dense(n, activation='relu'))
-# model.add(Dense(n, activation='relu'))
 model.add(Dense(out_size))
 
 # compile the keras model
