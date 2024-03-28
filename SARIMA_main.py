@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 import pickle
 
 option = 0
-datatype_opt = '5T'
+datatype_opt = 'ele'
 seq_length = 7
 train_SARIMA_all,train_len_LSSVR,test_len,save_path,time_axis = get_SAMFOR_data(option,datatype_opt,seq_length)
 print(train_SARIMA_all.columns)

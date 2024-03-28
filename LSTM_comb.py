@@ -33,17 +33,19 @@ def get_LSTM_model(units,input_dim,output_dim,num_layers,name='LSTM_HP'):
 #%%
 option = 3
 alg_name = 'LSTM'
-data_types = ['1s']
+data_types = ['Home']
 seq_all = [7]#[5,20]
-num_units = [15]#[35]#[8,10,15]
+num_units = [30]#[35]#[8,10,15]
 num_layers_all = [1]
 epochs_num = 2000
 # lr = 0.010164565169640837
-lr=0.001
+lr=0.0001
 adam=Adam(learning_rate=lr)
 # rmspr = RMSprop()
 opt_chosen = adam
-num_feat = [6]
+num_feat = [1]
+vb = 2
+batch_size_n = 2**11
 val_split_size=0
 for datatype_opt in data_types:
     for n_feat in num_feat:
@@ -72,7 +74,7 @@ for datatype_opt in data_types:
             callback_falg = 1
             input_dim=(X_train.shape[1],X_train.shape[2])
             output_dim = y_train.shape[-1]
-            batch_size_n = 2**10
+            
             for units in num_units:
                 print(input_dim,output_dim)
                 for num_layers in num_layers_all:    
@@ -85,9 +87,9 @@ for datatype_opt in data_types:
                     if callback_falg:
                         callbacks_list = [EarlyStopping(monitor='val_loss', patience=50, restore_best_weights=True)]
                         if len(X_val) ==0:
-                            history = model.fit(X_train, y_train, epochs=epochs_num, batch_size=batch_size_n, verbose=0, shuffle=True, validation_split=val_split_size,callbacks=callbacks_list)
+                            history = model.fit(X_train, y_train, epochs=epochs_num, batch_size=batch_size_n, verbose=vb, shuffle=True, validation_split=val_split_size,callbacks=callbacks_list)
                         else:
-                            history = model.fit(X_train, y_train, epochs=epochs_num, batch_size=batch_size_n, verbose=0, shuffle=True, validation_data=(X_val,y_val),callbacks=callbacks_list)
+                            history = model.fit(X_train, y_train, epochs=epochs_num, batch_size=batch_size_n, verbose=vb, shuffle=True, validation_data=(X_val,y_val),callbacks=callbacks_list)
                     else:
                         print('Stop')
                     #%%

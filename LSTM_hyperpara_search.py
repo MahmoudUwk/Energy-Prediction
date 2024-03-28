@@ -20,9 +20,9 @@ from niapy.algorithms.basic import FireflyAlgorithm
 
 def get_hyperparameters(x):
     """Get hyperparameters for solution `x`."""
-    units = int(x[0]*116 + 12)
+    units = int(x[0]*116 + 10)
     num_layers = int(x[1]*6)+1
-    seq = int(x[2]*30 + 6)
+    seq = int(x[2]*30 + 1)
     lr = x[3]*2e-2 + 0.5e-3
     params =  {
         'units': units,
@@ -30,7 +30,7 @@ def get_hyperparameters(x):
         'seq':seq,
         'lr':lr
     }
-    print(params)
+    # print(params)
     return params
 
 def expand_dims(X):
@@ -88,17 +88,17 @@ class LSTMHyperparameterOptimization(Problem):
 
     def _evaluate(self, x):
         X_train,y_train,X_val,y_val,X_test,y_test,save_path,test_time,scaler = get_data(x,self.option,self.datatype_opt)
-        input_dim=(X_train.shape[1],X_train.shape[2])
         output_dim = 1
+        input_dim=(X_train.shape[1],X_train.shape[2])
         y_train = expand_dims(expand_dims(y_train))
         y_test = expand_dims(expand_dims(y_test))
         model = get_classifier(x,input_dim,output_dim)
         out_put_model = [layer.output_shape for c,layer in enumerate(model.layers) if c==len(model.layers)-1][0][1]
-        print(model.summary())
+        # print(model.summary())
         assert(out_put_model==output_dim)
-        print(X_train.shape,y_train.shape)
+        # print(X_train.shape,y_train.shape)
         callbacks_list = [EarlyStopping(monitor='val_loss', patience=30, restore_best_weights=True)]
-        model.fit(X_train, y_train, epochs=self.num_epoc , batch_size=2**12, verbose=2, shuffle=True, validation_data=(X_val,y_val),callbacks=callbacks_list)
+        model.fit(X_train, y_train, epochs=self.num_epoc , batch_size=2**12, verbose=0, shuffle=True, validation_data=(X_val,y_val),callbacks=callbacks_list)
 
         # hp = get_hyperparameters(x)
         # mse = model.evaluate(X_test,y_test)
@@ -107,21 +107,23 @@ class LSTMHyperparameterOptimization(Problem):
         return  model.evaluate(X_test,y_test)
 
 option = 3
-datatype_opts = ['1s_more'] #['1s','1T','15T','30T','home','1s']
-run_search= 0
+datatype_opts = ['5T','Home'] #['1s','1T','15T','30T','home','1s']
+run_search= 1
+pop_size= 5
 num_epoc = 2500
+FF_itr = 15
 alg_range = range(2)
 for datatype_opt in datatype_opts:
     for alg_all in alg_range:
         if alg_all == 0:
             # 
-            algorithm = Mod_FireflyAlgorithm.Mod_FireflyAlgorithm(population_size = 10)
+            algorithm = Mod_FireflyAlgorithm.Mod_FireflyAlgorithm(population_size = pop_size)
         else:
-            algorithm = FireflyAlgorithm(population_size = 10)
+            algorithm = FireflyAlgorithm(population_size = pop_size)
     #%%
         if run_search: 
             problem = LSTMHyperparameterOptimization(option,datatype_opt,num_epoc)
-            task = Task(problem, max_iters=15, optimization_type=OptimizationType.MINIMIZATION)
+            task = Task(problem, max_iters=FF_itr, optimization_type=OptimizationType.MINIMIZATION)
     
             
             best_params, best_mse = algorithm.run(task)
@@ -130,7 +132,7 @@ for datatype_opt in datatype_opts:
             
 
 
-            _,save_path = get_Hzdata(datatype_opt)
+            save_path = get_SAMFOR_data(0,datatype_opt,0,1)
             a_itr,b_itr = task.convergence_data()
             a_eval,b_eval = task.convergence_data(x_axis='evals')
             sav_dict_par = {'a_itr':a_itr,'b_itr':b_itr,'a_eval':a_eval,'b_eval':b_eval,'best_para_save':best_para_save}

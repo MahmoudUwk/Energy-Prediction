@@ -47,8 +47,7 @@ def sliding_windows(data, seq_length, k_step):
 
 
 
-def sliding_windows2d(data, seq_length, k_step=1,num_feat = 1):
-    num_feat = data.shape[1]
+def sliding_windows2d(data, seq_length, k_step,num_feat):
     x = np.zeros((len(data)-seq_length-k_step+1,seq_length*num_feat))
     y = np.zeros((len(data)-seq_length-k_step+1,k_step))
     #print(x.shape,y.shape)
@@ -129,7 +128,7 @@ def load_home_C_data(data2_home_path,sav_path):
         os.makedirs(sav_path)
     data_path = os.path.join(data2_home_path,'HomeC.csv')
 
-    data = pd.read_csv(data_path).iloc[:-1,:]
+    data = pd.read_csv(data_path,nrows=503910,low_memory=False)#.iloc[:-1,:]
     data['time'] = pd.to_datetime(data['time'], unit='s')
     data['time'] = pd.DatetimeIndex(pd.date_range('2016-01-01 05:00', periods=len(data),  freq='min'))
     data = data.set_index('time')
@@ -156,10 +155,23 @@ def load_home_C_data(data2_home_path,sav_path):
     # data['weekday'] = data.index.dayofweek
     # data['hour'] = data.index.hour
     # data['minute'] = data.index.minute
-    data = data.resample('30T').mean()
+    # data = data.resample('30T').mean()
     
+    # data = data.iloc[:int(data.shape[0]*0.6),:]
     return data,sav_path
     #%%
+def get_ele_data(path,sav_path):
+    datatype_opt = 'ele'
+    data_path = os.path.join(path,datatype_opt+'.csv')
+    df = pd.read_csv(data_path)
+    df.set_index(pd.to_datetime(df.date), inplace=True,drop=True,append=False)
+    df.drop(columns=["date"], inplace=True)
+    # df = df[['P', 'Q', 'V']]
+    df = df[['hvac_N','hvac_S']].dropna()
+    sav_path = os.path.join(sav_path,datatype_opt)
+    if not os.path.exists(sav_path):
+        os.makedirs(sav_path)
+    return df,sav_path
     
 def get_Hzdata(datatype_opt,path,sav_path):
 
@@ -184,17 +196,21 @@ def get_Hzdata(datatype_opt,path,sav_path):
     return df,sav_path
     #%%
 def get_SAMFOR_data(option,datatype_opt,seq_length,get_sav_path = 0):
-    sav_path = "C:/Users/mahmo/OneDrive/Desktop/kuljeet/Energy Prediction Project/results"
-    path = "C:/Users/mahmo/OneDrive/Desktop/kuljeet/Energy Prediction Project/pwr data paper 2/resampled data"
+    path = "C:/Users/Admin/Desktop/New folder/Data/resampled data"
+    sav_path = "C:/Users/Admin/Desktop/New folder/results"
+    # sav_path = "C:/Users/mahmo/OneDrive/Desktop/kuljeet/Energy Prediction Project/results"
+    # path = "C:/Users/mahmo/OneDrive/Desktop/kuljeet/Energy Prediction Project/pwr data paper 2/resampled data"
     if datatype_opt == 'Home':
         df,sav_path = load_home_C_data(path,sav_path)
+    elif datatype_opt == 'ele':
+        df,sav_path = get_ele_data(path,sav_path)
     else:
         df,sav_path = get_Hzdata(datatype_opt,path,sav_path)
         
     if get_sav_path==1:
         return sav_path
-    print(df.columns)
-    print('Dataset loaded --- Preprocessing starting')
+    # print(df.columns)
+    # print('Dataset loaded --- Preprocessing starting')
     if option == 1 or option==0:
         SARIMA_len = 60*12
     else:
@@ -204,8 +220,10 @@ def get_SAMFOR_data(option,datatype_opt,seq_length,get_sav_path = 0):
 
     k_step = 1
     # df = df[:int(len(df)*percentage_data_use)]
-
-    train_per=0.8
+    if datatype_opt == 'Home':
+        train_per=0.5
+    else:
+        train_per=0.8
     train_len = int(train_per*len_data)
     
     train_len_SARIMA = SARIMA_len #int(SARIMA_per*train_len)
@@ -241,34 +259,7 @@ def get_SAMFOR_data(option,datatype_opt,seq_length,get_sav_path = 0):
 
         
         return X_clf,np.squeeze(y_clf),X_test,np.squeeze(y_test),sav_path,test_time,scaler
-    
-    elif option==4:
-        train_per_and_val_lstm = 0.8
-        if datatype_opt == 'Home':
-            val_per_lstm = 0.3*train_per_and_val_lstm
-        else: 
-            val_per_lstm = 0.3*train_per_and_val_lstm
-        train_per_lstm = train_per_and_val_lstm - val_per_lstm
-        train_len_lstm = int(train_per_lstm*len_data)
-        val_len_lstm = int(val_per_lstm*len_data)
-        
-        #val_len_lstm  train_len_lstm
-        train_x = np.array(df_normalized.iloc[:train_len_lstm,:])
-        val_x = np.array(df_normalized.iloc[train_len_lstm:train_len_lstm+val_len_lstm,:])
-        test_x = np.array(df_normalized.iloc[train_len_lstm+val_len_lstm:,:])
-        test_time = df_normalized.index[train_len_lstm+val_len_lstm:-seq_length]
-        
- 
-        X_train ,y_train  = sliding_windows2d(train_x, seq_length)
-        if val_per_lstm != 0:
-            X_val ,y_val  = sliding_windows2d(val_x, seq_length)
-        else:
-            X_val = []
-            y_val = []
-        X_test ,y_test  = sliding_windows2d(test_x, seq_length)
-        
-        return X_train,np.squeeze(y_train),X_val,np.squeeze(y_val),X_test,np.squeeze(y_test),sav_path,test_time,scaler
-    
+
     elif option==3:
         train_per_and_val_lstm = 0.8
         if datatype_opt == 'Home':
@@ -293,7 +284,11 @@ def get_SAMFOR_data(option,datatype_opt,seq_length,get_sav_path = 0):
             X_val = []
             y_val = []
         X_test ,y_test  = sliding_windows2d_lstm(test_x, seq_length)
-        
+        # if datatype_opt == '5T':
+        #     X_train = X_train[:,:,:1]
+        #     X_val = X_val[:,:,:1]
+        #     X_test = X_test[:,:,:1]
+            
         return X_train,np.squeeze(y_train),X_val,np.squeeze(y_val),X_test,np.squeeze(y_test),sav_path,test_time,scaler
     
 

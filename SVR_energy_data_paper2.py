@@ -12,7 +12,7 @@ from preprocess_data2 import*
 import time
 
 option = 2
-datatype_opt= '1s'
+datatype_opt= 'ele'
 seq = 7
 X_train,y_train,X_test,y_test,save_path,test_time_axis,scaler = get_SAMFOR_data(option,datatype_opt,seq)
 

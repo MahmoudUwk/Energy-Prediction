@@ -3,7 +3,7 @@ import os
 import matplotlib.pyplot as plt
 import numpy as np
 import seaborn as sns
-from preprocess_data2 import loadDatasetObj
+from preprocess_data2 import loadDatasetObj,get_SAMFOR_data
 from preprocess_data2 import RMSE,MAE,MAPE,get_Hzdata
 
 # voltage, 460
@@ -13,10 +13,16 @@ def write_txt(txt,fname):
     f.write(txt)
     f.close()
 
-results = '1s'
-path = "C:/Users/mahmo/OneDrive/Desktop/kuljeet/Energy Prediction Project/pwr data paper 2/resampled data"
-sav_path = "C:/Users/mahmo/OneDrive/Desktop/kuljeet/Energy Prediction Project/results"
-_,working_path = get_Hzdata(results,path,sav_path)
+results = '5T'
+
+
+if results == 'Home':
+    scale_mv=1
+else:
+    scale_mv = 460*52.5
+path = "C:/Users/Admin/Desktop/New folder/Data/resampled data"
+sav_path = "C:/Users/Admin/Desktop/New folder/results"
+working_path = get_SAMFOR_data(0,results,0,1)
 # working_path = os.path.join(base_path,results)
 
 sav_path = os.path.join(working_path,'results_paper')
@@ -45,13 +51,15 @@ alg_rename_short = {'FireflyAlgorithm':'LSTM FF',
 
 full_file_path = [os.path.join(working_path,file) for file in result_files]
 
+# full_file_path = [file for file in full_file_path if os.path.exists(file)]
+
 result_files = [file.split('.')[0] for file in result_files]
 indeces_short = [alg_rename_short[f_i] for f_i in result_files]
 indeces = [alg_rename[f_i] for f_i in result_files]
 colors = ['r','g','c','y','k','b']
 
 #%%
-scale_mv = 460*52.5
+
 fig, axs = plt.subplots(len(indeces),1, figsize=(11,11),dpi=150, facecolor='w', edgecolor='k')
 fig.subplots_adjust(hspace = .5, wspace=.001)
 
@@ -103,7 +111,7 @@ plt.ylim([0,b*1.1])
 # plt.yticks(yticks_no,yticks)
 plt.title('Bar plot of the RMSE for different algorithms')
 # Create legend & Show graphic
-plt.legend(prop={'size': 12},loc='best')
+plt.legend(prop={'size': 10},loc='best')
 plt.gca().grid(True)
 plt.show()
 # if os.path.isfile(full_Acc_name):
@@ -190,8 +198,8 @@ axs = axs.ravel()
 units = {'1s':'sec','5T':'5 min'}
 for i,res_file in enumerate(full_file_path):
     results_i = loadDatasetObj(res_file)
-    axs[i].plot(scale_mv*results_i['y_test'], color = 'red', linewidth=1.5, alpha = 0.6)
-    axs[i].plot(scale_mv*results_i['y_test_pred'], color = 'blue', linewidth=0.8)
+    axs[i].plot(scale_mv*np.squeeze(results_i['y_test']), color = 'red', linewidth=1.5, alpha = 0.6)
+    axs[i].plot(scale_mv*np.squeeze(results_i['y_test_pred']), color = 'blue', linewidth=0.8)
     axs[i].set_title(indeces[i], fontsize=14, x=0.5, y=0.6)
     axs[i].set_ylabel('Active power (Watt)', fontsize=8)
 axs[i].set_xlabel('Timestamp ('+ units[results] +')' ,fontsize=10)
@@ -211,7 +219,7 @@ plt.xticks( rotation=25 )
 plt.savefig(os.path.join(sav_path,'PredictionsVsReal'+results+'.png'),bbox_inches='tight')
 
 
-#%%
+#%%conv graph
 
 result_files = os.listdir(sav_path)
 
@@ -244,13 +252,11 @@ plt.gca().grid(True)
 plt.savefig(os.path.join(sav_path,'Conv_eval_comparison'+results+'.png'),bbox_inches='tight')
 
 
-data_hp.append([15,1,7,0.001])
+
 
 #%%
 hp = list(results_i['best_para_save'].keys())
-
 indeces_2 = [alg_rename_itr[f_i] for f_i in result_files]
-indeces_2.append('LSTM default')
 df2 = pd.DataFrame(data=np.array(data_hp),columns=hp,index = indeces_2)
 print(df2)
 
@@ -261,34 +267,34 @@ write_txt(latex_txt_hp,os.path.join(sav_path,'LSTM_HP_latex.txt'))
 #%%
 
 
-data_path = 'C:/Users/mahmo/OneDrive/Desktop/kuljeet/Energy Prediction Project/pwr data paper 2/resampled data\\1s.csv'
-df = pd.read_csv(data_path)
-df.set_index(pd.to_datetime(df.timestamp), inplace=True,drop=True,append=False)
-# df = df.set_index('timestamp',drop=True,append=False)
-# df.drop(columns=["timestamp"], inplace=True)
-plt.figure(figsize=(10,7),dpi=180)
-sns.heatmap(df.corr(), annot=True, annot_kws={"size": 18})
-plt.savefig(os.path.join(sav_path,'corr_mat'+results+'.png'),bbox_inches='tight')
+# data_path = 'C:/Users/mahmo/OneDrive/Desktop/kuljeet/Energy Prediction Project/pwr data paper 2/resampled data\\1s.csv'
+# df = pd.read_csv(data_path)
+# df.set_index(pd.to_datetime(df.timestamp), inplace=True,drop=True,append=False)
+# # df = df.set_index('timestamp',drop=True,append=False)
+# # df.drop(columns=["timestamp"], inplace=True)
+# plt.figure(figsize=(10,7),dpi=180)
+# sns.heatmap(df.corr(), annot=True, annot_kws={"size": 18})
+# plt.savefig(os.path.join(sav_path,'corr_mat'+results+'.png'),bbox_inches='tight')
 
-#%%
-plt.figure(figsize=(10,7),dpi=180)
-x_label = df.index[::int(len(df.index)/10)]
-cols = ['P', 'Q', 'V', 'I']
-# scale_mv = 460*52.5
-df2=df.copy()
-# df2['P'] = scale_mv * df2['P']
-# df2['Q'] = scale_mv * df2['Q'] 
-# df2['V'] = 460 * df2['V'] 
-# df2['I'] = 52.5 * df2['I'] 
-plt.plot(pd.to_datetime(df2.timestamp),df2[cols], linewidth=0.9)
-# plt.xticks([r for r in range(len(x_label))], x_label)
-cols_legend = ['Active power P (Watt)', 'Reactive power Q (VAR)', 'Voltage RMS V (Volt)', 'Current RMS I (Amp)']
-plt.legend(cols_legend)
-plt.xlabel('Time stamp')
-plt.ylabel('Normalized values')
-plt.title('Vizualization for the data')
-plt.xticks(rotation=25)
-plt.show()
-plt.savefig(os.path.join(sav_path,'data_vis_'+results+'.png'),bbox_inches='tight')
+# #%%
+# plt.figure(figsize=(10,7),dpi=180)
+# x_label = df.index[::int(len(df.index)/10)]
+# cols = ['P', 'Q', 'V', 'I']
+# # scale_mv = 460*52.5
+# df2=df.copy()
+# # df2['P'] = scale_mv * df2['P']
+# # df2['Q'] = scale_mv * df2['Q'] 
+# # df2['V'] = 460 * df2['V'] 
+# # df2['I'] = 52.5 * df2['I'] 
+# plt.plot(pd.to_datetime(df2.timestamp),df2[cols], linewidth=0.9)
+# # plt.xticks([r for r in range(len(x_label))], x_label)
+# cols_legend = ['Active power P (Watt)', 'Reactive power Q (VAR)', 'Voltage RMS V (Volt)', 'Current RMS I (Amp)']
+# plt.legend(cols_legend)
+# plt.xlabel('Time stamp')
+# plt.ylabel('Normalized values')
+# plt.title('Vizualization for the data')
+# plt.xticks(rotation=25)
+# plt.show()
+# plt.savefig(os.path.join(sav_path,'data_vis_'+results+'.png'),bbox_inches='tight')
 
 
