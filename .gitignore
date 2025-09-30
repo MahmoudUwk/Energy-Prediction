@@ -1,0 +1,35 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*.pyo
+
+# Virtual environments
+.env/
+.venv/
+venv/
+
+# Build artifacts
+dist/
+build/
+*.egg-info/
+
+# Model and experiment outputs
+*.obj
+*.h5
+*.ckpt
+*.npz
+*.npy
+*.log
+
+# Generated plots and reports
+*.png
+*.eps
+*.pdf
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Result directories
+outputs/
+results/
