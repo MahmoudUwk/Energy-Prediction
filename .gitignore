@@ -2,7 +2,9 @@
 __pycache__/
 *.py[cod]
 *.pyo
-
+dataset/1Hz
+dataset/resampled data
+dataset/1483205843836.csv
 # Virtual environments
 .env/
 .venv/
