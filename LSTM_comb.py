@@ -9,6 +9,7 @@ from keras.optimizers import Adam
 # from keras.callbacks import ModelCheckpoint
 # import tensorflow as tf
 import os
+from keras.utils import plot_model
 # import keras
 from preprocess_data2 import *#RMSE,MAE,MAPE,get_SAMFOR_data,log_results_LSTM,log_results_HOME_C,inverse_transf
 
@@ -34,8 +35,8 @@ def get_LSTM_model(units,input_dim,output_dim,num_layers,name='LSTM_HP'):
 option = 3
 alg_name = 'LSTM'
 data_types = ['Home']
-seq_all = [7]#[5,20]
-num_units = [30]#[35]#[8,10,15]
+seq_all = [23]#[5,20]
+num_units = [72]#[35]#[8,10,15]
 num_layers_all = [1]
 epochs_num = 2000
 # lr = 0.010164565169640837
@@ -80,6 +81,8 @@ for datatype_opt in data_types:
                 for num_layers in num_layers_all:    
                     model = get_LSTM_model(units,input_dim,output_dim,num_layers)            
                     model.compile(optimizer=opt_chosen, loss='mse')
+                    dot_img_file = 'model_1.png'
+                    plot_model(model, to_file=dot_img_file, show_shapes=True)
                     # model.summary()
                     # ,callbacks=callbacks_list
                     print('start training')

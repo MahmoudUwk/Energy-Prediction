@@ -196,10 +196,10 @@ def get_Hzdata(datatype_opt,path,sav_path):
     return df,sav_path
     #%%
 def get_SAMFOR_data(option,datatype_opt,seq_length,get_sav_path = 0):
-    path = "C:/Users/Admin/Desktop/New folder/Data/resampled data"
-    sav_path = "C:/Users/Admin/Desktop/New folder/results"
-    # sav_path = "C:/Users/mahmo/OneDrive/Desktop/kuljeet/Energy Prediction Project/results"
-    # path = "C:/Users/mahmo/OneDrive/Desktop/kuljeet/Energy Prediction Project/pwr data paper 2/resampled data"
+    # path = "C:/Users/Admin/Desktop/New folder/Data/resampled data"
+    # sav_path = "C:/Users/Admin/Desktop/New folder/results"
+    sav_path = "C:/Users/mahmo/OneDrive/Desktop/kuljeet/Energy Prediction Project/results"
+    path = "C:/Users/mahmo/OneDrive/Desktop/kuljeet/Energy Prediction Project/pwr data paper 2/resampled data"
     if datatype_opt == 'Home':
         df,sav_path = load_home_C_data(path,sav_path)
     elif datatype_opt == 'ele':
