@@ -1,20 +1,27 @@
-from sklearn.svm import SVR
 import pandas as pd
 import numpy as np
-# from sklearn.datasets import fetch_openml
 import os
 
 from matplotlib import pyplot as plt
-# from sklearn.metrics import mean_squared_error
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.neural_network import MLPRegressor
-from preprocess_data2 import*
+from preprocess_data2 import (
+    RMSE,
+    MAE,
+    MAPE,
+    get_SAMFOR_data,
+    inverse_transf,
+    log_results,
+    save_object,
+)
 import time
 
 option = 2
-datatype_opt= 'ele'
+datatype_opt = 'ele'
 seq = 7
-X_train,y_train,X_test,y_test,save_path,test_time_axis,scaler = get_SAMFOR_data(option,datatype_opt,seq)
+X_train, y_train, X_test, y_test, save_path, test_time_axis, scaler = get_SAMFOR_data(
+    option, datatype_opt, seq
+)
 
 y_test = inverse_transf(y_test,scaler)
 
@@ -36,7 +43,6 @@ end_test = time.time()
 test_time = end_test - start_test
 
 
-
 alg_name = 'RFR'
 name_sav = os.path.join(save_path,'RFR_datatype_opt'+str(datatype_opt)+'.png')
 # plot_test(test_time_axis,y_test,y_test_pred,name_sav,alg_name)
@@ -47,16 +53,9 @@ mae = MAE(y_test,y_test_pred)
 mape = MAPE(y_test,y_test_pred)
 print(rmse,mae,mape)
 
-filename = os.path.join(save_path,alg_name+'.obj')
-obj = {'y_test':y_test,'y_test_pred':y_test_pred}
-save_object(obj, filename)
-#%%
+row = [alg_name, rmse, mae, mape, seq, train_time, test_time]
+log_results(row, datatype_opt, save_path)
 
-# row = [alg_name,rmse,mae,mape,seq,0,0,0,datatype_opt,train_time,test_time]
-# log_results_HOME_C(row,datatype_opt,save_path)
-
-row = [alg_name,rmse,mae,mape,seq,train_time,test_time]
-log_results(row,datatype_opt,save_path)
 #%%
 
 new_clf = SVR(C=10, epsilon=0.01,kernel='rbf')
@@ -80,19 +79,12 @@ mae = MAE(y_test,y_test_pred)
 mape = MAPE(y_test,y_test_pred)
 print(rmse,mae,mape)
 
-
-if datatype_opt == 4:
-    row = [alg_name,rmse,mae,mape,seq,0,0,0,datatype_opt,train_time,test_time]
-    log_results_HOME_C(row,datatype_opt,save_path)
-else:
-    row = [alg_name,rmse,mae,mape,seq,train_time,test_time]
-    log_results(row,datatype_opt,save_path)
+row = [alg_name, rmse, mae, mape, seq, train_time, test_time]
+log_results(row, datatype_opt, save_path)
 
 filename = os.path.join(save_path,alg_name+'.obj')
 obj = {'y_test':y_test,'y_test_pred':y_test_pred}
 save_object(obj, filename)
-#%%
-
 # new_clf =  MLPRegressor(max_iter=500)
 # new_clf.fit(X_train, y_train)
 

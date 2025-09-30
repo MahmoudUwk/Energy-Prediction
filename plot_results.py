@@ -3,9 +3,16 @@ import os
 import matplotlib.pyplot as plt
 import numpy as np
 import seaborn as sns
-from preprocess_data2 import loadDatasetObj,get_SAMFOR_data
-from preprocess_data2 import RMSE,MAE,MAPE,get_Hzdata
 from sklearn.metrics import r2_score
+
+from config import EXPECTED_RESULT_FILES, DEFAULT_RESULTS_DATASET
+from preprocess_data2 import (
+    RMSE,
+    MAE,
+    MAPE,
+    get_SAMFOR_data,
+    loadDatasetObj,
+)
 
 # voltage, 460
 # current, 52.5
@@ -14,18 +21,14 @@ def write_txt(txt,fname):
     f.write(txt)
     f.close()
 
-results = '1s'
+results = DEFAULT_RESULTS_DATASET
 
 
 if results == 'Home':
-    scale_mv=1
+    scale_mv = 1
 else:
-    scale_mv = 460*52.5
-path = 'C:/Users/mahmo/OneDrive/Desktop/kuljeet/Energy Prediction Project/pwr data paper 2/resampled data'
-# path = "C:/Users/Admin/Desktop/New folder/Data/resampled data"
-sav_path = 'C:/Users/mahmo/OneDrive/Desktop/kuljeet/Energy Prediction Project/results'
-# sav_path = "C:/Users/Admin/Desktop/New folder/results"
-working_path = get_SAMFOR_data(0,results,0,1)
+    scale_mv = 460 * 52.5
+working_path = get_SAMFOR_data(0, results, 0, 1)
 # working_path = os.path.join(base_path,results)
 
 sav_path = os.path.join(working_path,'results_paper')
@@ -34,7 +37,7 @@ if not os.path.exists(sav_path):
 
 result_files = os.listdir(working_path)
 
-result_files = ['SVR.obj','RFR.obj','SAMFOR.obj','LSTM.obj','FireflyAlgorithm.obj','Mod_FireflyAlgorithm.obj']
+result_files = EXPECTED_RESULT_FILES
 
 # result_files = [file for file in result_files if file.endswith(".obj") and file in algorithms]
 

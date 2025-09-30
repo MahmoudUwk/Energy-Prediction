@@ -1,18 +1,29 @@
-
 import time
 import pandas as pd
 import numpy as np
 from matplotlib import pyplot as plt
 import os
-from preprocess_data2 import*# RMSE,MAE,MAPE,log_results,get_SAMFOR_data,plot_test,plot_test,inverse_transf
+from preprocess_data2 import (
+    RMSE,
+    MAE,
+    MAPE,
+    get_SAMFOR_data,
+    inverse_transf,
+    log_results,
+    plot_test,
+    save_object,
+)
 from lssvr import LSSVR
 from sklearn.svm import LinearSVR
 option = 1
 datatype_opt = 'ele'
-seq_length=7
-X_LSSVR,y_LSSVR,X_test,y_test,save_path,test_time_axis,scaler = get_SAMFOR_data(option,datatype_opt,seq_length)
-print(X_LSSVR.shape,X_test.shape)
-y_test = inverse_transf(y_test,scaler)
+seq_length = 7
+
+X_LSSVR, y_LSSVR, X_test, y_test, save_path, test_time_axis, scaler = get_SAMFOR_data(
+    option, datatype_opt, seq_length
+)
+print(X_LSSVR.shape, X_test.shape)
+y_test = inverse_transf(y_test, scaler)
 opt = 1
 #%%
 if opt ==0:

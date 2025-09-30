@@ -3,18 +3,28 @@ import matplotlib.pyplot as plt
 import os
 # from sklearn.datasets import load_breast_cancer
 # from sklearn.model_selection import train_test_split, cross_val_score
-from keras.layers import Dense,LSTM,Flatten
+from keras.layers import Dense, LSTM, Flatten
 from keras.models import Sequential
 from keras.optimizers import Adam
 from keras.callbacks import EarlyStopping
 # from preprocess_data import RMSE,MAE,MAPE,get_SAMFOR_data,log_results_LSTM
 import tensorflow as tf
-from preprocess_data2 import *# save_object,RMSE,MAE,MAPE,get_SAMFOR_data,log_results_LSTM,log_results_HOME_C,inverse_transf
+import numpy as np
 from niapy.problems import Problem
 from niapy.task import Task, OptimizationType
-import numpy as np
 from niapy.algorithms.modified import Mod_FireflyAlgorithm
 from niapy.algorithms.basic import FireflyAlgorithm
+
+from preprocess_data2 import (
+    RMSE,
+    MAE,
+    MAPE,
+    expand_dims,
+    get_SAMFOR_data,
+    inverse_transf,
+    log_results_LSTM,
+    save_object,
+)
 
 # from niapy.algorithms.basic import BeesAlgorithm
 
@@ -32,9 +42,6 @@ def get_hyperparameters(x):
     }
     # print(params)
     return params
-
-def expand_dims(X):
-    return np.expand_dims(X, axis = len(X.shape))
 
 def get_LSTM_model(input_dim,output_dim,units,num_layers, seq,lr,name='LSTM_HP'):
     model = Sequential(name=name)

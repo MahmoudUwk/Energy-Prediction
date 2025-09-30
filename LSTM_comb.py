@@ -3,30 +3,38 @@ import pandas as pd
 import numpy as np
 import time
 from keras.callbacks import EarlyStopping
-from keras.layers import  LSTM, BatchNormalization,Dense#,Bidirectional
-from keras.models import  Sequential #,load_model
+from keras.layers import LSTM, BatchNormalization, Dense  # ,Bidirectional
+from keras.models import Sequential  # ,load_model
 from keras.optimizers import Adam
 # from keras.callbacks import ModelCheckpoint
 # import tensorflow as tf
 import os
 from keras.utils import plot_model
 # import keras
-from preprocess_data2 import *#RMSE,MAE,MAPE,get_SAMFOR_data,log_results_LSTM,log_results_HOME_C,inverse_transf
+from preprocess_data2 import (
+    RMSE,
+    MAE,
+    MAPE,
+    get_SAMFOR_data,
+    inverse_transf,
+    log_results_LSTM,
+    save_object,
+)
 
 def expand_dims(X):
-    return np.expand_dims(X, axis = len(X.shape))
+    return np.expand_dims(X, axis=len(X.shape))
 
-def get_LSTM_model(units,input_dim,output_dim,num_layers,name='LSTM_HP'):
+def get_LSTM_model(units, input_dim, output_dim, num_layers, name="LSTM_HP"):
     model = Sequential(name=name)
     flag_seq = True
     if num_layers == 1:
-        model.add(LSTM(units=units,  input_shape=input_dim,return_sequences = False))
+        model.add(LSTM(units=units, input_shape=input_dim, return_sequences=False))
     else:
-        model.add(LSTM(units=units,  input_shape=input_dim,return_sequences = True))
-    for dummy in range(num_layers-1):
-        if dummy == num_layers-2:
-            flag_seq = False     
-        model.add(LSTM(units=units,return_sequences = flag_seq))
+        model.add(LSTM(units=units, input_shape=input_dim, return_sequences=True))
+    for dummy in range(num_layers - 1):
+        if dummy == num_layers - 2:
+            flag_seq = False
+        model.add(LSTM(units=units, return_sequences=flag_seq))
     model.add(Dense(output_dim))
     return model
 
