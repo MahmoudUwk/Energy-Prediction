@@ -1,71 +1,122 @@
+from __future__ import annotations
+
 import time
-import pandas as pd
+from pathlib import Path
+
 import numpy as np
-from matplotlib import pyplot as plt
-import os
+from sklearn.svm import SVR
+
+from config import SAMFOR_SAMFOR_PARAMS
+from lssvr import LSSVR
 from preprocess_data2 import (
-    RMSE,
     MAE,
     MAPE,
+    RMSE,
     get_SAMFOR_data,
     inverse_transf,
     log_results,
     plot_test,
     save_object,
 )
-from lssvr import LSSVR
-from sklearn.svm import LinearSVR
-option = 1
-datatype_opt = 'ele'
-seq_length = 7
 
-X_LSSVR, y_LSSVR, X_test, y_test, save_path, test_time_axis, scaler = get_SAMFOR_data(
-    option, datatype_opt, seq_length
-)
-print(X_LSSVR.shape, X_test.shape)
-y_test = inverse_transf(y_test, scaler)
-opt = 1
-#%%
-if opt ==0:
-    alg_name ='SAMFOR_SARIMA_LSSVR'
-    # clf = LinearSVR(C=10,epsilon=0.01,max_iter=10000)
-    clf = LSSVR(C=1,gamma=0.001,kernel='rbf')
-    print('start training')
-    start_train = time.time()
-    clf.fit(X_LSSVR, np.squeeze(y_LSSVR))
-    end_train = time.time()
-    print('End training')
-    train_time = (end_train - start_train)/60
-    
-else:
-    from sklearn.svm import SVR
-    alg_name = 'SAMFOR'
-    clf = SVR(C=1, epsilon=0.001,kernel='rbf')
-    print('start training')
-    start_train = time.time()
-    clf.fit(X_LSSVR, np.squeeze(y_LSSVR))
-    end_train = time.time()
-    print('End training')
-    train_time = (end_train - start_train)/60
-    
-start_test = time.time()
-y_test_pred = inverse_transf(np.squeeze(clf.predict(X_test).reshape(-1,1)),scaler)
-end_test = time.time()
-test_time = end_test - start_test
 
-y_test = np.squeeze(y_test)
-rmse = RMSE(y_test,y_test_pred)
-mae = MAE(y_test,y_test_pred)
-mape = MAPE(y_test,y_test_pred)
-print('rmse:',rmse,'||mape:',mape,'||mae:',mae)
-#%%
-# seq = X_LSSVR.shape[1]-1
-row = [alg_name,rmse,mae,mape,seq_length,train_time,test_time]
-log_results(row,datatype_opt,save_path)
-#%%
-name_sav = os.path.join(save_path,'SAMFOR_datatype_opt'+str(datatype_opt)+'.png')
-plot_test(test_time_axis,y_test,y_test_pred,name_sav,alg_name)
+def _time_call(fn, *args, **kwargs):
+    start = time.time()
+    result = fn(*args, **kwargs)
+    elapsed = time.time() - start
+    return result, elapsed
 
-filename = os.path.join(save_path,alg_name+'.obj')
-obj = {'y_test':y_test,'y_test_pred':y_test_pred}
-save_object(obj, filename)
+
+def _train_model(use_lssvr: bool, X_train, y_train, lssvr_params, svr_params):
+    if use_lssvr:
+        model = LSSVR(**lssvr_params)
+        name = "SAMFOR_SARIMA_LSSVR"
+    else:
+        model = SVR(**svr_params)
+        name = "SAMFOR"
+    print(f"Training {name}...")
+    _, elapsed = _time_call(model.fit, X_train, np.squeeze(y_train))
+    return model, name, elapsed / 60
+
+
+def _evaluate(model, X_test, y_test_scaled, scaler):
+    y_pred_scaled, test_elapsed = _time_call(model.predict, X_test)
+    y_pred = inverse_transf(np.squeeze(y_pred_scaled).reshape(-1, 1), scaler)
+    y_true = np.squeeze(inverse_transf(y_test_scaled, scaler))
+    rmse = RMSE(y_true, y_pred)
+    mae = MAE(y_true, y_pred)
+    mape = MAPE(y_true, y_pred)
+    print(f"rmse: {rmse:.4f} || mape: {mape:.2f} || mae: {mae:.4f}")
+    return y_true, y_pred, rmse, mae, mape, test_elapsed
+
+
+def _persist_results(
+    name: str,
+    save_path: Path,
+    y_true,
+    y_pred,
+    rmse,
+    mae,
+    mape,
+    seq,
+    train_time,
+    test_time,
+    persist_model: bool,
+):
+    row = [name, rmse, mae, mape, seq, train_time, test_time]
+    log_results(row, SAMFOR_SAMFOR_PARAMS["datatype"], str(save_path))
+    if SAMFOR_SAMFOR_PARAMS["plot_results"]:
+        name_sav = save_path / f"{name}_datatype_opt{SAMFOR_SAMFOR_PARAMS['datatype']}.png"
+        plot_test(None, y_true, y_pred, str(name_sav), name)
+    if persist_model and name in SAMFOR_SAMFOR_PARAMS["persist_models"]:
+        filename = save_path / f"{name}.obj"
+        save_object({"y_test": y_true, "y_test_pred": y_pred}, filename)
+
+
+def main():
+    params = SAMFOR_SAMFOR_PARAMS
+    option = params["option"]
+    datatype_opt = params["datatype"]
+    seq_length = params["sequence_length"]
+
+    (
+        X_train,
+        y_train,
+        X_test,
+        y_test,
+        save_path_str,
+        test_time_axis,
+        scaler,
+    ) = get_SAMFOR_data(option, datatype_opt, seq_length)
+
+    print(X_train.shape, X_test.shape)
+    save_path = Path(save_path_str)
+
+    use_lssvr = any(name.upper().startswith("SAMFOR_SARIMA") for name in params.get("algorithms", ("SAMFOR",)))
+
+    model, alg_name, train_time = _train_model(
+        use_lssvr,
+        X_train,
+        y_train,
+        params["lssvr_params"],
+        params["svr_params"],
+    )
+
+    y_true, y_pred, rmse, mae, mape, test_time = _evaluate(model, X_test, y_test, scaler)
+    _persist_results(
+        alg_name,
+        save_path,
+        y_true,
+        y_pred,
+        rmse,
+        mae,
+        mape,
+        seq_length,
+        train_time,
+        test_time,
+        params.get("persist_models", True),
+    )
+
+
+if __name__ == "__main__":
+    main()

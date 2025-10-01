@@ -1,161 +1,232 @@
-from matplotlib import pyplot as plt
-import pandas as pd
-import numpy as np
+from __future__ import annotations
+
 import time
+from pathlib import Path
+
+import numpy as np
 from keras.callbacks import EarlyStopping
-from keras.layers import LSTM, BatchNormalization, Dense  # ,Bidirectional
-from keras.models import Sequential  # ,load_model
+from keras.layers import LSTM, Dense
+from keras.models import Sequential
 from keras.optimizers import Adam
-# from keras.callbacks import ModelCheckpoint
-# import tensorflow as tf
-import os
 from keras.utils import plot_model
-# import keras
+
+from config import LSTM_TRAINING_CONFIG
 from preprocess_data2 import (
-    RMSE,
     MAE,
     MAPE,
+    RMSE,
+    expand_dims,
     get_SAMFOR_data,
     inverse_transf,
     log_results_LSTM,
     save_object,
 )
 
-def expand_dims(X):
-    return np.expand_dims(X, axis=len(X.shape))
 
-def get_LSTM_model(units, input_dim, output_dim, num_layers, name="LSTM_HP"):
-    model = Sequential(name=name)
-    flag_seq = True
-    if num_layers == 1:
-        model.add(LSTM(units=units, input_shape=input_dim, return_sequences=False))
-    else:
-        model.add(LSTM(units=units, input_shape=input_dim, return_sequences=True))
-    for dummy in range(num_layers - 1):
-        if dummy == num_layers - 2:
-            flag_seq = False
-        model.add(LSTM(units=units, return_sequences=flag_seq))
+def _ensure_three_dim(arr: np.ndarray | list | None) -> np.ndarray:
+    if arr is None:
+        return np.array([])
+    if isinstance(arr, list):
+        arr = np.array(arr)
+    if getattr(arr, "size", 0) == 0:
+        return np.array([])
+    if arr.ndim < 3:
+        arr = expand_dims(arr)
+    return arr
+
+
+def _prepare_targets(y: np.ndarray | list) -> np.ndarray:
+    arr = np.array(y)
+    if arr.size == 0:
+        return np.array([])
+    return expand_dims(expand_dims(arr))
+
+
+def _subset_features(arr: np.ndarray, n_feat: int) -> np.ndarray:
+    if arr.size == 0 or arr.ndim < 3 or n_feat <= 0:
+        return arr
+    max_feat = min(n_feat, arr.shape[2])
+    return arr[:, :, :max_feat]
+
+
+def _build_callbacks(cfg):
+    if not cfg["use_callbacks"]:
+        return None
+    return [
+        EarlyStopping(
+            monitor="val_loss",
+            patience=cfg["patience"],
+            restore_best_weights=True,
+        )
+    ]
+
+
+def _build_model(units, num_layers, input_dim, output_dim, learning_rate, plot_enabled, plot_filename):
+    model = Sequential(name="LSTM_HP")
+    return_sequences = num_layers > 1
+    model.add(LSTM(units=units, input_shape=input_dim, return_sequences=return_sequences))
+    for layer_idx in range(1, num_layers):
+        model.add(LSTM(units=units, return_sequences=layer_idx < num_layers - 1))
     model.add(Dense(output_dim))
+    model.compile(optimizer=Adam(learning_rate=learning_rate), loss="mse")
+    if plot_enabled:
+        plot_model(model, to_file=plot_filename, show_shapes=True)
     return model
 
 
-#%%
-option = 3
-alg_name = 'LSTM'
-data_types = ['Home']
-seq_all = [23]#[5,20]
-num_units = [72]#[35]#[8,10,15]
-num_layers_all = [1]
-epochs_num = 2000
-# lr = 0.010164565169640837
-lr=0.0001
-adam=Adam(learning_rate=lr)
-# rmspr = RMSprop()
-opt_chosen = adam
-num_feat = [1]
-vb = 2
-batch_size_n = 2**11
-val_split_size=0
-for datatype_opt in data_types:
-    for n_feat in num_feat:
-        for seq_counter , seq in enumerate(seq_all):
-            X_train,y_train,X_val,y_val,X_test,y_test,save_path,test_time_axis,scaler = get_SAMFOR_data(option,datatype_opt,seq)
+def _evaluate(model, X_test, y_test_scaled, scaler):
+    y_true = inverse_transf(y_test_scaled, scaler)
+    y_pred = inverse_transf(model.predict(X_test, verbose=0), scaler)
+    rmse = RMSE(y_true, y_pred)
+    mae = MAE(y_true, y_pred)
+    mape = MAPE(y_true, y_pred)
+    return y_true, y_pred, rmse, mae, mape
 
-            # X_train = X_train[:,:,:n_feat]
-            # X_val = X_val[:,:,:n_feat]
-            # X_test = X_test[:,:,:n_feat]
 
-        
-            y_test = inverse_transf(y_test,scaler)
-    
-            print(X_train.shape)
-            y_train = expand_dims(expand_dims(y_train))
-            y_val = expand_dims(expand_dims(y_val))
-            if len(X_train.shape)<3:
-                X_train = expand_dims(X_train)
-                X_val = expand_dims(X_val)
-                X_test = expand_dims(X_test)
-            print(X_train.shape,X_val.shape,X_test.shape)
-            #%% LSTM model
-    
-            
-            drop_out = 0
-            callback_falg = 1
-            input_dim=(X_train.shape[1],X_train.shape[2])
-            output_dim = y_train.shape[-1]
-            
-            for units in num_units:
-                print(input_dim,output_dim)
-                for num_layers in num_layers_all:    
-                    model = get_LSTM_model(units,input_dim,output_dim,num_layers)            
-                    model.compile(optimizer=opt_chosen, loss='mse')
-                    dot_img_file = 'model_1.png'
-                    plot_model(model, to_file=dot_img_file, show_shapes=True)
-                    # model.summary()
-                    # ,callbacks=callbacks_list
-                    print('start training')
-                    start_train = time.time()
-                    if callback_falg:
-                        callbacks_list = [EarlyStopping(monitor='val_loss', patience=50, restore_best_weights=True)]
-                        if len(X_val) ==0:
-                            history = model.fit(X_train, y_train, epochs=epochs_num, batch_size=batch_size_n, verbose=vb, shuffle=True, validation_split=val_split_size,callbacks=callbacks_list)
-                        else:
-                            history = model.fit(X_train, y_train, epochs=epochs_num, batch_size=batch_size_n, verbose=vb, shuffle=True, validation_data=(X_val,y_val),callbacks=callbacks_list)
-                    else:
-                        print('Stop')
-                    #%%
-                    end_train = time.time()
-                    print('End training')
-                    train_time = (end_train - start_train)/60
-                    if callback_falg and len(X_val) !=0:
-                        best_epoch =np.argmin(history.history['val_loss'])
-                    else:
-                        best_epoch = 0
-                    # model.save(filepath)
-                    #%%
-                    
-                    start_test = time.time()
-                    y_test_pred = inverse_transf(model.predict(X_test),scaler)
-                    end_test = time.time()
-                    test_time = end_test - start_test
-                    #%%
-                    rmse = RMSE(y_test,y_test_pred)
-                    mae = MAE(y_test,y_test_pred)
-                    mape = MAPE(y_test,y_test_pred)
-                    print(rmse,mae,mape)
-                    # best_epoch = epochs_num
-                   
-                    row = [alg_name,rmse,mae,mape,seq,num_layers,units,best_epoch,datatype_opt,train_time,test_time,n_feat]
-        
-                    log_results_LSTM(row,datatype_opt,save_path)
-                    #%%
-                    # plt.figure(figsize=(10,7),dpi=180)
-                    # plt.plot(test_time_axis,1000*np.squeeze(y_test), color = 'red', linewidth=2.0, alpha = 0.6)
-                    # plt.plot(test_time_axis,1000*np.squeeze(y_test_pred), color = 'blue', linewidth=0.8)
-                    # plt.legend(['Actual','Predicted'])
-                    # plt.xlabel('Timestamp')
-                    # plt.xticks( rotation=25)
-                    # plt.ylabel('mW')
-                    # plt.title('Energy Prediction using '+alg_name)
-                    # plt.show()
-                    # info_loop = [seq,num_layers,units,best_epoch,datatype_opt,n_feat]
-                    # name_sav = ""
-                    # for n in info_loop:
-                    #     name_sav = name_sav+str(n)+"_" 
-                    # plt.savefig(os.path.join(save_path,'LSTM'+name_sav+'.png'))
-                    plt.close()
-                    filename = os.path.join(save_path,alg_name+'.obj')
-                    obj = {'y_test':y_test,'y_test_pred':y_test_pred}
-                    save_object(obj, filename)
-#%%
-# save_name = 'results_LSTM_feat_3_1s.csv'
+def _best_epoch(history):
+    val_loss = history.history.get("val_loss")
+    if val_loss:
+        return int(np.argmin(val_loss))
+    return int(np.argmin(history.history["loss"]))
 
-# df = pd.read_csv(os.path.join(save_path,save_name))
-# print(df['RMSE'].min())
-# print(df.sort_values(by=['RMSE'])[:5])
-# RMSE_all = df.groupby(by='n_feat').min()['RMSE'].mean() 
-# print(RMSE_all)
-# l_u = []
-# for n,cluster_dat in df.groupby(by='n_feat'):
-#     (a,b) = cluster_dat[['num_transformer_blocks','mlp_units']].iloc[cluster_dat['RMSE'].argmin()]
-#     l_u.append((a,b))
+
+def _persist_results(
+    save_path: Path,
+    datatype_opt: str,
+    alg_name: str,
+    seq: int,
+    num_layers: int,
+    units: int,
+    best_epoch: int,
+    used_features: int,
+    train_time: float,
+    test_time: float,
+    rmse: float,
+    mae: float,
+    mape: float,
+    y_true,
+    y_pred,
+):
+    if LSTM_TRAINING_CONFIG["save_results"]:
+        row = [
+            alg_name,
+            rmse,
+            mae,
+            mape,
+            seq,
+            num_layers,
+            units,
+            best_epoch,
+            datatype_opt,
+            train_time,
+            test_time,
+            used_features,
+        ]
+        log_results_LSTM(row, datatype_opt, str(save_path))
+
+    if LSTM_TRAINING_CONFIG["persist_models"]:
+        filename = save_path / f"{alg_name}.obj"
+        save_object({"y_test": y_true, "y_test_pred": y_pred}, filename)
+
+
+def main():
+    cfg = LSTM_TRAINING_CONFIG
+    option = cfg["option"]
+    alg_name = cfg["algorithm"]
+    batch_size = 2 ** cfg["batch_size_power"]
+
+    for datatype_opt in cfg["data_types"]:
+        for n_feat in cfg["num_features"]:
+            for seq in cfg["sequence_lengths"]:
+                (
+                    X_train,
+                    y_train,
+                    X_val,
+                    y_val,
+                    X_test,
+                    y_test,
+                    save_path_str,
+                    _,
+                    scaler,
+                ) = get_SAMFOR_data(option, datatype_opt, seq)
+
+                y_train = _prepare_targets(y_train)
+                y_val = _prepare_targets(y_val) if len(y_val) else np.array([])
+                X_train = _subset_features(_ensure_three_dim(X_train), n_feat)
+                X_val = _subset_features(_ensure_three_dim(X_val), n_feat)
+                X_test = _subset_features(_ensure_three_dim(X_test), n_feat)
+
+                used_features = X_train.shape[2] if X_train.size else 0
+                input_dim = (X_train.shape[1], used_features)
+                output_dim = y_train.shape[-1] if y_train.size else 1
+
+                callbacks = _build_callbacks(cfg)
+                save_path = Path(save_path_str)
+
+                for units in cfg["units"]:
+                    for num_layers in cfg["num_layers"]:
+                        print(
+                            f"Training {alg_name}: data={datatype_opt}, seq={seq}, "
+                            f"units={units}, layers={num_layers}, n_feat={used_features}"
+                        )
+
+                        model = _build_model(
+                            units,
+                            num_layers,
+                            input_dim,
+                            output_dim,
+                            cfg["learning_rate"],
+                            cfg["plot_model"],
+                            cfg["model_plot_filename"],
+                        )
+
+                        fit_kwargs = {
+                            "epochs": cfg["epochs"],
+                            "batch_size": batch_size,
+                            "verbose": cfg["verbose"],
+                            "shuffle": True,
+                        }
+                        if callbacks:
+                            fit_kwargs["callbacks"] = callbacks
+
+                        if X_val.size and y_val.size:
+                            fit_kwargs["validation_data"] = (X_val, y_val)
+                        elif cfg["validation_split"] > 0:
+                            fit_kwargs["validation_split"] = cfg["validation_split"]
+
+                        start_train = time.time()
+                        history = model.fit(X_train, y_train, **fit_kwargs)
+                        train_time = (time.time() - start_train) / 60
+
+                        start_test = time.time()
+                        y_true, y_pred, rmse, mae, mape = _evaluate(model, X_test, y_test, scaler)
+                        test_time = time.time() - start_test
+
+                        best_epoch = _best_epoch(history) if callbacks else int(np.argmin(history.history["loss"]))
+
+                        print(
+                            f"Metrics -> RMSE: {rmse:.4f}, MAE: {mae:.4f}, "
+                            f"MAPE: {mape:.2f}%"
+                        )
+
+                        _persist_results(
+                            save_path,
+                            datatype_opt,
+                            alg_name,
+                            seq,
+                            num_layers,
+                            units,
+                            best_epoch,
+                            used_features,
+                            train_time,
+                            test_time,
+                            rmse,
+                            mae,
+                            mape,
+                            y_true,
+                            y_pred,
+                        )
+
+
+if __name__ == "__main__":
+    main()

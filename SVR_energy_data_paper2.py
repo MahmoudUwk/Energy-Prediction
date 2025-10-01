@@ -1,112 +1,117 @@
-import pandas as pd
-import numpy as np
-import os
+from __future__ import annotations
 
-from matplotlib import pyplot as plt
+import time
+from pathlib import Path
+
+import numpy as np
 from sklearn.ensemble import RandomForestRegressor
-from sklearn.neural_network import MLPRegressor
+from sklearn.svm import SVR
+
+from config import (
+    SAMFOR_DATATYPE,
+    SAMFOR_MODELS,
+    SAMFOR_OPTION,
+    SAMFOR_PERSIST_MODELS,
+    SAMFOR_RANDOM_FOREST_PARAMS,
+    SAMFOR_SAVE_RESULTS,
+    SAMFOR_SEQUENCE_LENGTH,
+    SAMFOR_SVR_PARAMS,
+)
 from preprocess_data2 import (
-    RMSE,
     MAE,
     MAPE,
+    RMSE,
     get_SAMFOR_data,
     inverse_transf,
     log_results,
     save_object,
 )
-import time
-
-option = 2
-datatype_opt = 'ele'
-seq = 7
-X_train, y_train, X_test, y_test, save_path, test_time_axis, scaler = get_SAMFOR_data(
-    option, datatype_opt, seq
-)
-
-y_test = inverse_transf(y_test,scaler)
-
-print(X_train.shape,X_test.shape)
-#%%
-
-clf = RandomForestRegressor(random_state=0)
-
-print('start training')
-start_train = time.time()
-clf.fit(X_train, y_train)
-end_train = time.time()
-print('End training')
-train_time = (end_train - start_train)/60
-
-start_test = time.time()
-y_test_pred = inverse_transf(clf.predict(X_test),scaler)
-end_test = time.time()
-test_time = end_test - start_test
 
 
-alg_name = 'RFR'
-name_sav = os.path.join(save_path,'RFR_datatype_opt'+str(datatype_opt)+'.png')
-# plot_test(test_time_axis,y_test,y_test_pred,name_sav,alg_name)
+def _time_call(fn, *args, **kwargs):
+    start = time.time()
+    result = fn(*args, **kwargs)
+    elapsed = time.time() - start
+    return result, elapsed
 
 
-rmse = RMSE(y_test,y_test_pred)
-mae = MAE(y_test,y_test_pred)
-mape = MAPE(y_test,y_test_pred)
-print(rmse,mae,mape)
-
-row = [alg_name, rmse, mae, mape, seq, train_time, test_time]
-log_results(row, datatype_opt, save_path)
-
-#%%
-
-new_clf = SVR(C=10, epsilon=0.01,kernel='rbf')
-start_train = time.time()
-new_clf.fit(X_train, y_train)
-end_train = time.time()
-train_time = (end_train - start_train)/60
-
-start_test = time.time()
-y_test_pred = inverse_transf(new_clf.predict(X_test),scaler)
-end_test = time.time()
-test_time = end_test - start_test
+def _compute_metrics(y_true: np.ndarray, y_pred: np.ndarray):
+    return RMSE(y_true, y_pred), MAE(y_true, y_pred), MAPE(y_true, y_pred)
 
 
-alg_name = 'SVR'
-name_sav = os.path.join(save_path,'SVR_datatype_opt'+str(datatype_opt)+'.png')
-# plot_test(test_time_axis,y_test,y_test_pred,name_sav,alg_name)
+def _persist_predictions(base_path: Path, name: str, y_true: np.ndarray, y_pred: np.ndarray):
+    filename = base_path / f"{name}.obj"
+    save_object({"y_test": y_true, "y_test_pred": y_pred}, filename)
 
-rmse = RMSE(y_test,y_test_pred)
-mae = MAE(y_test,y_test_pred)
-mape = MAPE(y_test,y_test_pred)
-print(rmse,mae,mape)
 
-row = [alg_name, rmse, mae, mape, seq, train_time, test_time]
-log_results(row, datatype_opt, save_path)
+def _train_and_evaluate(
+    model,
+    name: str,
+    X_train: np.ndarray,
+    y_train: np.ndarray,
+    X_test: np.ndarray,
+    y_test_scaled: np.ndarray,
+    scaler,
+    save_path: Path,
+    datatype_opt: str,
+    seq_length: int,
+):
+    print(f"Training {name}...")
+    _, train_elapsed = _time_call(model.fit, X_train, y_train)
+    y_pred_scaled, test_elapsed = _time_call(model.predict, X_test)
 
-filename = os.path.join(save_path,alg_name+'.obj')
-obj = {'y_test':y_test,'y_test_pred':y_test_pred}
-save_object(obj, filename)
-# new_clf =  MLPRegressor(max_iter=500)
-# new_clf.fit(X_train, y_train)
+    y_true = inverse_transf(y_test_scaled, scaler)
+    y_pred = inverse_transf(y_pred_scaled, scaler)
 
-# y_test_pred = new_clf.predict(X_test)
+    rmse, mae, mape = _compute_metrics(y_true, y_pred)
+    print(f"{name} -> RMSE: {rmse:.4f}, MAE: {mae:.4f}, MAPE: {mape:.2f}%")
 
-# plt.figure(figsize=(10,5))
-# plt.plot(y_test, color = 'red', linewidth=2.0, alpha = 0.6)
-# plt.plot(y_test_pred, color = 'blue', linewidth=0.8)
-# plt.legend(['Actual','Predicted'])
-# plt.xlabel('Timestamp')
-# plt.show()
-# plt.savefig(os.path.join(save_path,'MLP_sklearn.png'))
-# # print('SVR RMSE:',mean_squared_error(y_test,y_test_pred))
-# rmse = RMSE(y_test,y_test_pred)
-# mae = MAE(y_test,y_test_pred)
-# mape = MAPE(y_test,y_test_pred)
-# print(rmse,mae,mape)
+    row = [name, rmse, mae, mape, seq_length, train_elapsed / 60, test_elapsed]
+    if SAMFOR_SAVE_RESULTS:
+        log_results(row, datatype_opt, str(save_path))
+    if name in SAMFOR_PERSIST_MODELS:
+        _persist_predictions(save_path, name, y_true, y_pred)
 
-# alg_name = 'MLP sklearn'
-# if datatype_opt == 4:
-#     row = [alg_name,rmse,mae,mape,seq,0,0,0,datatype_opt,train_time,test_time]
-#     log_results_HOME_C(row,datatype_opt,save_path)
-# else:
-#     row = [alg_name,rmse,mae,mape,seq,train_time,test_time]
-#     log_results(row,datatype_opt,save_path)
+
+def _available_models():
+    return {
+        "RFR": lambda: RandomForestRegressor(**SAMFOR_RANDOM_FOREST_PARAMS),
+        "SVR": lambda: SVR(**SAMFOR_SVR_PARAMS),
+    }
+
+
+def main():
+    seq = SAMFOR_SEQUENCE_LENGTH
+    datatype_opt = SAMFOR_DATATYPE
+    option = SAMFOR_OPTION
+
+    X_train, y_train, X_test, y_test, save_path_str, _, scaler = get_SAMFOR_data(
+        option, datatype_opt, seq
+    )
+
+    print(f"Train shape: {X_train.shape}, Test shape: {X_test.shape}")
+
+    save_path = Path(save_path_str)
+    models = _available_models()
+
+    for name in SAMFOR_MODELS:
+        if name not in models:
+            print(f"Skipping unsupported model '{name}'.")
+            continue
+        model = models[name]()
+        _train_and_evaluate(
+            model,
+            name,
+            X_train,
+            y_train,
+            X_test,
+            y_test,
+            scaler,
+            save_path,
+            datatype_opt,
+            seq,
+        )
+
+
+if __name__ == "__main__":
+    main()
