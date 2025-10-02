@@ -13,8 +13,6 @@ from sklearn.preprocessing import MinMaxScaler
 from config import (
     RESULTS_ROOT,
     RESAMPLED_DATA_ROOT,
-    HOME_DATA_ROOT,
-    ELE_DATA_ROOT,
     SARIMA_LOOKBACK,
     MINMAX_FEATURE_RANGE,
     train_split_for,
@@ -165,64 +163,6 @@ def log_results_LSTM(row, datatype_opt, save_path):
     _append_row(save_path, save_name, cols, row)
 
 
-# ----------------------------------------------------------------------
-# Dataset loaders
-# ----------------------------------------------------------------------
-def load_home_C_data(data_root: Optional[Path] = None, save_root: Optional[Path] = None):
-    data_dir = Path(data_root) if data_root is not None else HOME_DATA_ROOT
-    save_dir = Path(save_root) if save_root is not None else RESULTS_ROOT
-
-    save_path = save_dir / "Home"
-    save_path.mkdir(parents=True, exist_ok=True)
-
-    data_path = data_dir / "HomeC.csv"
-    data = pd.read_csv(data_path, nrows=503910, low_memory=False)
-    data["time"] = pd.to_datetime(data["time"], unit="s")
-    data["time"] = pd.DatetimeIndex(pd.date_range("2016-01-01 05:00", periods=len(data), freq="min"))
-    data = data.set_index("time")
-    data.columns = [col.replace(" [kW]", "") for col in data.columns]
-    data["Furnace"] = data[["Furnace 1", "Furnace 2"]].sum(axis=1)
-    data["Kitchen"] = data[["Kitchen 12", "Kitchen 14", "Kitchen 38"]].sum(axis=1)
-    data.drop(["Furnace 1", "Furnace 2", "Kitchen 12", "Kitchen 14", "Kitchen 38", "icon", "summary"], axis=1, inplace=True)
-
-    data["cloudCover"].replace(["cloudCover"], method="bfill", inplace=True)
-    data["cloudCover"] = data["cloudCover"].astype(float)
-
-    selected_cols = [
-        "House overall",
-        "Furnace",
-        "Living room",
-        "Barn",
-        "temperature",
-        "humidity",
-        "apparentTemperature",
-        "pressure",
-        "cloudCover",
-        "windBearing",
-        "precipIntensity",
-        "dewPoint",
-        "precipProbability",
-    ]
-    data = data[selected_cols]
-
-    return data, str(save_path)
-
-
-def get_ele_data(data_root: Optional[Path] = None, save_root: Optional[Path] = None):
-    data_dir = Path(data_root) if data_root is not None else ELE_DATA_ROOT
-    save_dir = Path(save_root) if save_root is not None else RESULTS_ROOT
-
-    save_path = save_dir / "ele"
-    save_path.mkdir(parents=True, exist_ok=True)
-
-    data_path = data_dir / "ele.csv"
-    df = pd.read_csv(data_path)
-    df.set_index(pd.to_datetime(df["date"]), inplace=True, drop=True, append=False)
-    df.drop(columns=["date"], inplace=True)
-    df = df[["hvac_N", "hvac_S"]].dropna()
-    return df, str(save_path)
-
-
 def get_Hzdata(datatype_opt, data_root: Optional[Path] = None, save_root: Optional[Path] = None):
     data_dir = Path(data_root) if data_root is not None else RESAMPLED_DATA_ROOT
     save_dir = Path(save_root) if save_root is not None else RESULTS_ROOT
@@ -241,10 +181,6 @@ def get_Hzdata(datatype_opt, data_root: Optional[Path] = None, save_root: Option
 
 
 def _load_dataset(datatype_opt: str):
-    if datatype_opt == "Home":
-        return load_home_C_data()
-    if datatype_opt == "ele":
-        return get_ele_data()
     return get_Hzdata(datatype_opt)
 
 

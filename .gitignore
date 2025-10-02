@@ -9,7 +9,7 @@ dataset/1483205843836.csv
 .env/
 .venv/
 venv/
-
+Old_code/
 # Build artifacts
 dist/
 build/
