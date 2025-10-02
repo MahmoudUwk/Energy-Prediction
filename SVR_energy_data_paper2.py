@@ -21,27 +21,17 @@ from preprocess_data2 import (
     MAE,
     MAPE,
     RMSE,
+    compute_metrics,
     get_SAMFOR_data,
     inverse_transf,
     log_results,
+    persist_model_results,
     save_object,
+    time_call,
 )
 
 
-def _time_call(fn, *args, **kwargs):
-    start = time.time()
-    result = fn(*args, **kwargs)
-    elapsed = time.time() - start
-    return result, elapsed
-
-
-def _compute_metrics(y_true: np.ndarray, y_pred: np.ndarray):
-    return RMSE(y_true, y_pred), MAE(y_true, y_pred), MAPE(y_true, y_pred)
-
-
-def _persist_predictions(base_path: Path, name: str, y_true: np.ndarray, y_pred: np.ndarray):
-    filename = base_path / f"{name}.obj"
-    save_object({"y_test": y_true, "y_test_pred": y_pred}, filename)
+# Utility functions moved to preprocess_data2.py
 
 
 def _train_and_evaluate(
@@ -57,20 +47,31 @@ def _train_and_evaluate(
     seq_length: int,
 ):
     print(f"Training {name}...")
-    _, train_elapsed = _time_call(model.fit, X_train, y_train)
-    y_pred_scaled, test_elapsed = _time_call(model.predict, X_test)
+    _, train_elapsed = time_call(model.fit, X_train, y_train)
+    y_pred_scaled, test_elapsed = time_call(model.predict, X_test)
 
     y_true = inverse_transf(y_test_scaled, scaler)
     y_pred = inverse_transf(y_pred_scaled, scaler)
 
-    rmse, mae, mape = _compute_metrics(y_true, y_pred)
+    rmse, mae, mape = compute_metrics(y_true, y_pred)
     print(f"{name} -> RMSE: {rmse:.4f}, MAE: {mae:.4f}, MAPE: {mape:.2f}%")
 
-    row = [name, rmse, mae, mape, seq_length, train_elapsed / 60, test_elapsed]
-    if SAMFOR_SAVE_RESULTS:
-        log_results(row, datatype_opt, str(save_path))
-    if name in SAMFOR_PERSIST_MODELS:
-        _persist_predictions(save_path, name, y_true, y_pred)
+    persist_model_results(
+        name,
+        save_path,
+        y_true,
+        y_pred,
+        rmse,
+        mae,
+        mape,
+        seq_length,
+        train_elapsed / 60,
+        test_elapsed,
+        datatype_opt,
+        plot_results=False,  # SVR script doesn't seem to use plots
+        persist_model=True,
+        persist_models_list=SAMFOR_PERSIST_MODELS,
+    )
 
 
 def _available_models():

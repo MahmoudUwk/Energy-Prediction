@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import pickle
+import time
 from pathlib import Path
 from typing import Optional
 
@@ -82,6 +83,51 @@ def subset_lstm_features(arr: np.ndarray, n_feat: int) -> np.ndarray:
         return arr
     max_feat = min(n_feat, arr.shape[2])
     return arr[:, :, :max_feat]
+
+
+# ----------------------------------------------------------------------
+# Common utility functions
+# ----------------------------------------------------------------------
+def time_call(fn, *args, **kwargs):
+    """Time a function call and return result with elapsed time."""
+    start = time.time()
+    result = fn(*args, **kwargs)
+    elapsed = time.time() - start
+    return result, elapsed
+
+
+def compute_metrics(y_true: np.ndarray, y_pred: np.ndarray):
+    """Compute RMSE, MAE, and MAPE metrics."""
+    return RMSE(y_true, y_pred), MAE(y_true, y_pred), MAPE(y_true, y_pred)
+
+
+def persist_model_results(
+    name: str,
+    save_path: Path,
+    y_true: np.ndarray,
+    y_pred: np.ndarray,
+    rmse: float,
+    mae: float,
+    mape: float,
+    seq_length: int,
+    train_time: float,
+    test_time: float,
+    datatype_opt: str,
+    plot_results: bool = False,
+    persist_model: bool = False,
+    persist_models_list: list = None,
+):
+    """Persist model results, predictions, and optionally save plots."""
+    row = [name, rmse, mae, mape, seq_length, train_time, test_time]
+    log_results(row, datatype_opt, str(save_path))
+
+    if plot_results:
+        plot_path = save_path / f"{name}_datatype_opt{datatype_opt}.png"
+        plot_test(None, y_true, y_pred, str(plot_path), name)
+
+    if persist_model and persist_models_list and name in persist_models_list:
+        filename = save_path / f"{name}.obj"
+        save_object({"y_test": y_true, "y_test_pred": y_pred}, filename)
 
 
 # ----------------------------------------------------------------------
