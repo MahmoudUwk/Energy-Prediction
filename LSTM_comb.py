@@ -15,38 +15,18 @@ from preprocess_data2 import (
     MAE,
     MAPE,
     RMSE,
+    ensure_three_dim,
     expand_dims,
     get_SAMFOR_data,
     inverse_transf,
     log_results_LSTM,
+    prepare_lstm_targets,
     save_object,
+    subset_lstm_features,
 )
 
 
-def _ensure_three_dim(arr: np.ndarray | list | None) -> np.ndarray:
-    if arr is None:
-        return np.array([])
-    if isinstance(arr, list):
-        arr = np.array(arr)
-    if getattr(arr, "size", 0) == 0:
-        return np.array([])
-    if arr.ndim < 3:
-        arr = expand_dims(arr)
-    return arr
-
-
-def _prepare_targets(y: np.ndarray | list) -> np.ndarray:
-    arr = np.array(y)
-    if arr.size == 0:
-        return np.array([])
-    return expand_dims(expand_dims(arr))
-
-
-def _subset_features(arr: np.ndarray, n_feat: int) -> np.ndarray:
-    if arr.size == 0 or arr.ndim < 3 or n_feat <= 0:
-        return arr
-    max_feat = min(n_feat, arr.shape[2])
-    return arr[:, :, :max_feat]
+# LSTM utility functions moved to preprocess_data2.py
 
 
 def _build_callbacks(cfg):
@@ -150,11 +130,11 @@ def main():
                     scaler,
                 ) = get_SAMFOR_data(option, datatype_opt, seq)
 
-                y_train = _prepare_targets(y_train)
-                y_val = _prepare_targets(y_val) if len(y_val) else np.array([])
-                X_train = _subset_features(_ensure_three_dim(X_train), n_feat)
-                X_val = _subset_features(_ensure_three_dim(X_val), n_feat)
-                X_test = _subset_features(_ensure_three_dim(X_test), n_feat)
+                y_train = prepare_lstm_targets(y_train)
+                y_val = prepare_lstm_targets(y_val) if len(y_val) else np.array([])
+                X_train = subset_lstm_features(ensure_three_dim(X_train), n_feat)
+                X_val = subset_lstm_features(ensure_three_dim(X_val), n_feat)
+                X_test = subset_lstm_features(ensure_three_dim(X_test), n_feat)
 
                 used_features = X_train.shape[2] if X_train.size else 0
                 input_dim = (X_train.shape[1], used_features)

@@ -120,7 +120,7 @@ CONFIG = {
     "include_max": False,
     "export_raw": True,
     "raw_filename": "1s.csv",
-    "subset_rows": 172800,
+    "subset_rows": None,
     "subset_filename": "1s_more.csv",
 }
 

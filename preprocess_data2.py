@@ -53,6 +53,38 @@ def expand_dims_first(x):
 
 
 # ----------------------------------------------------------------------
+# LSTM-specific utilities
+# ----------------------------------------------------------------------
+def ensure_three_dim(arr: np.ndarray | list | None) -> np.ndarray:
+    """Ensure array is at least 3-dimensional for LSTM input."""
+    if arr is None:
+        return np.array([])
+    if isinstance(arr, list):
+        arr = np.array(arr)
+    if getattr(arr, "size", 0) == 0:
+        return np.array([])
+    if arr.ndim < 3:
+        arr = expand_dims(arr)
+    return arr
+
+
+def prepare_lstm_targets(y: np.ndarray | list) -> np.ndarray:
+    """Prepare targets for LSTM training by expanding dimensions."""
+    arr = np.array(y)
+    if arr.size == 0:
+        return np.array([])
+    return expand_dims(expand_dims(arr))
+
+
+def subset_lstm_features(arr: np.ndarray, n_feat: int) -> np.ndarray:
+    """Subset features for LSTM input, keeping only the first n_feat features."""
+    if arr.size == 0 or arr.ndim < 3 or n_feat <= 0:
+        return arr
+    max_feat = min(n_feat, arr.shape[2])
+    return arr[:, :, :max_feat]
+
+
+# ----------------------------------------------------------------------
 # Feature engineering
 # ----------------------------------------------------------------------
 def feature_creation(data):

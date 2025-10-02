@@ -21,11 +21,14 @@ from preprocess_data2 import (
     MAE,
     MAPE,
     RMSE,
+    ensure_three_dim,
     expand_dims,
     get_SAMFOR_data,
     inverse_transf,
     log_results_LSTM,
+    prepare_lstm_targets,
     save_object,
+    subset_lstm_features,
     loadDatasetObj,
 )
 
@@ -67,8 +70,8 @@ class LSTMHyperparameterOptimization(Problem):
 
         input_dim = (X_train.shape[1], X_train.shape[2])
         output_dim = 1
-        y_train = expand_dims(expand_dims(y_train))
-        y_test = expand_dims(expand_dims(y_test))
+        y_train = prepare_lstm_targets(y_train)
+        y_test = prepare_lstm_targets(y_test)
 
         model = _build_model(
             input_dim,
@@ -139,7 +142,7 @@ def _train_with_best_params(config, datatype_opt, best_params, algorithm_name):
         scaler,
     ) = _prepare_data(config["option"], datatype_opt, best_params["seq"])
 
-    y_train = expand_dims(expand_dims(y_train))
+    y_train = prepare_lstm_targets(y_train)
     input_dim = (X_train.shape[1], X_train.shape[2])
     output_dim = y_train.shape[-1]
 
