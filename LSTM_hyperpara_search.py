@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import tensorflow as tf
 from keras.callbacks import EarlyStopping
-from keras.layers import Dense, LSTM
+from keras.layers import Dense, LSTM, Input
 from keras.models import Sequential
 from keras.optimizers import Adam
 from niapy.algorithms.basic import FireflyAlgorithm
@@ -45,7 +45,9 @@ def _hyperparameters_from_vector(x: np.ndarray) -> Dict[str, Any]:
 
 def _build_model(input_dim, output_dim, units, num_layers, learning_rate):
     model = Sequential(name="LSTM_HP")
-    model.add(LSTM(units=units, input_shape=input_dim, return_sequences=num_layers > 1))
+    # Use Input layer for modern Keras approach (removes warning)
+    model.add(Input(shape=input_dim))
+    model.add(LSTM(units=units, return_sequences=num_layers > 1))
     for idx in range(1, num_layers):
         model.add(LSTM(units=units, return_sequences=idx < num_layers - 1))
     model.add(Dense(output_dim))

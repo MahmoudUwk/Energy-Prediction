@@ -5,7 +5,7 @@ from pathlib import Path
 
 import numpy as np
 from keras.callbacks import EarlyStopping
-from keras.layers import LSTM, Dense
+from keras.layers import LSTM, Dense, Input
 from keras.models import Sequential
 from keras.optimizers import Adam
 from keras.utils import plot_model
@@ -43,8 +43,10 @@ def _build_callbacks(cfg):
 
 def _build_model(units, num_layers, input_dim, output_dim, learning_rate, plot_enabled, plot_filename):
     model = Sequential(name="LSTM_HP")
+    # Use Input layer for modern Keras approach (removes warning)
+    model.add(Input(shape=input_dim))
     return_sequences = num_layers > 1
-    model.add(LSTM(units=units, input_shape=input_dim, return_sequences=return_sequences))
+    model.add(LSTM(units=units, return_sequences=return_sequences))
     for layer_idx in range(1, num_layers):
         model.add(LSTM(units=units, return_sequences=layer_idx < num_layers - 1))
     model.add(Dense(output_dim))
