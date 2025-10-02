@@ -6,11 +6,16 @@ import logging
 from enum import Enum
 
 import numpy as np
-from matplotlib import pyplot as plt
-import matplotlib.ticker as ticker
 from niapy.problems import Problem
 from niapy.util.repair import limit
 from niapy.util.factory import get_problem
+
+try:
+    from matplotlib import pyplot as plt
+    import matplotlib.ticker as ticker
+    MATPLOTLIB_AVAILABLE = True
+except ImportError:
+    MATPLOTLIB_AVAILABLE = False
 
 logging.basicConfig()
 logger = logging.getLogger("niapy.task.Task")
@@ -221,6 +226,10 @@ class Task:
             title (str): Title of the graph.
 
         """
+        if not MATPLOTLIB_AVAILABLE:
+            print(f"Warning: matplotlib not available. Cannot plot convergence for {title}")
+            return
+
         x, fitness = self.convergence_data(x_axis)
         _, ax = plt.subplots()
         ax.plot(x, fitness)

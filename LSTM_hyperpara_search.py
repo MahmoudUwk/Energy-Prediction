@@ -105,7 +105,7 @@ class LSTMHyperparameterOptimization(Problem):
 
 def _select_algorithm(name: str, population: int):
     if name == "Mod_FireflyAlgorithm":
-        return Mod_FireflyAlgorithm.Mod_FireflyAlgorithm(population_size=population)
+        return Mod_FireflyAlgorithm(population_size=population)
     return FireflyAlgorithm(population_size=population)
 
 
