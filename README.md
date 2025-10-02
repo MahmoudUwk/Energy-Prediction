@@ -10,7 +10,7 @@ This project bundles the cleaned set of scripts required to train energy-predict
 - **`LSTM_comb.py`** — Implements the standalone LSTM workflow that saves `LSTM.obj`.
 - **`LSTM_hyperpara_search.py`** — Runs Firefly-based hyperparameter search, saving `FireflyAlgorithm.obj`, `Mod_FireflyAlgorithm.obj`, and matching `Best_param*.obj` convergence bundles.
 - **`plot_results.py`** — Main "plug" script that consumes the `.obj` files above to generate scatter plots, bar charts, convergence plots, and LaTeX tables.
-- **`lssvr/`** — Lightweight LS-SVR implementation used inside SAMFOR pipelines.
+- **`sklearn.svm.LinearSVR`** — Linear Support Vector Regression used inside SAMFOR pipelines.
 - **`niapy/`** — Vendored copy of the NiaPy optimization library required for Firefly algorithms.
 
 ### Setup

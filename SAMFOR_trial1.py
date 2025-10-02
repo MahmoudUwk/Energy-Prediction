@@ -7,7 +7,7 @@ import numpy as np
 from sklearn.svm import SVR
 
 from config import SAMFOR_SAMFOR_PARAMS
-from lssvr import LSSVR
+from sklearn.svm import LinearSVR
 from preprocess_data2 import (
     MAE,
     MAPE,
@@ -25,8 +25,10 @@ from preprocess_data2 import (
 
 def _train_model(use_lssvr: bool, X_train, y_train, lssvr_params, svr_params):
     if use_lssvr:
-        model = LSSVR(**lssvr_params)
-        name = "SAMFOR_SARIMA_LSSVR"
+        # LinearSVR uses only C parameter, ignore gamma and kernel
+        linear_svr_params = {"C": lssvr_params.get("C", 1.0)}
+        model = LinearSVR(**linear_svr_params)
+        name = "SAMFOR_SARIMA_LinearSVR"
     else:
         model = SVR(**svr_params)
         name = "SAMFOR"
