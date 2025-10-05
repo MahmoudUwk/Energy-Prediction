@@ -12,11 +12,13 @@ from keras.layers import LSTM, Dense, Input
 from keras.models import Sequential
 from keras.optimizers import Adam
 
-from ashrae.preprocessing_ashrae import (
+from .preprocessing_ashrae import (
     load_ashrae_dataset,
     preprocess_ashrae_complete,
     get_ashrae_lstm_data,
-    inverse_transform_ashrae_predictions,
+)
+
+from tools.preprocess_data2 import (
     RMSE,
     MAE,
     MAPE,
@@ -27,25 +29,25 @@ from ashrae.preprocessing_ashrae import (
 from models.LSTM_comb import (
     _build_callbacks,
     _build_model,
-    _evaluate,
     _best_epoch,
     _persist_results,
 )
 
 
-def create_ashrae_scaler():
-    """Create a scaler for ASHRAE data that bypasses inverse_transf."""
-    class ASHRAEScaler:
-        def __init__(self):
-            # Add dummy attributes that inverse_transf expects
-            self.data_min_ = np.array([0.0])
-            self.data_max_ = np.array([1.0])
+def create_ashrae_scaler_wrapper(target_scaler):
+    """Wrap target_scaler to match expected interface for inverse_transf."""
+    class ASHRAEScalerWrapper:
+        def __init__(self, scaler):
+            # Copy attributes for inverse_transf compatibility
+            self.data_min_ = scaler.data_min_
+            self.data_max_ = scaler.data_max_
+            self._scaler = scaler
         
         def inverse_transform(self, data):
-            # ASHRAE uses log1p transformation, so we use expm1 for inverse
-            return inverse_transform_ashrae_predictions(data)
+            # Use the actual target scaler
+            return self._scaler.inverse_transform(data.reshape(-1, 1)).flatten()
     
-    return ASHRAEScaler()
+    return ASHRAEScalerWrapper(target_scaler)
 
 
 def adapt_ashrae_data_for_lstm_comb():
@@ -60,22 +62,25 @@ def adapt_ashrae_data_for_lstm_comb():
     
     train_data, test_data, building_metadata, weather_train, weather_test = load_ashrae_dataset(data_path)
     
-    X_train, y_train, X_test, row_ids = preprocess_ashrae_complete(
+    X_train, y_train, X_test, row_ids, target_scaler = preprocess_ashrae_complete(
         train_data, test_data, building_metadata, weather_train, weather_test
     )
     
     # Prepare LSTM data
     print("\n2. Preparing LSTM sequences...")
+    from .ashrae_config import ASHRAE_TRAINING_CONFIG
     X_train_lstm, y_train_lstm, X_val_lstm, y_val_lstm, X_test_lstm, y_test_lstm = get_ashrae_lstm_data(
-        X_train, y_train, X_test, seq_length=23, max_samples=100000
+        X_train, y_train, X_test, 
+        seq_length=ASHRAE_TRAINING_CONFIG["sequence_length"],
+        max_samples=ASHRAE_TRAINING_CONFIG["max_samples"]
     )
     
     print(f"   ✓ Training data: {X_train_lstm.shape}")
     print(f"   ✓ Validation data: {X_val_lstm.shape}")
     print(f"   ✓ Test data: {X_test_lstm.shape}")
     
-    # Create scaler for interface compatibility
-    scaler = create_ashrae_scaler()
+    # Create scaler wrapper for interface compatibility
+    scaler = create_ashrae_scaler_wrapper(target_scaler)
     
     # Prepare data in the format expected by LSTM_comb.py
     # Reshape targets to match expected format (add feature dimension)
@@ -172,22 +177,24 @@ def train_ashrae_with_lstm_comb():
     
     train_time = (time.time() - start_time) / 60
     
-    # Evaluate model using custom ASHRAE evaluation
+    # Evaluate model using ASHRAE evaluation
     print(f"\n5. Evaluating model...")
     start_test = time.time()
     
-    # Get predictions in log scale
-    y_pred_log = model.predict(X_test, verbose=0)
+    # Get predictions in normalized scale
+    y_pred_scaled = model.predict(X_test, verbose=0)
     
-    # Convert to original scale
-    y_true_orig = inverse_transform_ashrae_predictions(y_test.flatten())
-    y_pred_orig = inverse_transform_ashrae_predictions(y_pred_log.flatten())
+    # Convert to original scale using target scaler
+    y_true_orig = target_scaler.inverse_transform(y_test.reshape(-1, 1)).flatten()
+    y_pred_orig = target_scaler.inverse_transform(y_pred_scaled.reshape(-1, 1)).flatten()
     
     # Calculate metrics on original scale
+    from sklearn.metrics import r2_score
     rmse = RMSE(y_true_orig, y_pred_orig)
     mae = MAE(y_true_orig, y_pred_orig)
     mape = MAPE(y_true_orig, y_pred_orig)
     rmsle = RMSLE(y_true_orig, y_pred_orig)
+    r2 = r2_score(y_true_orig, y_pred_orig)
     
     test_time = time.time() - start_test
     
@@ -207,6 +214,7 @@ def train_ashrae_with_lstm_comb():
     print(f"  RMSE:  {rmse:.4f}")
     print(f"  MAE:   {mae:.4f}")
     print(f"  MAPE:  {mape:.2f}%")
+    print(f"  R²:    {r2:.4f}")
     print(f"  RMSLE: {rmsle:.4f}")
     
     # Save results using LSTM_comb function
@@ -239,7 +247,7 @@ def train_ashrae_with_lstm_comb():
     return {
         'model': model,
         'history': history,
-        'metrics': {'rmse': rmse, 'mae': mae, 'mape': mape, 'rmsle': rmsle},
+        'metrics': {'rmse': rmse, 'mae': mae, 'mape': mape, 'r2': r2, 'rmsle': rmsle},
         'times': {'train': train_time, 'test': test_time},
         'predictions': {'y_true': y_true_orig, 'y_pred': y_pred_orig}
     }

@@ -13,14 +13,18 @@ from keras.layers import LSTM, Dense, Input
 from keras.models import Sequential
 from keras.optimizers import Adam
 
-from ashrae.preprocessing_ashrae import (
+from .preprocessing_ashrae import (
     load_ashrae_dataset,
     preprocess_ashrae_complete,
     get_ashrae_lstm_data,
-    inverse_transform_ashrae_predictions,
+)
+from .ashrae_config import ASHRAE_TRAINING_CONFIG
+
+from tools.preprocess_data2 import (
     RMSE,
     MAE,
     MAPE,
+    RMSLE,
 )
 
 
@@ -41,19 +45,23 @@ def build_lstm_model(units=72, num_layers=1, input_dim=(23, 32), learning_rate=0
     return model
 
 
-def evaluate_model(model, X_test, y_test):
+def evaluate_model(model, X_test, y_test, target_scaler):
     """Evaluate model and return metrics."""
+    from sklearn.metrics import r2_score
+    
     y_pred = model.predict(X_test, verbose=0)
     
-    # Convert back to original scale
-    y_true_orig = inverse_transform_ashrae_predictions(y_test)
-    y_pred_orig = inverse_transform_ashrae_predictions(y_pred.flatten())
+    # Convert back to original scale using target scaler
+    y_true_orig = target_scaler.inverse_transform(y_test.reshape(-1, 1)).flatten()
+    y_pred_orig = target_scaler.inverse_transform(y_pred.reshape(-1, 1)).flatten()
     
     rmse = RMSE(y_true_orig, y_pred_orig)
     mae = MAE(y_true_orig, y_pred_orig)
     mape = MAPE(y_true_orig, y_pred_orig)
+    rmsle = RMSLE(y_true_orig, y_pred_orig)
+    r2 = r2_score(y_true_orig, y_pred_orig)
     
-    return y_true_orig, y_pred_orig, rmse, mae, mape
+    return y_true_orig, y_pred_orig, rmse, mae, mape, rmsle, r2
 
 
 def train_ashrae_lstm():
@@ -68,14 +76,16 @@ def train_ashrae_lstm():
     
     train_data, test_data, building_metadata, weather_train, weather_test = load_ashrae_dataset(data_path)
     
-    X_train, y_train, X_test, row_ids = preprocess_ashrae_complete(
+    X_train, y_train, X_test, row_ids, target_scaler = preprocess_ashrae_complete(
         train_data, test_data, building_metadata, weather_train, weather_test
     )
     
     # Prepare LSTM data
     print("\n2. Preparing LSTM sequences...")
     X_train_lstm, y_train_lstm, X_val_lstm, y_val_lstm, X_test_lstm, y_test_lstm = get_ashrae_lstm_data(
-        X_train, y_train, X_test, seq_length=23, max_samples=100000
+        X_train, y_train, X_test, 
+        seq_length=ASHRAE_TRAINING_CONFIG["sequence_length"],
+        max_samples=ASHRAE_TRAINING_CONFIG["max_samples"]
     )
     
     print(f"   ✓ Training data: {X_train_lstm.shape}")
@@ -131,7 +141,7 @@ def train_ashrae_lstm():
     # Evaluate model
     print(f"\n5. Evaluating model...")
     start_test = time.time()
-    y_true, y_pred, rmse, mae, mape = evaluate_model(model, X_test_lstm, y_test_lstm)
+    y_true, y_pred, rmse, mae, mape, rmsle, r2 = evaluate_model(model, X_test_lstm, y_test_lstm, target_scaler)
     test_time = time.time() - start_test
     
     # Results
@@ -143,9 +153,11 @@ def train_ashrae_lstm():
     print(f"Final epoch: {len(history.history['loss'])}")
     print(f"Best validation loss: {min(history.history['val_loss']):.6f}")
     print("\nTest Metrics:")
-    print(f"  RMSE: {rmse:.4f}")
-    print(f"  MAE:  {mae:.4f}")
-    print(f"  MAPE: {mape:.2f}%")
+    print(f"  RMSE:  {rmse:.4f}")
+    print(f"  MAE:   {mae:.4f}")
+    print(f"  MAPE:  {mape:.2f}%")
+    print(f"  R²:    {r2:.4f}")
+    print(f"  RMSLE: {rmsle:.4f}")
     
     # Save model
     model_path = Path("results/ashrae_lstm_model.keras")
@@ -156,7 +168,7 @@ def train_ashrae_lstm():
     return {
         'model': model,
         'history': history,
-        'metrics': {'rmse': rmse, 'mae': mae, 'mape': mape},
+        'metrics': {'rmse': rmse, 'mae': mae, 'mape': mape, 'r2': r2, 'rmsle': rmsle},
         'times': {'train': train_time, 'test': test_time},
         'predictions': {'y_true': y_true, 'y_pred': y_pred}
     }

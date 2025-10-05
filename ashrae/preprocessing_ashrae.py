@@ -13,7 +13,7 @@ from pathlib import Path
 from typing import Tuple, Optional
 
 # Import ASHRAE configuration
-from ashrae_config import (
+from .ashrae_config import (
     ASHRAE_TRAINING_CONFIG,
     ASHRAE_FEATURE_CONFIG,
     ASHRAE_DATA_SPLITS,
@@ -148,8 +148,9 @@ def prepare_ashrae_data(
     # Convert timestamp to datetime
     X.timestamp = pd.to_datetime(X.timestamp, format="%Y-%m-%d %H:%M:%S")
     
-    # Log transform square feet
-    X.square_feet = np.log1p(X.square_feet)
+    # Optional log transform for square feet (disabled when False for MinMax-only preprocessing)
+    if ASHRAE_FEATURE_CONFIG.get("square_feet_log_transform", False):
+        X.square_feet = np.log1p(X.square_feet)
     
     if not test_mode:
         # Sort by timestamp for training data
@@ -264,7 +265,7 @@ def preprocess_ashrae_complete(
     building_metadata: pd.DataFrame,
     weather_train: pd.DataFrame,
     weather_test: pd.DataFrame
-) -> Tuple[pd.DataFrame, np.ndarray, pd.DataFrame, pd.Series]:
+) -> Tuple[pd.DataFrame, np.ndarray, pd.DataFrame, pd.Series, "MinMaxScaler"]:
     """
     Complete ASHRAE preprocessing pipeline with building selection.
     
@@ -305,7 +306,7 @@ def preprocess_ashrae_complete(
     X_train, train_stats = normalize_ashrae_features(X_train)  # Fit on training data
     X_train = remove_dew_temperature(X_train)
     
-    # Normalize target variable to match Portuguese dataset approach
+    # Normalize target variable (MinMax-only as per configuration)
     from sklearn.preprocessing import MinMaxScaler
     from config import MINMAX_FEATURE_RANGE
     target_scaler = MinMaxScaler(feature_range=MINMAX_FEATURE_RANGE)
@@ -316,7 +317,7 @@ def preprocess_ashrae_complete(
     X_test, _ = normalize_ashrae_features(X_test, train_stats)  # Use training stats
     X_test = remove_dew_temperature(X_test)
     
-    return X_train, y_train_scaled, X_test, row_ids
+    return X_train, y_train_scaled, X_test, row_ids, target_scaler
 
 
 def get_ashrae_lstm_data(

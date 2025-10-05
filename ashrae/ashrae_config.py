@@ -141,9 +141,9 @@ class ASHRAEDatasetAnalysis:
 
 # Data split configuration (same as Portuguese dataset for consistency)
 ASHRAE_DATA_SPLITS = {
-    "train": 0.70,    # 70% for training
-    "val": 0.15,       # 15% for validation  
-    "test": 0.15,      # 15% for testing
+    "train": 0.40,    # 40% for training (100k of 250k)
+    "val": 0.20,       # 20% for validation (50k of 250k)
+    "test": 0.40,      # 40% for testing (100k of 250k)
 }
 
 # Verify splits sum to 1.0
@@ -153,7 +153,7 @@ assert abs(sum(ASHRAE_DATA_SPLITS.values()) - 1.0) < 1e-6, "Data splits must sum
 ASHRAE_TRAINING_CONFIG = {
     # Data parameters
     "sequence_length": 23,           # Same as Portuguese dataset
-    "max_samples": 100_000,         # Limit for memory efficiency
+    "max_samples": 250_000,         # Increased limit for experiments
     "train_fraction": ASHRAE_DATA_SPLITS["train"],
     "val_fraction": ASHRAE_DATA_SPLITS["val"], 
     "test_fraction": ASHRAE_DATA_SPLITS["test"],
@@ -217,7 +217,7 @@ ASHRAE_FEATURE_CONFIG = {
     ],
     
     # Building features
-    "square_feet_log_transform": True,
+    "square_feet_log_transform": False,
     "year_built": True,
     "floor_count": True,
     "primary_use_onehot": True,

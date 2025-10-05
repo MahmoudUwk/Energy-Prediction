@@ -3,16 +3,11 @@
 import numpy as np
 import pandas as pd
 from pathlib import Path
-import sys
 
-# Add current directory to path for imports
-sys.path.append('.')
-
-from ashrae.preprocessing_ashrae import (
+from preprocessing_ashrae import (
     load_ashrae_dataset,
     preprocess_ashrae_complete,
     get_ashrae_lstm_data,
-    inverse_transform_ashrae_predictions
 )
 
 
@@ -39,7 +34,7 @@ def test_ashrae_preprocessing():
         
         # Step 2: Complete preprocessing
         print("\n2. Running complete preprocessing pipeline...")
-        X_train, y_train, X_test, row_ids = preprocess_ashrae_complete(
+        X_train, y_train, X_test, row_ids, target_scaler = preprocess_ashrae_complete(
             train_data, test_data, building_metadata, weather_train, weather_test
         )
         
@@ -89,8 +84,8 @@ def test_ashrae_preprocessing():
         # Step 6: Test inverse transformation
         print("\n6. Testing inverse transformation...")
         sample_pred = np.array([0.5, 1.0, 1.5, 2.0])
-        original_pred = inverse_transform_ashrae_predictions(sample_pred)
-        print(f"   ✓ Sample log predictions: {sample_pred}")
+        original_pred = target_scaler.inverse_transform(sample_pred.reshape(-1, 1)).flatten()
+        print(f"   ✓ Sample normalized predictions: {sample_pred}")
         print(f"   ✓ Original scale predictions: {original_pred}")
         
         # Step 7: Summary
@@ -116,6 +111,7 @@ def test_ashrae_preprocessing():
 
 
 if __name__ == "__main__":
+    import sys
     success = test_ashrae_preprocessing()
     if success:
         print("\n🎉 ASHRAE preprocessing pipeline test PASSED!")

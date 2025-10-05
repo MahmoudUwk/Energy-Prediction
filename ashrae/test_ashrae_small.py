@@ -3,16 +3,11 @@
 import numpy as np
 import pandas as pd
 from pathlib import Path
-import sys
 
-# Add current directory to path for imports
-sys.path.append('.')
-
-from ashrae.preprocessing_ashrae import (
+from preprocessing_ashrae import (
     load_ashrae_dataset,
     preprocess_ashrae_complete,
     get_ashrae_lstm_data,
-    inverse_transform_ashrae_predictions,
     pivot_ashrae_meters,
 )
 
@@ -59,7 +54,7 @@ def test_ashrae_preprocessing_small():
         
         # Step 3: Test preprocessing with small sample
         print("\n3. Testing preprocessing pipeline with small sample...")
-        X_train, y_train, X_test, row_ids = preprocess_ashrae_complete(
+        X_train, y_train, X_test, row_ids, target_scaler = preprocess_ashrae_complete(
             small_train_sample, small_test_sample, building_metadata, weather_train, weather_test
         )
         
@@ -108,10 +103,10 @@ def test_ashrae_preprocessing_small():
         # Step 7: Test inverse transformation
         print("\n7. Testing inverse transformation...")
         sample_pred = np.array([0.5, 1.0, 1.5, 2.0])
-        original_pred = inverse_transform_ashrae_predictions(sample_pred)
+        original_pred = target_scaler.inverse_transform(sample_pred.reshape(-1, 1)).flatten()
         print(f"   ✓ Sample predictions: {sample_pred}")
         print(f"   ✓ After inverse transform: {original_pred}")
-        print(f"   ✓ No transformation applied (to match Portuguese dataset)")
+        print(f"   ✓ MinMaxScaler inverse transform applied (original kWh scale)")
         
         # Step 8: Verify target is electricity and normalized
         print("\n8. Verifying target variable...")
@@ -153,6 +148,7 @@ def test_ashrae_preprocessing_small():
 
 
 if __name__ == "__main__":
+    import sys
     success = test_ashrae_preprocessing_small()
     if success:
         print("\n🎉 ASHRAE preprocessing pipeline test PASSED!")
