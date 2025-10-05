@@ -5,6 +5,7 @@ __pycache__/
 dataset/1Hz
 dataset/resampled data
 dataset/1483205843836.csv
+dataset/ASHRAE
 # Virtual environments
 .env/
 .venv/

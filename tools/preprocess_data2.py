@@ -41,6 +41,35 @@ def MAPE(test, pred):
     )
 
 
+def RMSLE(test, pred):
+    """
+    Root Mean Squared Logarithmic Error (RMSLE)
+    
+    Formula: sqrt( (1/n) * sum_{i=1 to n} (log(p_i + 1) - log(a_i + 1))^2 )
+    
+    Where:
+    - epsilon: RMSLE value (score)
+    - n: total number of observations
+    - p_i: prediction for i-th observation
+    - a_i: actual target for i-th observation
+    - log(x): natural logarithm of x
+    
+    RMSLE penalizes over-prediction more than under-prediction and is robust to outliers.
+    """
+    test = np.squeeze(test)
+    pred = np.squeeze(pred)
+    
+    # Ensure non-negative values for log1p
+    test = np.maximum(test, 0)
+    pred = np.maximum(pred, 0)
+    
+    # Calculate RMSLE using log1p for numerical stability
+    log_test = np.log1p(test)  # log(1 + test)
+    log_pred = np.log1p(pred)  # log(1 + pred)
+    
+    return np.sqrt(np.mean((log_pred - log_test) ** 2))
+
+
 def inverse_transf(X, scaler):
     return np.array((X * (scaler.data_max_[0] - scaler.data_min_[0])) + scaler.data_min_[0])
 
@@ -97,8 +126,8 @@ def time_call(fn, *args, **kwargs):
 
 
 def compute_metrics(y_true: np.ndarray, y_pred: np.ndarray):
-    """Compute RMSE, MAE, and MAPE metrics."""
-    return RMSE(y_true, y_pred), MAE(y_true, y_pred), MAPE(y_true, y_pred)
+    """Compute RMSE, MAE, MAPE, and RMSLE metrics."""
+    return RMSE(y_true, y_pred), MAE(y_true, y_pred), MAPE(y_true, y_pred), RMSLE(y_true, y_pred)
 
 
 def persist_model_results(
@@ -109,6 +138,7 @@ def persist_model_results(
     rmse: float,
     mae: float,
     mape: float,
+    rmsle: float,
     seq_length: int,
     train_time: float,
     test_time: float,
@@ -118,7 +148,7 @@ def persist_model_results(
     persist_models_list: list = None,
 ):
     """Persist model results, predictions, and optionally save plots."""
-    row = [name, rmse, mae, mape, seq_length, train_time, test_time]
+    row = [name, rmse, mae, mape, rmsle, seq_length, train_time, test_time]
     log_results(row, datatype_opt, str(save_path))
 
     if plot_results:

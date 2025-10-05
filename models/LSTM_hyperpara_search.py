@@ -17,7 +17,7 @@ from niapy.problems import Problem
 from niapy.task import OptimizationType, Task
 
 from config import LSTM_SEARCH_CONFIG
-from preprocess_data2 import (
+from tools.preprocess_data2 import (
     MAE,
     MAPE,
     RMSE,

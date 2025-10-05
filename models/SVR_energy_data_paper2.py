@@ -17,7 +17,7 @@ from config import (
     SAMFOR_SEQUENCE_LENGTH,
     SAMFOR_SVR_PARAMS,
 )
-from preprocess_data2 import (
+from tools.preprocess_data2 import (
     MAE,
     MAPE,
     RMSE,
