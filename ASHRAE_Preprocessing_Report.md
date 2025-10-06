@@ -58,31 +58,31 @@
 - Dropped: `timestamp`, `sea_level_pressure`, `wind_direction`, `wind_speed`, `dew_temperature` (correlated), original `meter`
 
 ### Normalization
-- Method: MinMaxScaler (0.0 to 1.0 range) - FIXED for consistency with original dataset
-- Columns: numeric features only
-- Important: Uses same MINMAX_FEATURE_RANGE from config.py as original dataset
+- Method: MinMaxScaler (0.0 to 1.0 range), FIT ON TRAIN ONLY; applied to val/test
+- Columns: numeric features only; `building_id` is excluded from scaling and used for windowing
+- Important: Uses `MINMAX_FEATURE_RANGE` from `config.py`
 
 ### Target Preparation
-- Train: `y = log1p(meter_reading)`; feature columns exclude target
-- Test: `row_id` preserved externally; removed from features
+- Target: `meter_reading` (kWh); no log transform (MinMax only)
+- Train scaler fitted on train target only; inverse-transform predictions for metrics
 
 ### Sequencing (for LSTM)
 - Sequence length: 23
-- Cropping: sequential first 100,000 samples (memory-safe, time-consistent)
-- Split: train/val/test = 70%/15%/15% over the cropped window
+- Disjoint building splits: Train=12, Val=6, Test=12 buildings (approx. 105k/53k/105k rows)
+- Windows generated per building; no window crosses building boundary
 
-### Output Shapes (100k sequential crop)
-- `X_train_lstm`: (69977, 23, 32)
-- `y_train_lstm`: (69977,)
-- `X_val_lstm`: (14977, 23, 32)
-- `y_val_lstm`: (14977,)
-- `X_test_lstm`: (14977, 23, 32)
-- `y_test_lstm`: (14977,)
+### Output Shapes (disjoint-split windows)
+- `X_train_lstm`: (~105132, 23, ~17)
+- `y_train_lstm`: (~105132,)
+- `X_val_lstm`: (~52566, 23, ~17)
+- `y_val_lstm`: (~52566,)
+- `X_test_lstm`: (~105132, 23, ~17)
+- `y_test_lstm`: (~105132,)
 
 ### Consistency vs Original Dataset
-- Original: MinMax scaling (0.0-1.0); sequential windows; cropped size due to memory
-- ASHRAE: MinMax scaling (0.0-1.0) - FIXED; fit on train; sequential crop to 100k (original used ~82,944)
-- ✅ Both datasets now use identical normalization methodology
+- Original: MinMax scaling (0.0-1.0); sequential windows
+- ASHRAE: MinMax scaling (0.0-1.0) with train-only fitting; disjoint building splits; per-building windows
+- ✅ Both datasets use consistent scaling methodology with proper train-only fitting
 
 ### Implementation Notes
 - Code: `ashrae/preprocessing_ashrae.py` (moved from tools/ for organization)

@@ -92,16 +92,21 @@ python models/SAMFOR_trial1.py
 python plot_results.py
 ```
 
-#### ASHRAE Dataset Training
+#### ASHRAE Dataset
 
-1. **Train LSTM on ASHRAE data**:
+- **SVR baseline (disjoint buildings)**
 ```bash
-python train_ashrae_lstm_comb.py
+conda run -n FF python -m ashrae.call_svr_ashrae
 ```
 
-2. **Test preprocessing pipeline**:
+- **SAMFOR baseline**
 ```bash
-python test_ashrae_preprocessing.py
+conda run -n FF python -m ashrae.call_samfor_ashrae
+```
+
+- **LSTM Hyperparameter Search (overnight)**
+```bash
+conda run -n FF python -m ashrae.call_lstm_search_ashrae
 ```
 
 ## 📊 Datasets
@@ -117,9 +122,10 @@ python test_ashrae_preprocessing.py
 - **Source**: ASHRAE Great Energy Predictor III (Kaggle)
 - **Scope**: Multi-building commercial energy consumption
 - **Features**: Building metadata, weather data, temporal features
-- **Preprocessing**: Z-score normalization, one-hot encoding
+- **Preprocessing**: MinMax scaling (fit on train only), one-hot encoding; `building_id` preserved and not scaled for windowing
 - **Sequence Length**: 23 timesteps
-- **Sample Size**: 100,000 sequential samples (memory-optimized)
+- **Sample Size**: ~250,000 total rows using disjoint building splits (Train≈105k, Val≈53k, Test≈105k)
+ - **Resampling**: None for ASHRAE 1s/1Hz; dataset already at target granularity
 
 ## 🔧 Key Features
 

@@ -73,6 +73,20 @@ def _train_and_evaluate(
         persist_models_list=SAMFOR_PERSIST_MODELS,
     )
 
+    # Persist unscaled arrays for plotting/scatter later
+    save_object(
+        {
+            "y_test": np.asarray(y_true).flatten(),
+            "y_test_pred": np.asarray(y_pred).flatten(),
+            "seq_length": seq_length,
+            "algorithm": name,
+            "datatype": datatype_opt,
+            "train_time_min": train_elapsed / 60,
+            "test_time_s": test_elapsed,
+        },
+        save_path / f"{name}.obj",
+    )
+
 
 def _available_models():
     return {

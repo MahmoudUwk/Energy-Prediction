@@ -7,7 +7,7 @@ from typing import Any, Dict
 import matplotlib.pyplot as plt
 import numpy as np
 import tensorflow as tf
-from keras.callbacks import EarlyStopping
+from keras.callbacks import EarlyStopping, Callback
 from keras.layers import Dense, LSTM, Input
 from keras.models import Sequential
 from keras.optimizers import Adam
@@ -34,10 +34,29 @@ from tools.preprocess_data2 import (
 
 # from niapy.algorithms.basic import BeesAlgorithm
 
+class ProgressPrinter(Callback):
+    def __init__(self, step: int = 20, prefix: str = "", total_epochs: int | None = None):
+        super().__init__()
+        self.step = step
+        self.prefix = prefix
+        self.total_epochs = total_epochs
+
+    def on_epoch_end(self, epoch, logs=None):
+        logs = logs or {}
+        if (epoch + 1) % self.step == 0:
+            msg = f"{self.prefix} epoch {epoch + 1}"
+            if self.total_epochs:
+                msg += f"/{self.total_epochs}"
+            if "loss" in logs:
+                msg += f" loss {logs['loss']:.4f}"
+            if "val_loss" in logs:
+                msg += f" val_loss {logs['val_loss']:.4f}"
+            print(msg)
+
 def _hyperparameters_from_vector(x: np.ndarray) -> Dict[str, Any]:
     return {
         "units": int(x[0] * 116 + 10),
-        "num_layers": int(x[1] * 6) + 1,
+        "num_layers": int(x[1] * 4) + 1,  # max 4 layers
         "seq": int(x[2] * 30 + 1),
         "learning_rate": x[3] * 2e-2 + 0.5e-3,
     }
@@ -67,6 +86,9 @@ class LSTMHyperparameterOptimization(Problem):
 
     def _evaluate(self, x):
         params = _hyperparameters_from_vector(x)
+        print(
+            f"Params: units={params['units']} layers={params['num_layers']} seq={params['seq']} lr={params['learning_rate']:.5f}"
+        )
         data = _prepare_data(self.config["option"], self.datatype_opt, params["seq"])
         X_train, y_train, X_val, y_val, X_test, y_test, _, _, scaler = data
 
@@ -88,7 +110,12 @@ class LSTMHyperparameterOptimization(Problem):
                 monitor="val_loss",
                 patience=self.config["patience"],
                 restore_best_weights=True,
-            )
+            ),
+            ProgressPrinter(
+                step=20,
+                prefix=f"[seq={params['seq']} layers={params['num_layers']} units={params['units']}]",
+                total_epochs=self.config["num_epochs"],
+            ),
         ]
 
         model.fit(
@@ -119,6 +146,7 @@ def _save_artifacts(task: Task, best_params: Dict[str, Any], save_path: Path, pr
         "evaluations": evals,
         "best_params": best_params,
     }
+    # Append or update best payload to allow accumulation across runs
     save_object(payload, save_path / f"Best_param{prefix}.obj")
 
     if config["plot_convergence"]:
@@ -156,12 +184,20 @@ def _train_with_best_params(config, datatype_opt, best_params, algorithm_name):
         best_params["learning_rate"],
     )
 
+    print(
+        f"Best Params: units={best_params['units']} layers={best_params['num_layers']} seq={best_params['seq']} lr={best_params['learning_rate']:.5f}"
+    )
     callbacks = [
         EarlyStopping(
             monitor="val_loss",
             patience=config["patience"],
             restore_best_weights=True,
-        )
+        ),
+        ProgressPrinter(
+            step=20,
+            prefix=f"[BEST seq={best_params['seq']} layers={best_params['num_layers']} units={best_params['units']}]",
+            total_epochs=config["num_epochs"],
+        ),
     ]
 
     history = model.fit(
@@ -169,7 +205,7 @@ def _train_with_best_params(config, datatype_opt, best_params, algorithm_name):
         y_train,
         epochs=config["num_epochs"],
         batch_size=2 ** (config["batch_size_power"] - 1),
-        verbose=1,
+        verbose=0,
         shuffle=True,
         validation_data=(X_val, y_val),
         callbacks=callbacks,
@@ -204,7 +240,20 @@ def _train_with_best_params(config, datatype_opt, best_params, algorithm_name):
     ]
 
     log_results_LSTM(row, datatype_opt, str(save_path))
-    save_object({"y_test": y_test, "y_test_pred": y_pred}, save_path / f"{algorithm_name}.obj")
+    # Save unscaled arrays for plotting/scatter and reproducibility
+    save_object(
+        {
+            "y_test": np.asarray(y_test).flatten(),
+            "y_test_pred": np.asarray(y_pred).flatten(),
+            "best_params": best_params,
+            "best_epoch": best_epoch,
+            "algorithm": algorithm_name,
+            "datatype": datatype_opt,
+            "train_time_min": 0,
+            "test_time_s": 0,
+        },
+        save_path / f"{algorithm_name}.obj",
+    )
 
     print(f"{algorithm_name} -> RMSE: {rmse:.4f}, MAE: {mae:.4f}, MAPE: {mape:.2f}%")
 

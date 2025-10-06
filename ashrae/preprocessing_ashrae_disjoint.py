@@ -233,13 +233,15 @@ def preprocess_ashrae_disjoint_splits(
     # Impute missing values
     print(f"\n🔧 Preprocessing features...")
     numeric_cols = X_train.select_dtypes(include=[np.number]).columns
+    # Preserve raw building_id for grouping; do not scale it
+    numeric_cols_wo_id = [c for c in numeric_cols if c != 'building_id']
     
     # Calculate train means, replacing any remaining NaNs with 0
-    train_means = X_train[numeric_cols].mean().fillna(0)
+    train_means = X_train[numeric_cols_wo_id].mean().fillna(0)
     
-    X_train[numeric_cols] = X_train[numeric_cols].fillna(train_means)
-    X_val[numeric_cols] = X_val[numeric_cols].fillna(train_means)
-    X_test[numeric_cols] = X_test[numeric_cols].fillna(train_means)
+    X_train[numeric_cols_wo_id] = X_train[numeric_cols_wo_id].fillna(train_means)
+    X_val[numeric_cols_wo_id] = X_val[numeric_cols_wo_id].fillna(train_means)
+    X_test[numeric_cols_wo_id] = X_test[numeric_cols_wo_id].fillna(train_means)
     
     # Final check: replace any remaining NaNs with 0
     X_train = X_train.fillna(0)
@@ -251,12 +253,12 @@ def preprocess_ashrae_disjoint_splits(
     from config import MINMAX_FEATURE_RANGE
     
     feature_scaler = MinMaxScaler(feature_range=MINMAX_FEATURE_RANGE)
-    feature_scaler.fit(X_train[numeric_cols])
+    feature_scaler.fit(X_train[numeric_cols_wo_id])
     
     # Transform each split
-    X_train[numeric_cols] = feature_scaler.transform(X_train[numeric_cols])
-    X_val[numeric_cols] = feature_scaler.transform(X_val[numeric_cols])
-    X_test[numeric_cols] = feature_scaler.transform(X_test[numeric_cols])
+    X_train[numeric_cols_wo_id] = feature_scaler.transform(X_train[numeric_cols_wo_id])
+    X_val[numeric_cols_wo_id] = feature_scaler.transform(X_val[numeric_cols_wo_id])
+    X_test[numeric_cols_wo_id] = feature_scaler.transform(X_test[numeric_cols_wo_id])
     
     # Normalize targets (MinMax) - FIT ON TRAIN ONLY, APPLY TO VAL/TEST
     target_scaler = MinMaxScaler(feature_range=MINMAX_FEATURE_RANGE)
@@ -273,6 +275,55 @@ def preprocess_ashrae_disjoint_splits(
     print("\n" + "=" * 80)
     
     return X_train, y_train_scaled, X_val, y_val_scaled, X_test, y_test_scaled, target_scaler
+
+
+def get_ashrae_lstm_data_disjoint(
+    X_train: pd.DataFrame,
+    y_train: np.ndarray,
+    X_val: pd.DataFrame,
+    y_val: np.ndarray,
+    X_test: pd.DataFrame,
+    y_test: np.ndarray,
+    seq_length: int = 23,
+) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+    """
+    Build LSTM sequences per split ensuring windows DO NOT cross building boundaries.
+    Assumes 'building_id' column exists in X_* and is NOT scaled.
+    """
+    def windows_for_split(X: pd.DataFrame, y: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
+        features_cols = [c for c in X.columns if c != 'building_id']
+        X_np = X[features_cols].values
+        bld = X['building_id'].values
+        # Concatenate target first for compatibility with sliding_windows2d_lstm
+        data = np.column_stack([y, X_np])
+        X_list, y_list = [], []
+        # Generate windows per building
+        for building in np.unique(bld):
+            idx = np.where(bld == building)[0]
+            if idx.size <= seq_length:
+                continue
+            data_b = data[idx, :]
+            X_b, y_b = sliding_windows2d_lstm(data_b, seq_length)
+            X_list.append(X_b)
+            y_list.append(y_b)
+        if not X_list:
+            return np.zeros((0, seq_length, data.shape[1])), np.zeros((0, 1))
+        X_all = np.concatenate(X_list, axis=0)
+        y_all = np.concatenate(y_list, axis=0)
+        return X_all, y_all
+
+    X_tr_lstm, y_tr_lstm = windows_for_split(X_train, y_train)
+    X_va_lstm, y_va_lstm = windows_for_split(X_val, y_val)
+    X_te_lstm, y_te_lstm = windows_for_split(X_test, y_test)
+
+    return (
+        X_tr_lstm,
+        np.squeeze(y_tr_lstm),
+        X_va_lstm,
+        np.squeeze(y_va_lstm),
+        X_te_lstm,
+        np.squeeze(y_te_lstm),
+    )
 
 
 if __name__ == "__main__":

@@ -91,15 +91,15 @@ LSTM_TRAINING_CONFIG = {
 
 LSTM_SEARCH_CONFIG = {
     "option": 3,
-    "datatype_options": (DEFAULT_RESULTS_DATASET, "5T", "10T", "15T", "30T"),
+    "datatype_options": (DEFAULT_RESULTS_DATASET,),
     "run_search": True,
     "population_size": 5,
     "num_epochs": 2500,
-    "iterations": 15,
+    "iterations": 10,
     "algorithms": ("Mod_FireflyAlgorithm", "FireflyAlgorithm"),
     "plot_convergence": True,
     "batch_size_power": 12,
-    "patience": 30,
+    "patience": 20,
     "persist_models": True,
 }
 

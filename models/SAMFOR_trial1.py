@@ -94,6 +94,20 @@ def main():
         params.get("persist_models", []),
     )
 
+    # Save unscaled predictions and ground truth for downstream plotting
+    save_object(
+        {
+            "y_test": np.asarray(y_true).flatten(),
+            "y_test_pred": np.asarray(y_pred).flatten(),
+            "seq_length": seq_length,
+            "algorithm": alg_name,
+            "datatype": params["datatype"],
+            "train_time_min": train_time,
+            "test_time_s": test_time,
+        },
+        save_path / f"{alg_name}.obj",
+    )
+
 
 if __name__ == "__main__":
     main()
