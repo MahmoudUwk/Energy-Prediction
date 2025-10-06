@@ -6,7 +6,7 @@ from typing import Dict, Any, Tuple
 
 # Base paths
 BASE_DIR = Path(__file__).resolve().parent.parent  # Project root
-ASHRAE_DATA_ROOT = BASE_DIR / "dataset" / "ASHRAE" / "ashrae-energy-prediction"
+ASHRAE_DATA_ROOT = BASE_DIR / "dataset" / "ASHRAE"
 ASHRAE_RESULTS_ROOT = BASE_DIR / "results" / "ashrae"
 
 # =============================================================================
