@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import sys
 import time
 from pathlib import Path
 from typing import Dict
@@ -9,12 +10,18 @@ import pandas as pd
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 from sklearn.svm import SVR
 
-from .preprocessing_ashrae_disjoint import (
+# Add project root to path for imports when running as script
+if __name__ == "__main__":
+    root = Path(__file__).resolve().parent.parent
+    if str(root) not in sys.path:
+        sys.path.insert(0, str(root))
+
+from preprocessing_ashrae_disjoint import (
     preprocess_ashrae_disjoint_splits,
     get_ashrae_lstm_data_disjoint,
 )
-from .ashrae_config import ASHRAE_TRAINING_CONFIG, ASHRAE_RESULTS_ROOT
-from .save_ashrae_results import save_ashrae_svr_results
+from ashrae_config import ASHRAE_TRAINING_CONFIG, ASHRAE_RESULTS_ROOT
+from save_ashrae_results import save_ashrae_svr_results
 from tools.preprocess_data2 import RMSLE
 
 

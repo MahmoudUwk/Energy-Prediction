@@ -1,20 +1,21 @@
 from __future__ import annotations
 
-from pathlib import Path
 import sys
+from pathlib import Path
 
 
 def main():
-    # Ensure project root on sys.path so config/tools imports work
-    root = Path(__file__).resolve().parents[1]
-    if str(root) not in sys.path:
-        sys.path.insert(0, str(root))
+    # Add project root to path for imports when running as script
+    if __name__ == "__main__":
+        root = Path(__file__).resolve().parent.parent
+        if str(root) not in sys.path:
+            sys.path.insert(0, str(root))
 
     print("=" * 80)
     print("SAMFOR ASHRAE DATASET TRAINING")
     print("=" * 80)
 
-    # Import ASHRAE preprocessing
+    # Import ASHRAE preprocessing and models after path setup
     from preprocessing_ashrae_disjoint import preprocess_ashrae_disjoint_splits, get_ashrae_lstm_data_disjoint
     from models.SAMFOR_trial1 import run_samfor
     from config import SAMFOR_SAMFOR_PARAMS
