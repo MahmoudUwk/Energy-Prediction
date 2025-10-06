@@ -5,12 +5,10 @@ import sys
 import os
 from datetime import datetime
 import csv
-
-# Immediate import-time banner to confirm execution start
-print("[CALLER] ashrae.call_lstm_search_ashrae loaded", flush=True)
+from typing import List
 
 
-def main():
+def run_lstm_search_ashrae(algorithms: List[str], output_suffix: str = ""):
     # Force unbuffered stdout to ensure progress prints appear immediately
     os.environ["PYTHONUNBUFFERED"] = "1"
     try:
@@ -18,7 +16,9 @@ def main():
     except Exception:
         pass
 
-    print("[CALLER] Starting LSTM hyperparameter search (ashrae.call_lstm_search_ashrae)", flush=True)
+    algo_names = "_".join([a.replace("_", "") for a in algorithms])
+    print(f"[CALLER] Starting LSTM hyperparameter search ({algo_names}){output_suffix}", flush=True)
+    print(f"[CALLER] Algorithms: {algorithms}", flush=True)
 
     # Ensure project root on sys.path so config/tools imports work
     root = Path(__file__).resolve().parents[1]
@@ -31,7 +31,9 @@ def main():
     # Import ASHRAE results saver for progress logging
     from ashrae.save_ashrae_results import save_ashrae_lstm_results
 
-    progress_path = root / "results" / "ashrae" / "search_progress.csv"
+    # Create unique progress path based on algorithms
+    progress_filename = f"search_progress_{algo_names}{output_suffix}.csv"
+    progress_path = root / "results" / "ashrae" / progress_filename
     progress_path.parent.mkdir(parents=True, exist_ok=True)
 
     # Create CSV header if it doesn't exist
@@ -121,6 +123,13 @@ def main():
     from ashrae.preprocessing_ashrae_disjoint import preprocess_ashrae_disjoint_splits, get_ashrae_lstm_data_disjoint
     from ashrae.ashrae_config import ASHRAE_TRAINING_CONFIG
     from config import LSTM_SEARCH_CONFIG
+    
+    # Override algorithms in config
+    LSTM_SEARCH_CONFIG_CUSTOM = LSTM_SEARCH_CONFIG.copy()
+    LSTM_SEARCH_CONFIG_CUSTOM["algorithms"] = tuple(algorithms)
+    
+    # Temporarily override the module-level config
+    hp.LSTM_SEARCH_CONFIG = LSTM_SEARCH_CONFIG_CUSTOM
 
     print("[CALLER] Loading ASHRAE dataset...", flush=True)
     # Load ASHRAE data (RAW, not windowed yet - windowing happens per-iteration)
@@ -151,14 +160,18 @@ def main():
     )
 
     print("=" * 80, flush=True)
-    print("LSTM HYPERPARAMETER SEARCH COMPLETED", flush=True)
+    print(f"LSTM HYPERPARAMETER SEARCH COMPLETED ({algo_names})", flush=True)
     print("=" * 80, flush=True)
     print(f"Best parameters: {results['best_params']}", flush=True)
     print(f"Best score: {results['best_score']:.4f}", flush=True)
     print(f"Search results: {len(results['search_results'])} iterations completed", flush=True)
+    print(f"Progress CSV: {progress_path}", flush=True)
+    
+    return results
 
 
 if __name__ == "__main__":
-    main()
+    # Default: run both algorithms
+    run_lstm_search_ashrae(["Mod_FireflyAlgorithm", "FireflyAlgorithm"])
 
 

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+import time
 from pathlib import Path
 from typing import Any, Dict
 
@@ -29,6 +30,14 @@ from tools.preprocess_data2 import (
     loadDatasetObj,
     save_object,
 )
+
+def R2(y_true, y_pred):
+    """Calculate R-squared metric."""
+    y_true = np.squeeze(y_true)
+    y_pred = np.squeeze(y_pred)
+    ss_res = np.sum((y_true - y_pred) ** 2)
+    ss_tot = np.sum((y_true - np.mean(y_true)) ** 2)
+    return 1 - (ss_res / ss_tot) if ss_tot != 0 else 0.0
 
 # Import ASHRAE results saver for consistent saving
 try:
@@ -86,7 +95,17 @@ def _build_model(input_dim, output_dim, units, num_layers, learning_rate):
     return model
 
 
-def run_lstm_search(X_train_raw, y_train_raw, X_val_raw, y_val_raw, X_test_raw, y_test_raw, scaler, windowing_func):
+def run_lstm_search(
+    X_train_raw,
+    y_train_raw,
+    X_val_raw,
+    y_val_raw,
+    X_test_raw,
+    y_test_raw,
+    scaler,
+    windowing_func,
+    output_suffix: str = "",
+):
     """
     Run LSTM hyperparameter search with RAW data (not windowed).
     Data is windowed dynamically per iteration based on sequence length parameter.
@@ -117,15 +136,29 @@ def run_lstm_search(X_train_raw, y_train_raw, X_val_raw, y_val_raw, X_test_raw, 
     best_overall_score = float('inf')
     best_overall_params = None
     
+    # Create results directory and CSV path
+    from pathlib import Path
+    try:
+        from ashrae.ashrae_config import ASHRAE_RESULTS_ROOT
+    except:
+        ASHRAE_RESULTS_ROOT = Path("results/ashrae")
+    
+    results_dir = ASHRAE_RESULTS_ROOT / "lstm_search"
+    results_dir.mkdir(parents=True, exist_ok=True)
+    
     for algorithm_name in cfg["algorithms"]:
         print(f"\n{'='*80}", flush=True)
         print(f"Running {algorithm_name} optimization...", flush=True)
         print(f"{'='*80}", flush=True)
         
+        # Create CSV for this algorithm's search iterations
+        results_csv = results_dir / f"search_iterations_{algorithm_name}.csv"
+        print(f"  Results will be saved to: {results_csv}", flush=True)
+        
         # Create optimizer-specific problem wrapper with RAW data and windowing function
         problem = _create_lstm_problem(
             X_train_raw, y_train_raw, X_val_raw, y_val_raw, X_test_raw, y_test_raw, 
-            windowing_func, cfg
+            windowing_func, cfg, results_csv_path=results_csv
         )
         
         # Select and run algorithm
@@ -158,7 +191,18 @@ def run_lstm_search(X_train_raw, y_train_raw, X_val_raw, y_val_raw, X_test_raw, 
     }
 
 
-def _create_lstm_problem(X_train_raw, y_train_raw, X_val_raw, y_val_raw, X_test_raw, y_test_raw, windowing_func, config):
+def _create_lstm_problem(
+    X_train_raw,
+    y_train_raw,
+    X_val_raw,
+    y_val_raw,
+    X_test_raw,
+    y_test_raw,
+    windowing_func,
+    scaler,
+    config,
+    results_csv_path=None,
+):
     """Create LSTM optimization problem with RAW data and dynamic windowing."""
     
     class LSTMProblemWithData(Problem):
@@ -171,7 +215,12 @@ def _create_lstm_problem(X_train_raw, y_train_raw, X_val_raw, y_val_raw, X_test_
             self.X_test_raw = X_test_raw
             self.y_test_raw = y_test_raw
             self.windowing_func = windowing_func
+            self.scaler = scaler
             self.config = config
+            self.results_csv = results_csv_path
+            self.eval_counter = 0
+            self.eval_history: list[dict[str, Any]] = []
+            self.best_eval: dict[str, Any] | None = None
         
         def _evaluate(self, x):
             params = _hyperparameters_from_vector(x)
@@ -237,8 +286,50 @@ def _create_lstm_problem(X_train_raw, y_train_raw, X_val_raw, y_val_raw, X_test_
                 callbacks=callbacks,
             )
             
-            test_loss = model.evaluate(X_test, y_test, verbose=0)
-            print(f"    → Test loss: {test_loss:.6f}", flush=True)
+            # Evaluate and compute metrics
+            test_loss = model.evaluate(X_test, y_test, verbose=0)  # MSE
+            y_pred = model.predict(X_test, verbose=0)
+            
+            # Calculate all metrics
+            mse = test_loss
+            rmse = RMSE(y_test, y_pred)
+            mae = MAE(y_test, y_pred)
+            mape = MAPE(y_test, y_pred)
+            r2 = R2(y_test, y_pred)
+            
+            # Print metrics
+            print(f"    → Metrics:", flush=True)
+            print(f"       MSE: {mse:.6f}, RMSE: {rmse:.6f}, MAE: {mae:.6f}", flush=True)
+            print(f"       MAPE: {mape:.2f}%, R²: {r2:.4f}", flush=True)
+            
+            # Save results to CSV after each evaluation
+            self.eval_counter += 1
+            if self.results_csv:
+                import pandas as pd
+                import time
+                from datetime import datetime
+                
+                result_row = {
+                    "timestamp": datetime.utcnow().isoformat(),
+                    "eval_num": self.eval_counter,
+                    "units": params["units"],
+                    "num_layers": params["num_layers"],
+                    "seq": seq_len,
+                    "learning_rate": params["learning_rate"],
+                    "MSE": mse,
+                    "RMSE": rmse,
+                    "MAE": mae,
+                    "MAPE": mape,
+                    "R2": r2,
+                }
+                
+                try:
+                    df = pd.DataFrame([result_row])
+                    df.to_csv(self.results_csv, mode='a', header=not self.results_csv.exists(), index=False)
+                    print(f"    ✓ Results saved to {self.results_csv.name}", flush=True)
+                except Exception as e:
+                    print(f"    ✗ Failed to save results: {e}", flush=True)
+            
             return test_loss
     
     return LSTMProblemWithData()
