@@ -156,7 +156,8 @@ def run_lstm_search_ashrae(algorithms: List[str], output_suffix: str = ""):
         X_test_raw=X_test,
         y_test_raw=y_test,
         scaler=scaler,
-        windowing_func=get_ashrae_lstm_data_disjoint
+        windowing_func=get_ashrae_lstm_data_disjoint,
+        output_suffix=output_suffix,
     )
 
     print("=" * 80, flush=True)

@@ -279,7 +279,7 @@ def _create_lstm_problem(
                 ),
             ]
             
-            model.fit(
+            history = model.fit(
                 X_train,
                 y_train,
                 epochs=self.config["num_epochs"],
@@ -291,20 +291,45 @@ def _create_lstm_problem(
             )
             
             # Evaluate and compute metrics
-            test_loss = model.evaluate(X_test, y_test, verbose=0)  # MSE
+            test_loss = model.evaluate(X_test, y_test, verbose=0)  # MSE on scaled targets
             y_pred = model.predict(X_test, verbose=0)
-            
-            # Calculate all metrics
-            mse = test_loss
-            rmse = RMSE(y_test, y_pred)
-            mae = MAE(y_test, y_pred)
-            mape = MAPE(y_test, y_pred)
-            r2 = R2(y_test, y_pred)
-            
-            # Print metrics
+
+            # Scaled metrics (as before)
+            mse_scaled = test_loss
+            rmse_scaled = RMSE(y_test, y_pred)
+            mae_scaled = MAE(y_test, y_pred)
+            mape_scaled = MAPE(y_test, y_pred)
+            r2_scaled = R2(y_test, y_pred)
+
+            # Original-scale metrics using provided scaler (inverse transform)
+            try:
+                y_test_orig = self.scaler.inverse_transform(y_test.reshape(-1, 1)).flatten()
+                y_pred_orig = self.scaler.inverse_transform(y_pred.reshape(-1, 1)).flatten()
+                rmse_orig = RMSE(y_test_orig, y_pred_orig)
+                mae_orig = MAE(y_test_orig, y_pred_orig)
+                mape_orig = MAPE(y_test_orig, y_pred_orig)
+                r2_orig = R2(y_test_orig, y_pred_orig)
+            except Exception as inv_exc:
+                # Fallback to scaled metrics if inverse transform fails
+                print(f"    ⚠️ Inverse transform failed, reporting scaled metrics only: {inv_exc}", flush=True)
+                y_test_orig = None
+                y_pred_orig = None
+                rmse_orig = np.nan
+                mae_orig = np.nan
+                mape_orig = np.nan
+                r2_orig = np.nan
+
+            # Print metrics (both scales)
             print(f"    → Metrics:", flush=True)
-            print(f"       MSE: {mse:.6f}, RMSE: {rmse:.6f}, MAE: {mae:.6f}", flush=True)
-            print(f"       MAPE: {mape:.2f}%, R²: {r2:.4f}", flush=True)
+            print(
+                f"       SCALED  -> MSE: {mse_scaled:.6f}, RMSE: {rmse_scaled:.6f}, MAE: {mae_scaled:.6f}, MAPE: {mape_scaled:.2f}%, R²: {r2_scaled:.4f}",
+                flush=True,
+            )
+            if y_test_orig is not None:
+                print(
+                    f"       ORIGINAL-> RMSE: {rmse_orig:.6f}, MAE: {mae_orig:.6f}, MAPE: {mape_orig:.2f}%, R²: {r2_orig:.4f}",
+                    flush=True,
+                )
             
             # Save results to CSV after each evaluation
             self.eval_counter += 1
@@ -312,7 +337,13 @@ def _create_lstm_problem(
                 import pandas as pd
                 import time
                 from datetime import datetime
-                
+
+                # Derive epochs trained from history length
+                try:
+                    epochs_trained = len(history.history.get("loss", []))
+                except Exception:
+                    epochs_trained = np.nan
+
                 result_row = {
                     "timestamp": datetime.utcnow().isoformat(),
                     "eval_num": self.eval_counter,
@@ -320,20 +351,35 @@ def _create_lstm_problem(
                     "num_layers": params["num_layers"],
                     "seq": seq_len,
                     "learning_rate": params["learning_rate"],
-                    "MSE": mse,
-                    "RMSE": rmse,
-                    "MAE": mae,
-                    "MAPE": mape,
-                    "R2": r2,
+                    # Scaled metrics
+                    "MSE_scaled": mse_scaled,
+                    "RMSE_scaled": rmse_scaled,
+                    "MAE_scaled": mae_scaled,
+                    "MAPE_scaled": mape_scaled,
+                    "R2_scaled": r2_scaled,
+                    # Original-scale metrics
+                    "RMSE_orig": rmse_orig,
+                    "MAE_orig": mae_orig,
+                    "MAPE_orig": mape_orig,
+                    "R2_orig": r2_orig,
+                    # Training meta
+                    "epochs_trained": epochs_trained,
                 }
-                
+
                 try:
                     df = pd.DataFrame([result_row])
-                    df.to_csv(self.results_csv, mode='a', header=not self.results_csv.exists(), index=False)
+                    # Robust header logic: write header if file is new or empty
+                    header_needed = True
+                    if self.results_csv.exists():
+                        try:
+                            header_needed = self.results_csv.stat().st_size == 0
+                        except Exception:
+                            header_needed = False
+                    df.to_csv(self.results_csv, mode='a', header=header_needed, index=False)
                     print(f"    ✓ Results saved to {self.results_csv.name}", flush=True)
                 except Exception as e:
                     print(f"    ✗ Failed to save results: {e}", flush=True)
-            
+
             return test_loss
     
     return LSTMProblemWithData()
