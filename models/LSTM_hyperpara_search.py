@@ -106,98 +106,93 @@ def run_lstm_search(
     windowing_func,
     output_suffix: str = "",
 ):
-    """
-    Run LSTM hyperparameter search with RAW data (not windowed).
-    Data is windowed dynamically per iteration based on sequence length parameter.
-    
-    Args:
-        X_train_raw: Training features (2D array: samples, features) - NOT windowed
-        y_train_raw: Training targets (1D array) - NOT windowed
-        X_val_raw: Validation features (2D array) - NOT windowed
-        y_val_raw: Validation targets (1D array) - NOT windowed
-        X_test_raw: Test features (2D array) - NOT windowed
-        y_test_raw: Test targets (1D array) - NOT windowed
-        scaler: Scaler object for inverse transformation
-        windowing_func: Function to apply sliding window (e.g., get_ashrae_lstm_data_disjoint)
-        
-    Returns:
-        dict: Search results including best parameters and metrics
-    """
+    """Run LSTM hyperparameter search with RAW (unwindowed) data."""
+
     cfg = LSTM_SEARCH_CONFIG
-    
-    print(f"Running LSTM search on RAW data shapes:", flush=True)
+
+    print("Running LSTM search on RAW data shapes:", flush=True)
     print(f"  X_train_raw: {X_train_raw.shape}, y_train_raw: {y_train_raw.shape}", flush=True)
     print(f"  X_val_raw: {X_val_raw.shape}, y_val_raw: {y_val_raw.shape}", flush=True)
     print(f"  X_test_raw: {X_test_raw.shape}, y_test_raw: {y_test_raw.shape}", flush=True)
-    print(f"  (Windowing will occur per-iteration based on seq parameter)", flush=True)
-    
-    # Run the search for each algorithm
-    all_results = []
-    best_overall_score = float('inf')
-    best_overall_params = None
-    
-    # Create results directory and CSV path
+    print("  (Windowing will occur per-iteration based on seq parameter)", flush=True)
+
+    all_results: list[dict[str, Any]] = []
+    best_overall_score = float("inf")
+    best_overall_params: dict[str, Any] | None = None
+
     from pathlib import Path
+
     try:
         from ashrae.ashrae_config import ASHRAE_RESULTS_ROOT
-    except:
+    except ImportError:
         ASHRAE_RESULTS_ROOT = Path("results/ashrae")
-    
+
     results_dir = ASHRAE_RESULTS_ROOT / "lstm_search"
     results_dir.mkdir(parents=True, exist_ok=True)
-    
+
     for algorithm_name in cfg["algorithms"]:
         print(f"\n{'='*80}", flush=True)
         print(f"Running {algorithm_name} optimization...", flush=True)
-        print(f"{'='*80}", flush=True)
-        
-        # Create CSV for this algorithm's search iterations
-        results_csv = results_dir / f"search_iterations_{algorithm_name}.csv"
+        print("=" * 80, flush=True)
+
+        suffix_tag = output_suffix if output_suffix else ""
+        results_csv = results_dir / f"search_iterations_{algorithm_name}{suffix_tag}.csv"
         print(f"  Results will be saved to: {results_csv}", flush=True)
-        
-        # Create optimizer-specific problem wrapper with RAW data and windowing function
+
         problem = _create_lstm_problem(
-            X_train_raw, y_train_raw, X_val_raw, y_val_raw, X_test_raw, y_test_raw, 
-            windowing_func, cfg, results_csv_path=results_csv
+            X_train_raw,
+            y_train_raw,
+            X_val_raw,
+            y_val_raw,
+            X_test_raw,
+            y_test_raw,
+            windowing_func,
+            scaler,
+            cfg,
+            results_csv_path=results_csv,
         )
-        
-        # Select and run algorithm
+
         algorithm = _select_algorithm(algorithm_name, cfg["population_size"])
         task = Task(problem, max_iters=cfg["iterations"], optimization_type=OptimizationType.MINIMIZATION)
-        
+
         best_solution, best_fitness = algorithm.run(task)
         best_params = _hyperparameters_from_vector(best_solution)
-        
+        best_eval = problem.get_best_evaluation()
+
+        artifact_path: Path | None = None
+        if best_eval is not None:
+            artifact_filename = f"best_{algorithm_name}{suffix_tag}.obj"
+            artifact_path = results_dir / artifact_filename
+            try:
+                save_object(best_eval, artifact_path)
+                print(f"  ✓ Best artifact saved to {artifact_path}", flush=True)
+            except Exception as exc:
+                print(f"  ✗ Failed to save best artifact: {exc}", flush=True)
+                artifact_path = None
+
         print(f"\n{algorithm_name} optimization complete!", flush=True)
         print(f"  Best params: {best_params}", flush=True)
         print(f"  Best fitness: {best_fitness:.6f}", flush=True)
-        
-        all_results.append({
-            "algorithm": algorithm_name,
-            "best_params": best_params,
-            "best_fitness": best_fitness,
-            "convergence": task.convergence_data()
-        })
-        
+
+        all_results.append(
+            {
+                "algorithm": algorithm_name,
+                "best_params": best_params,
+                "best_fitness": best_fitness,
+                "convergence": task.convergence_data(),
+                "artifact_path": artifact_path,
+                "best_metrics": best_eval,
+            }
+        )
+
         if best_fitness < best_overall_score:
             best_overall_score = best_fitness
-            best_overall_params = best_params
-    
     return {
         "best_params": best_overall_params,
         "best_score": best_overall_score,
         "search_results": all_results,
-        "scaler": scaler
+        "scaler": scaler,
     }
-
-
-def _create_lstm_problem(
-    X_train_raw,
-    y_train_raw,
-    X_val_raw,
-    y_val_raw,
-    X_test_raw,
-    y_test_raw,
     windowing_func,
     scaler,
     config,
