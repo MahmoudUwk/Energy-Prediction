@@ -18,6 +18,8 @@ if str(ashrae_path) not in sys.path:
 
 from save_ashrae_results import save_ashrae_samfor_results
 
+# Remove ASHRAE-specific imports - dataset loading should be handled by callers
+
 from tools.preprocess_data2 import (
     MAE,
     MAPE,
@@ -51,32 +53,33 @@ def _evaluate_model(model, X_test, y_test_scaled, scaler):
     y_pred_scaled, test_elapsed = time_call(model.predict, X_test)
     y_pred = inverse_transf(np.squeeze(y_pred_scaled).reshape(-1, 1), scaler)
     y_true = np.squeeze(inverse_transf(y_test_scaled, scaler))
-    rmse, mae, mape = compute_metrics(y_true, y_pred)
+    rmse, mae, mape, rmsle = compute_metrics(y_true, y_pred)
     print(f"rmse: {rmse:.4f} || mape: {mape:.2f} || mae: {mae:.4f}")
     return y_true, y_pred, rmse, mae, mape, test_elapsed
 
 
-def main():
+def run_samfor(X_train, y_train, X_test, y_test, scaler, seq_length, save_path_str="results/ashrae"):
+    """
+    Run SAMFOR model with pre-loaded data.
+    
+    Args:
+        X_train: Training features (2D array)
+        y_train: Training targets (1D array)
+        X_test: Test features (2D array) 
+        y_test: Test targets (1D array)
+        scaler: Scaler object for inverse transformation
+        seq_length: Sequence length (for compatibility)
+        save_path_str: Path to save results
+        
+    Returns:
+        dict: Results including metrics and predictions
+    """
     params = SAMFOR_SAMFOR_PARAMS
-    option = params["option"]
-    datatype_opt = params["datatype"]
-    seq_length = params["sequence_length"]
-
-    (
-        X_train,
-        y_train,
-        X_test,
-        y_test,
-        save_path_str,
-        test_time_axis,
-        scaler,
-    ) = get_SAMFOR_data(option, datatype_opt, seq_length)
-
-    print(X_train.shape, X_test.shape)
+    
+    print(f"Training SAMFOR on data shapes: X_train{X_train.shape}, X_test{X_test.shape}")
     save_path = Path(save_path_str)
 
     use_lssvr = any(name.upper().startswith("SAMFOR_SARIMA") for name in params.get("algorithms", ("SAMFOR",)))
-
     model, alg_name, train_time = _train_model(
         use_lssvr,
         X_train,
@@ -85,7 +88,9 @@ def main():
         params["svr_params"],
     )
 
+    # Evaluate model - expects scaled targets
     y_true, y_pred, rmse, mae, mape, test_time = _evaluate_model(model, X_test, y_test, scaler)
+
     persist_model_results(
         alg_name,
         save_path,
@@ -113,6 +118,24 @@ def main():
         algorithm=alg_name,
         seq_length=seq_length,
         datatype=params["datatype"],
+    )
+    
+    return {
+        "metrics": {"RMSE": rmse, "MAE": mae, "MAPE": mape},
+        "y_true": y_true,
+        "y_pred": y_pred,
+        "train_time": train_time,
+        "test_time": test_time,
+        "algorithm": alg_name,
+        "saved_files": saved_files
+    }
+
+
+def main():
+    """Legacy main function - now redirects to caller scripts."""
+    raise NotImplementedError(
+        "SAMFOR main() should be called with pre-loaded data. "
+        "Use ashrae/call_samfor_ashrae.py for ASHRAE dataset."
     )
 
 

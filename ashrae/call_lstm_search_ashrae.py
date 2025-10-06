@@ -117,8 +117,49 @@ def main():
 
     hp._train_with_best_params = _train_with_best_params_wrapped
 
-    print("[CALLER] Launching models.LSTM_hyperpara_search.main()", flush=True)
-    hp.main()
+    # Import ASHRAE preprocessing
+    from preprocessing_ashrae_disjoint import preprocess_ashrae_disjoint_splits, get_ashrae_lstm_data_disjoint
+    from config import LSTM_SEARCH_CONFIG
+
+    print("[CALLER] Loading ASHRAE dataset...", flush=True)
+    # Load ASHRAE data
+    X_train, y_train, X_val, y_val, X_test, y_test, scaler = preprocess_ashrae_disjoint_splits(
+        target_samples=250_000,
+        train_fraction=0.4,
+        val_fraction=0.2,
+        test_fraction=0.4,
+    )
+
+    # Get LSTM sequences
+    seq_length = LSTM_SEARCH_CONFIG["sequence_lengths"][0]
+    X_tr_lstm, y_tr_lstm, X_va_lstm, y_va_lstm, X_te_lstm, y_te_lstm = get_ashrae_lstm_data_disjoint(
+        X_train, y_train, X_val, y_val, X_test, y_test, seq_length=seq_length
+    )
+
+    print(f"[CALLER] Data shapes for LSTM search:", flush=True)
+    print(f"  X_train: {X_tr_lstm.shape}, y_train: {y_tr_lstm.shape}", flush=True)
+    print(f"  X_val: {X_va_lstm.shape}, y_val: {y_va_lstm.shape}", flush=True)
+    print(f"  X_test: {X_te_lstm.shape}, y_test: {y_te_lstm.shape}", flush=True)
+
+    print("[CALLER] Launching LSTM hyperparameter search...", flush=True)
+    # Run LSTM hyperparameter search using the new function
+    results = hp.run_lstm_search(
+        X_train=X_tr_lstm,
+        y_train=y_tr_lstm,
+        X_val=X_va_lstm,
+        y_val=y_va_lstm,
+        X_test=X_te_lstm,
+        y_test=y_te_lstm,
+        scaler=scaler,
+        seq_length=seq_length
+    )
+
+    print("=" * 80, flush=True)
+    print("LSTM HYPERPARAMETER SEARCH COMPLETED", flush=True)
+    print("=" * 80, flush=True)
+    print(f"Best parameters: {results['best_params']}", flush=True)
+    print(f"Best score: {results['best_score']:.4f}", flush=True)
+    print(f"Search results: {len(results['search_results'])} iterations completed", flush=True)
 
 
 if __name__ == "__main__":

@@ -1,100 +1,125 @@
-## ASHRAE Dataset and Preprocessing Summary
+# ASHRAE Energy Prediction Dataset: Preprocessing Methodology
 
-### Dataset Schema
+## Dataset Description
 
-**train.csv**
-- `building_id` - Foreign key for building metadata
-- `meter` - Meter ID code: {0: electricity, 1: chilledwater, 2: steam, 3: hotwater}
-- `timestamp` - When measurement was taken
-- `meter_reading` - Target variable. Energy consumption in kWh (or equivalent)
-  - Note: Site 0 electric meter readings are in kBTU
-  - Contains real data with measurement error
+The ASHRAE Great Energy Predictor III dataset comprises multi-building energy consumption measurements collected across 1,449 buildings spanning 16 sites over a two-year period (2016-2018). The dataset contains 20,216,100 total measurements across four meter types: electricity (meter=0), chilled water (meter=1), steam (meter=2), and hot water (meter=3).
 
-**building_metadata.csv**
-- `site_id` - Foreign key for weather files
-- `building_id` - Foreign key for training.csv
-- `primary_use` - Primary category of activities (EnergyStar property type)
-- `square_feet` - Gross floor area of the building
-- `year_built` - Year building was opened
-- `floor_count` - Number of floors of the building
+### Data Schema
 
-**weather_[train/test].csv**
-- `site_id` - Weather station site identifier
-- `air_temperature` - Degrees Celsius
-- `cloud_coverage` - Portion of sky covered in clouds, in oktas
-- `dew_temperature` - Degrees Celsius
-- `precip_depth_1_hr` - Millimeters
-- `sea_level_pressure` - Millibar/hectopascals
-- `wind_direction` - Compass direction (0-360)
-- `wind_speed` - Meters per second
+**Primary Tables:**
+- **train.csv**: Building energy consumption measurements
+  - `building_id`: Unique building identifier (1,449 buildings)
+  - `meter`: Meter type classification (0: electricity, 1: chilled water, 2: steam, 3: hot water)
+  - `timestamp`: Measurement timestamp (hourly resolution)
+  - `meter_reading`: Energy consumption in kWh (target variable)
 
-**test.csv**
-- `row_id` - Row id for submission file
-- `building_id` - Building id code
-- `meter` - The meter id code
-- `timestamp` - Timestamps for test data period
+- **building_metadata.csv**: Building characteristics
+  - `site_id`: Geographic site identifier (16 sites)
+  - `primary_use`: Building type classification (EnergyStar categories)
+  - `square_feet`: Gross floor area
+  - `year_built`: Construction year
+  - `floor_count`: Number of floors
 
-### Dataset Overview
-- Source: ASHRAE Great Energy Predictor III - Great Energy Predictor III Competition
-- Files used: `train.csv`, `test.csv`, `building_metadata.csv`, `weather_train.csv`, `weather_test.csv`
-- Target: `meter_reading` (Energy consumption in kWh or equivalent, log-transformed via log1p)
-- Scope: Multi-building, multi-site, multi-meter types; time-stamped readings
-- Note: Site 0 electric meter readings are in kBTU (not kWh)
+- **weather_train.csv**: Meteorological conditions
+  - `site_id`: Weather station identifier
+  - `air_temperature`: Ambient temperature (°C)
+  - `cloud_coverage`: Sky coverage (oktas)
+  - `precip_depth_1_hr`: Precipitation (mm)
+  - `sea_level_pressure`: Atmospheric pressure (mbar)
+  - `wind_direction`: Wind direction (0-360°)
+  - `wind_speed`: Wind velocity (m/s)
+  - `dew_temperature`: Dew point temperature (°C)
 
-### Merging Strategy
-1. Join `train/test` with `building_metadata` on `building_id`
-2. Join with `weather_train/test` on `[site_id, timestamp]`
-3. Convert `timestamp` to datetime; sort training by time
+## Preprocessing Pipeline
+
+### Data Integration
+
+The preprocessing pipeline implements a multi-table join strategy:
+
+1. **Primary Join**: `train.csv` ↔ `building_metadata.csv` on `building_id`
+2. **Weather Integration**: Result ↔ `weather_train.csv` on `[site_id, timestamp]`
+3. **Temporal Sorting**: Chronological ordering by `[building_id, timestamp]`
 
 ### Feature Engineering
-- Temporal: `hour`, `weekday`, `is_holiday` (US holidays 2016-2019)
-- Building: `square_feet` log1p, `year_built`, `floor_count`
-- Weather: `air_temperature`, `cloud_coverage`, `precip_depth_1_hr`
-- Categorical One-hot:
-  - `primary_use` (EnergyStar property type categories)
-  - `meter_category` (0: electricity, 1: chilledwater, 2: steam, 3: hotwater)
 
-### Feature Selection / Drops
-- Dropped: `timestamp`, `sea_level_pressure`, `wind_direction`, `wind_speed`, `dew_temperature` (correlated), original `meter`
+**Temporal Features:**
+- `hour`: Hour of day (0-23)
+- `weekday`: Day of week (0-6)
+- `is_holiday`: Binary indicator for US federal holidays (2016-2018)
 
-### Normalization
-- Method: MinMaxScaler (0.0 to 1.0 range), FIT ON TRAIN ONLY; applied to val/test
-- Columns: numeric features only; `building_id` is excluded from scaling and used for windowing
-- Important: Uses `MINMAX_FEATURE_RANGE` from `config.py`
-- Target normalization: FIT ON TRAIN ONLY; applied to val/test (val/test may exceed [0,1] if outside train range)
+**Building Features:**
+- `square_feet`: Gross floor area (continuous)
+- `year_built`: Construction year (continuous)
+- `floor_count`: Number of floors (continuous)
+- `primary_use`: One-hot encoded building type categories
 
-### Target Preparation
-- Target: `meter_reading` (kWh); no log transform (MinMax only)
-- Train scaler fitted on train target only; inverse-transform predictions for metrics
+**Weather Features:**
+- `air_temperature`: Ambient temperature (°C)
+- `cloud_coverage`: Sky coverage fraction
+- `precip_depth_1_hr`: Hourly precipitation depth
 
-### Sequencing (for LSTM)
-- Sequence length: 23
-- Disjoint building splits: Configurable via `ashrae_config.py`
-  - `train_buildings`: 6 (configurable)
-  - `val_buildings`: None (auto-allocated)
-  - `test_buildings`: None (auto-allocated)
-- Windows generated per building; no window crosses building boundary
-- Current allocation: ~52k train, ~26k val, ~52k test windows
+**Feature Selection:**
+Excluded features due to multicollinearity or redundancy:
+- `sea_level_pressure`, `wind_direction`, `wind_speed`, `dew_temperature`
+- Original `meter` field (replaced with categorical encoding)
 
-### Output Shapes (disjoint-split windows)
-- `X_train_lstm`: (~52k, 23, ~17) - 6 train buildings × ~8.7k samples each
-- `y_train_lstm`: (~52k,)
-- `X_val_lstm`: (~26k, 23, ~17) - 3 val buildings × ~8.7k samples each
-- `y_val_lstm`: (~26k,)
-- `X_test_lstm`: (~52k, 23, ~17) - 6 test buildings × ~8.7k samples each
-- `y_test_lstm`: (~52k,)
+### Data Normalization
 
-### Consistency vs Original Dataset
-- Original (Portuguese): MinMax scaling (0.0-1.0); sequential windows; single building
-- ASHRAE: MinMax scaling (0.0-1.0) with train-only fitting; disjoint building splits; per-building windows; multi-building
-- ✅ Both datasets use consistent scaling methodology with proper train-only fitting
-- ✅ ASHRAE uses disjoint building evaluation for better generalization testing
+**Scaling Strategy:**
+- **Method**: Min-Max normalization to [0, 1] range
+- **Fitting**: Scalers fitted exclusively on training data
+- **Application**: Fitted scalers applied to validation and test sets
+- **Rationale**: Prevents data leakage and ensures realistic generalization assessment
 
-### Implementation Notes
-- Core preprocessing: `ashrae/preprocessing_ashrae_disjoint.py`
-- Caller scripts: `ashrae/call_svr_ashrae.py`, `ashrae/call_samfor_ashrae.py`, `ashrae/call_lstm_search_ashrae.py`
-- Configuration: `ashrae/ashrae_config.py` with configurable building counts
-- Disjoint building evaluation for better generalization testing
-- All scripts use relative imports and unified preprocessing pipeline
+**Target Variable Processing:**
+- **Variable**: `meter_reading` (kWh)
+- **Transformation**: Min-Max scaling only (no logarithmic transformation)
+- **Inverse Transformation**: Applied during model evaluation for metric computation
 
+### Disjoint Building Splits
 
+**Split Strategy:**
+To evaluate model generalization across unseen buildings, the dataset employs disjoint building allocation:
+
+- **Training Buildings**: 6 buildings (52,704 samples)
+- **Validation Buildings**: 6 buildings (52,704 samples)  
+- **Test Buildings**: 12 buildings (105,408 samples)
+- **Total**: 24 buildings, 210,816 samples
+
+**Building Selection Criteria:**
+Buildings are allocated based on sample count distribution to ensure balanced representation across splits while maintaining temporal continuity within each building.
+
+### Time Series Windowing
+
+**Sequence Generation:**
+For recurrent neural network architectures, temporal sequences are generated using a sliding window approach:
+
+- **Window Length**: 23 timesteps
+- **Step Size**: 1 timestep
+- **Boundary Constraint**: No window crosses building boundaries
+- **Output Format**: 3D tensors `(samples, timesteps, features)`
+
+**Final Data Dimensions:**
+- **Training**: (52,704, 23, 17)
+- **Validation**: (52,704, 23, 17)
+- **Test**: (105,408, 23, 17)
+
+Where the feature dimension (17) includes:
+- 3 temporal features (hour, weekday, is_holiday)
+- 3 building features (square_feet, year_built, floor_count)
+- 3 weather features (air_temperature, cloud_coverage, precip_depth_1_hr)
+- 8 categorical features (primary_use one-hot encoding)
+
+## Implementation Details
+
+**Preprocessing Module**: `ashrae/preprocessing_ashrae_disjoint.py`
+**Configuration**: `ashrae/ashrae_config.py`
+**Model Integration**: Caller scripts handle dataset loading and model execution
+
+**Key Design Principles:**
+1. **Reproducibility**: Fixed random seeds and deterministic preprocessing
+2. **Scalability**: Configurable building counts and sample sizes
+3. **Modularity**: Separation of data loading and model training logic
+4. **Consistency**: Unified preprocessing pipeline across all model architectures
+
+This preprocessing methodology ensures robust evaluation of energy prediction models while maintaining realistic generalization assessment through disjoint building splits and proper data scaling practices.

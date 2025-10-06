@@ -86,6 +86,15 @@ def _train_and_evaluate(
         },
         save_path / f"{name}.obj",
     )
+    
+    return {
+        "metrics": {"RMSE": rmse, "MAE": mae, "MAPE": mape},
+        "y_true": y_true,
+        "y_pred": y_pred,
+        "train_time": train_elapsed / 60,
+        "test_time": test_elapsed,
+        "algorithm": name
+    }
 
 
 def _available_models():
@@ -95,26 +104,33 @@ def _available_models():
     }
 
 
-def main():
-    seq = SAMFOR_SEQUENCE_LENGTH
-    datatype_opt = SAMFOR_DATATYPE
-    option = SAMFOR_OPTION
-
-    X_train, y_train, X_test, y_test, save_path_str, _, scaler = get_SAMFOR_data(
-        option, datatype_opt, seq
-    )
-
-    print(f"Train shape: {X_train.shape}, Test shape: {X_test.shape}")
-
+def run_svr(X_train, y_train, X_test, y_test, scaler, seq_length, save_path_str="results/ashrae"):
+    """
+    Run SVR models with pre-loaded data.
+    
+    Args:
+        X_train: Training features (2D array)
+        y_train: Training targets (1D array)
+        X_test: Test features (2D array) 
+        y_test: Test targets (1D array)
+        scaler: Scaler object for inverse transformation
+        seq_length: Sequence length (for compatibility)
+        save_path_str: Path to save results
+        
+    Returns:
+        dict: Results for each model including metrics and predictions
+    """
+    print(f"Training SVR models on data shapes: X_train{X_train.shape}, X_test{X_test.shape}")
     save_path = Path(save_path_str)
     models = _available_models()
+    results = {}
 
     for name in SAMFOR_MODELS:
         if name not in models:
             print(f"Skipping unsupported model '{name}'.")
             continue
         model = models[name]()
-        _train_and_evaluate(
+        result = _train_and_evaluate(
             model,
             name,
             X_train,
@@ -123,9 +139,20 @@ def main():
             y_test,
             scaler,
             save_path,
-            datatype_opt,
-            seq,
+            SAMFOR_DATATYPE,
+            seq_length,
         )
+        results[name] = result
+    
+    return results
+
+
+def main():
+    """Legacy main function - now redirects to caller scripts."""
+    raise NotImplementedError(
+        "SVR main() should be called with pre-loaded data. "
+        "Use ashrae/call_svr_ashrae.py for ASHRAE dataset."
+    )
 
 
 if __name__ == "__main__":

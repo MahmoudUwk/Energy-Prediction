@@ -28,7 +28,17 @@ except ImportError:
         ASHRAEDatasetAnalysis,
     )
 
-from tools.preprocess_data2 import sliding_windows2d_lstm
+# Import sliding_windows2d_lstm with fallback for script execution
+try:
+    from tools.preprocess_data2 import sliding_windows2d_lstm
+except ImportError:
+    # Add parent directory to path when running as script
+    import sys
+    from pathlib import Path
+    parent_dir = Path(__file__).resolve().parent.parent
+    if str(parent_dir) not in sys.path:
+        sys.path.insert(0, str(parent_dir))
+    from tools.preprocess_data2 import sliding_windows2d_lstm
 
 
 def select_buildings_for_disjoint_splits(

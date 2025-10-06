@@ -38,13 +38,7 @@ if str(ashrae_path) not in sys.path:
 
 from save_ashrae_results import save_ashrae_lstm_results
 
-# Import ASHRAE-specific functions for disjoint preprocessing
-from preprocessing_ashrae_disjoint import (
-    preprocess_ashrae_disjoint_splits,
-    get_ashrae_lstm_data_disjoint,
-)
-from ashrae_config import ASHRAE_TRAINING_CONFIG
-ASHRAE_MODE = True
+# Remove ASHRAE-specific imports - dataset loading should be handled by callers
 
 # from niapy.algorithms.basic import BeesAlgorithm
 
@@ -88,28 +82,54 @@ def _build_model(input_dim, output_dim, units, num_layers, learning_rate):
     return model
 
 
+def run_lstm_search(X_train, y_train, X_val, y_val, X_test, y_test, scaler, seq_length):
+    """
+    Run LSTM hyperparameter search with pre-loaded data.
+    
+    Args:
+        X_train: Training features (3D array: samples, timesteps, features)
+        y_train: Training targets (2D array: samples, 1)
+        X_val: Validation features (3D array)
+        y_val: Validation targets (2D array)
+        X_test: Test features (3D array)
+        y_test: Test targets (2D array)
+        scaler: Scaler object for inverse transformation
+        seq_length: Sequence length
+        
+    Returns:
+        dict: Search results including best parameters and metrics
+    """
+    cfg = LSTM_SEARCH_CONFIG
+    
+    print(f"Running LSTM search on data shapes:")
+    print(f"  X_train: {X_train.shape}, y_train: {y_train.shape}")
+    print(f"  X_val: {X_val.shape}, y_val: {y_val.shape}")
+    print(f"  X_test: {X_test.shape}, y_test: {y_test.shape}")
+    
+    # Ensure targets are reshaped for Keras compatibility
+    y_train = y_train.reshape(-1, 1)
+    y_val = y_val.reshape(-1, 1)
+    y_test = y_test.reshape(-1, 1)
+    
+    # Run the search
+    best_params, best_score, search_results = _run_search(
+        X_train, y_train, X_val, y_val, X_test, y_test, scaler, seq_length, cfg
+    )
+    
+    return {
+        "best_params": best_params,
+        "best_score": best_score,
+        "search_results": search_results,
+        "scaler": scaler
+    }
+
+
 def _prepare_data(option, datatype_opt, seq):
-    if ASHRAE_MODE and datatype_opt == "1s":
-        # Use ASHRAE disjoint preprocessing for 1s dataset
-        X_train, y_train, X_val, y_val, X_test, y_test, scaler = preprocess_ashrae_disjoint_splits(
-            target_samples=ASHRAE_TRAINING_CONFIG["max_samples"],
-            train_fraction=ASHRAE_TRAINING_CONFIG["train_fraction"],
-            val_fraction=ASHRAE_TRAINING_CONFIG["val_fraction"],
-            test_fraction=ASHRAE_TRAINING_CONFIG["test_fraction"],
-        )
-
-        # Get LSTM sequences with per-building windowing
-        X_train, y_train, X_val, y_val, X_test, y_test = get_ashrae_lstm_data_disjoint(
-            X_train, y_train, X_val, y_val, X_test, y_test, seq_length=seq
-        )
-
-        # Return in expected format (save_path, test_time_axis, scaler)
-        save_path = f"results/ashrae"
-        test_time_axis = None  # Not used in ASHRAE
-        return X_train, y_train, X_val, y_val, X_test, y_test, save_path, test_time_axis, scaler
-    else:
-        # ASHRAE preprocessing is required for 1s dataset
-        raise ValueError(f"ASHRAE preprocessing required for datatype '{datatype_opt}' but ASHRAE_MODE is {ASHRAE_MODE}")
+    """Legacy function - now redirects to caller scripts."""
+    raise NotImplementedError(
+        "LSTM _prepare_data() should be called with pre-loaded data. "
+        "Use ashrae/call_lstm_search_ashrae.py for ASHRAE dataset."
+    )
 
 
 class LSTMHyperparameterOptimization(Problem):
@@ -304,54 +324,11 @@ def _train_with_best_params(config, datatype_opt, best_params, algorithm_name):
 
 
 def main():
-    cfg = LSTM_SEARCH_CONFIG
-    option = cfg["option"]
-
-    # High-level run banner
-    try:
-        print(
-            "BEGIN LSTM hyperparameter search | "
-            f"datatypes={cfg['datatype_options']} | algorithms={cfg['algorithms']} | "
-            f"population={cfg['population_size']} | iterations={cfg['iterations']} | "
-            f"epochs={cfg['num_epochs']} | batch_size=2**{cfg['batch_size_power']} | "
-            f"patience={cfg['patience']}",
-            flush=True,
-        )
-    except Exception:
-        pass
-
-    for datatype_opt in cfg["datatype_options"]:
-        for alg_name in cfg["algorithms"]:
-            algorithm = _select_algorithm(alg_name, cfg["population_size"])
-
-            # Start-of-run banner for each algorithm/datatype
-            print(
-                f"Starting search run: datatype={datatype_opt}, algorithm={alg_name}",
-                flush=True,
-            )
-
-            if ASHRAE_MODE and datatype_opt == "1s":
-                base_save_path = Path("results/ashrae")
-            else:
-                # ASHRAE preprocessing is required for 1s dataset
-                raise ValueError(f"ASHRAE preprocessing required for datatype '{datatype_opt}' but ASHRAE_MODE is {ASHRAE_MODE}")
-
-            if cfg["run_search"]:
-                problem = LSTMHyperparameterOptimization(cfg, datatype_opt)
-                task = Task(problem, max_iters=cfg["iterations"], optimization_type=OptimizationType.MINIMIZATION)
-
-                best_vector, best_mse = algorithm.run(task)
-                best_params = _hyperparameters_from_vector(best_vector)
-                print(f"Best parameters for {datatype_opt} using {alg_name}: {best_params}")
-
-                _save_artifacts(task, best_params, base_save_path, alg_name[0], cfg)
-
-            best_payload = loadDatasetObj(base_save_path / f"Best_param{alg_name[0]}.obj")
-            print(
-                f"BEGIN training with best params for alg={alg_name[0]}, datatype={datatype_opt}",
-                flush=True,
-            )
-            _train_with_best_params(cfg, datatype_opt, best_payload["best_params"], alg_name[0])
+    """Legacy main function - now redirects to caller scripts."""
+    raise NotImplementedError(
+        "LSTM main() should be called with pre-loaded data. "
+        "Use ashrae/call_lstm_search_ashrae.py for ASHRAE dataset."
+    )
 
 
 if __name__ == "__main__":

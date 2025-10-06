@@ -15,8 +15,15 @@ from sklearn.linear_model import LinearRegression
 from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
 from sklearn.preprocessing import MinMaxScaler
 
-from .preprocessing_ashrae_disjoint import preprocess_ashrae_disjoint_splits
-from .ashrae_config import (
+# Add current directory to path for imports
+import sys
+from pathlib import Path
+current_dir = Path(__file__).resolve().parent
+if str(current_dir) not in sys.path:
+    sys.path.insert(0, str(current_dir))
+
+from preprocessing_ashrae_disjoint import preprocess_ashrae_disjoint_splits
+from ashrae_config import (
     ASHRAE_TRAINING_CONFIG,
     ASHRAE_BENCHMARK_CONFIG,
     ASHRAE_RESULTS_ROOT,
