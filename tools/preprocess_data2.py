@@ -242,13 +242,21 @@ def _append_row(save_path: str, filename: str, columns: list[str], row):
     if not file_path.exists():
         pd.DataFrame(columns=columns).to_csv(file_path, index=False)
     df = pd.read_csv(file_path)
+
+    # Handle column mismatch by checking if existing file structure matches expected
+    if len(df.columns) != len(columns):
+        # If columns don't match, recreate the file with new structure
+        print(f"Warning: Column mismatch in {filename}. Recreating with {len(columns)} columns.")
+        df = pd.DataFrame(columns=columns)
+        df.to_csv(file_path, index=False)
+
     df.loc[len(df)] = row
     df.to_csv(file_path, index=False, header=True)
 
 
 def log_results(row, datatype_opt, save_path):
     save_name = f"results_{datatype_opt}.csv"
-    cols = ["Algorithm", "RMSE", "MAE", "MAPE(%)", "seq", "train_time(min)", "test_time(s)"]
+    cols = ["Algorithm", "RMSE", "MAE", "MAPE(%)", "RMSLE", "seq", "train_time(min)", "test_time(s)"]
     _append_row(save_path, save_name, cols, row)
 
 

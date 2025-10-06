@@ -64,6 +64,7 @@ def _train_and_evaluate(
         rmse,
         mae,
         mape,
+        0.0,  # RMSLE not computed by SVR
         seq_length,
         train_elapsed / 60,
         test_elapsed,

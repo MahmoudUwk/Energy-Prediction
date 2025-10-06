@@ -99,22 +99,28 @@ def run_samfor(X_train, y_train, X_test, y_test, scaler, seq_length, save_path_s
         rmse,
         mae,
         mape,
+        0.0,  # RMSLE not computed by SAMFOR
         seq_length,
         train_time,
         test_time,
         params["datatype"],
-        params.get("plot_results", False),
+        False,  # Disable plotting for SAMFOR
         params.get("persist_models", True),
         params.get("persist_models", []),
     )
 
     # Save results using centralized ASHRAE saver
+    # Convert numpy scalars to Python floats for proper CSV serialization
     saved_files = save_ashrae_samfor_results(
-        metrics={"RMSE": rmse, "MAE": mae, "MAPE": mape},
+        metrics={
+            "RMSE": float(rmse), 
+            "MAE": float(mae), 
+            "MAPE": float(mape)
+        },
         y_true=y_true,
         y_pred=y_pred,
-        train_time_min=train_time,
-        test_time_s=test_time,
+        train_time_min=float(train_time),
+        test_time_s=float(test_time),
         algorithm=alg_name,
         seq_length=seq_length,
         datatype=params["datatype"],

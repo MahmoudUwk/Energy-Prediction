@@ -182,7 +182,7 @@ class ASHRAEResultsSaver:
 
 def get_ashrae_results_saver(model_name: str, algorithm: str = None) -> ASHRAEResultsSaver:
     """Factory function to get ASHRAE results saver."""
-    from .ashrae_config import ASHRAE_RESULTS_ROOT
+    from ashrae_config import ASHRAE_RESULTS_ROOT
     return ASHRAEResultsSaver(ASHRAE_RESULTS_ROOT, model_name, algorithm)
 
 
@@ -202,6 +202,35 @@ def save_ashrae_svr_results(
     model_info = {
         "algorithm": "SVR_ASHRAE",
         "model_type": "Support Vector Regression",
+        "train_time_min": train_time_min,
+        "test_time_s": test_time_s,
+        "sequence_length": seq_length,
+    }
+
+    return saver.save_all(
+        metrics=metrics,
+        y_true=y_true,
+        y_pred=y_pred,
+        model_info=model_info,
+        **kwargs
+    )
+
+
+def save_ashrae_rfr_results(
+    metrics: Dict[str, float],
+    y_true: np.ndarray,
+    y_pred: np.ndarray,
+    train_time_min: float,
+    test_time_s: float,
+    seq_length: int = 23,
+    **kwargs
+) -> Dict[str, Path]:
+    """Save Random Forest Regression (RFR) results with standard metadata."""
+    saver = get_ashrae_results_saver("rfr", "RFR_ASHRAE")
+
+    model_info = {
+        "algorithm": "RFR_ASHRAE",
+        "model_type": "RandomForestRegressor",
         "train_time_min": train_time_min,
         "test_time_s": test_time_s,
         "sequence_length": seq_length,

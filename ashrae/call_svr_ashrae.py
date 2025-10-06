@@ -9,6 +9,7 @@ import numpy as np
 import pandas as pd
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 from sklearn.svm import SVR
+from sklearn.model_selection import RandomizedSearchCV
 
 # Add project root to path for imports when running as script
 if __name__ == "__main__":
@@ -60,25 +61,56 @@ def main() -> bool:
         X_train, y_train, X_val, y_val, X_test, y_test, seq_length=seq_len
     )
 
-    X_tr_flat = X_tr_lstm[:, -1, :]
-    X_va_flat = X_va_lstm[:, -1, :]
-    X_te_flat = X_te_lstm[:, -1, :]
+    # Feature augmentation: last-step features + target lags/statistics
+    def build_aug_features(X_lstm: np.ndarray) -> np.ndarray:
+        last_step = X_lstm[:, -1, :]
+        target_hist = X_lstm[:, :, 0]
+        lag1 = target_hist[:, -1]
+        lag2 = target_hist[:, -2] if X_lstm.shape[1] >= 2 else lag1
+        lag3 = target_hist[:, -3] if X_lstm.shape[1] >= 3 else lag2
+        roll_mean = target_hist.mean(axis=1)
+        roll_std = target_hist.std(axis=1)
+        extra = np.stack([lag1, lag2, lag3, roll_mean, roll_std], axis=1)
+        return np.concatenate([last_step, extra], axis=1)
 
-    # Combine train+val to train SVR
+    X_tr_flat = build_aug_features(X_tr_lstm)
+    X_va_flat = build_aug_features(X_va_lstm)
+    X_te_flat = build_aug_features(X_te_lstm)
+
+    # Hyperparameter tuning with reduced fits
+    param_distributions = {
+        "C": [0.1, 1.0, 10.0, 100.0],
+        "epsilon": [0.001, 0.01, 0.1, 0.2],
+        "gamma": ["scale", "auto", 0.01],
+    }
+
+    base_svr = SVR(kernel="rbf")
+    tuner = RandomizedSearchCV(
+        estimator=base_svr,
+        param_distributions=param_distributions,
+        n_iter=8,
+        scoring="neg_mean_squared_error",
+        cv=2,
+        n_jobs=5,
+        verbose=1,
+        random_state=42,
+    )
+    start_tune = time.time()
+    tuner.fit(X_tr_flat, y_tr_lstm)
+    tune_time = (time.time() - start_tune) / 60.0
+
+    best_params = tuner.best_params_
+
+    # Final training on train+val
     X_train_all = np.vstack([X_tr_flat, X_va_flat])
     y_train_all = np.hstack([y_tr_lstm, y_va_lstm])
-
-    print(f"Train (flat): {X_train_all.shape} | Test (flat): {X_te_flat.shape}")
-
-    # Train SVR on scaled targets
-    model = SVR(C=10.0, epsilon=0.01, kernel="rbf", gamma="scale")
-
-    start_train = time.time()
-    model.fit(X_train_all, y_train_all)
-    train_time = (time.time() - start_train) / 60.0
+    final_model = SVR(kernel="rbf", **best_params)
+    start_final = time.time()
+    final_model.fit(X_train_all, y_train_all)
+    train_time = (time.time() - start_final) / 60.0
 
     start_pred = time.time()
-    y_pred_scaled = model.predict(X_te_flat)
+    y_pred_scaled = final_model.predict(X_te_flat)
     test_time = time.time() - start_pred
 
     # Inverse transform to original scale
@@ -98,7 +130,7 @@ def main() -> bool:
         metrics=metrics,
         y_true=y_true,
         y_pred=y_pred,
-        train_time_min=train_time,
+        train_time_min=tune_time + train_time,
         test_time_s=test_time,
         seq_length=seq_len,
     )
