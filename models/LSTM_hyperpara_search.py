@@ -51,7 +51,7 @@ class ProgressPrinter(Callback):
                 msg += f" loss {logs['loss']:.4f}"
             if "val_loss" in logs:
                 msg += f" val_loss {logs['val_loss']:.4f}"
-            print(msg)
+            print(msg, flush=True)
 
 def _hyperparameters_from_vector(x: np.ndarray) -> Dict[str, Any]:
     return {
@@ -87,7 +87,8 @@ class LSTMHyperparameterOptimization(Problem):
     def _evaluate(self, x):
         params = _hyperparameters_from_vector(x)
         print(
-            f"Params: units={params['units']} layers={params['num_layers']} seq={params['seq']} lr={params['learning_rate']:.5f}"
+            f"Params: units={params['units']} layers={params['num_layers']} seq={params['seq']} lr={params['learning_rate']:.5f}",
+            flush=True,
         )
         data = _prepare_data(self.config["option"], self.datatype_opt, params["seq"])
         X_train, y_train, X_val, y_val, X_test, y_test, _, _, scaler = data
@@ -262,9 +263,28 @@ def main():
     cfg = LSTM_SEARCH_CONFIG
     option = cfg["option"]
 
+    # High-level run banner
+    try:
+        print(
+            "BEGIN LSTM hyperparameter search | "
+            f"datatypes={cfg['datatype_options']} | algorithms={cfg['algorithms']} | "
+            f"population={cfg['population_size']} | iterations={cfg['iterations']} | "
+            f"epochs={cfg['num_epochs']} | batch_size=2**{cfg['batch_size_power']} | "
+            f"patience={cfg['patience']}",
+            flush=True,
+        )
+    except Exception:
+        pass
+
     for datatype_opt in cfg["datatype_options"]:
         for alg_name in cfg["algorithms"]:
             algorithm = _select_algorithm(alg_name, cfg["population_size"])
+
+            # Start-of-run banner for each algorithm/datatype
+            print(
+                f"Starting search run: datatype={datatype_opt}, algorithm={alg_name}",
+                flush=True,
+            )
 
             base_save_path = Path(get_SAMFOR_data(0, datatype_opt, 0, 1))
 
@@ -279,6 +299,10 @@ def main():
                 _save_artifacts(task, best_params, base_save_path, alg_name[0], cfg)
 
             best_payload = loadDatasetObj(base_save_path / f"Best_param{alg_name[0]}.obj")
+            print(
+                f"BEGIN training with best params for alg={alg_name[0]}, datatype={datatype_opt}",
+                flush=True,
+            )
             _train_with_best_params(cfg, datatype_opt, best_payload["best_params"], alg_name[0])
 
 
