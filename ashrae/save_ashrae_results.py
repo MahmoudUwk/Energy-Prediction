@@ -182,7 +182,7 @@ class ASHRAEResultsSaver:
 
 def get_ashrae_results_saver(model_name: str, algorithm: str = None) -> ASHRAEResultsSaver:
     """Factory function to get ASHRAE results saver."""
-    from ashrae_config import ASHRAE_RESULTS_ROOT
+    from .ashrae_config import ASHRAE_RESULTS_ROOT
     return ASHRAEResultsSaver(ASHRAE_RESULTS_ROOT, model_name, algorithm)
 
 

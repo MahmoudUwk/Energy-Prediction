@@ -29,9 +29,9 @@ def main():
     import models.LSTM_hyperpara_search as hp
 
     # Import ASHRAE results saver for progress logging
-    from .save_ashrae_results import save_ashrae_lstm_results
+    from ashrae.save_ashrae_results import save_ashrae_lstm_results
 
-    progress_path = (Path("results") / "ashrae" / "search_progress.csv").resolve()
+    progress_path = root / "results" / "ashrae" / "search_progress.csv"
     progress_path.parent.mkdir(parents=True, exist_ok=True)
 
     # Create CSV header if it doesn't exist
@@ -117,16 +117,8 @@ def main():
 
     hp._train_with_best_params = _train_with_best_params_wrapped
 
-    # Add project root to path for imports when running as script
-    if __name__ == "__main__":
-        import sys
-        from pathlib import Path
-        root = Path(__file__).resolve().parent.parent
-        if str(root) not in sys.path:
-            sys.path.insert(0, str(root))
-
     # Import ASHRAE preprocessing and config after path setup
-    from preprocessing_ashrae_disjoint import preprocess_ashrae_disjoint_splits, get_ashrae_lstm_data_disjoint
+    from ashrae.preprocessing_ashrae_disjoint import preprocess_ashrae_disjoint_splits, get_ashrae_lstm_data_disjoint
     from config import LSTM_SEARCH_CONFIG
 
     print("[CALLER] Loading ASHRAE dataset...", flush=True)

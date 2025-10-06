@@ -27,16 +27,20 @@ from tools.preprocess_data2 import (
     prepare_lstm_targets,
     subset_lstm_features,
     loadDatasetObj,
+    save_object,
 )
 
 # Import ASHRAE results saver for consistent saving
-import sys
-from pathlib import Path
-ashrae_path = Path(__file__).parent.parent / "ashrae"
-if str(ashrae_path) not in sys.path:
-    sys.path.insert(0, str(ashrae_path))
-
-from save_ashrae_results import save_ashrae_lstm_results
+try:
+    from ashrae.save_ashrae_results import save_ashrae_lstm_results
+except ImportError:
+    # Fallback if running as script
+    import sys
+    from pathlib import Path
+    ashrae_path = Path(__file__).parent.parent / "ashrae"
+    if str(ashrae_path) not in sys.path:
+        sys.path.insert(0, str(ashrae_path))
+    from save_ashrae_results import save_ashrae_lstm_results
 
 # Remove ASHRAE-specific imports - dataset loading should be handled by callers
 
@@ -101,27 +105,124 @@ def run_lstm_search(X_train, y_train, X_val, y_val, X_test, y_test, scaler, seq_
     """
     cfg = LSTM_SEARCH_CONFIG
     
-    print(f"Running LSTM search on data shapes:")
-    print(f"  X_train: {X_train.shape}, y_train: {y_train.shape}")
-    print(f"  X_val: {X_val.shape}, y_val: {y_val.shape}")
-    print(f"  X_test: {X_test.shape}, y_test: {y_test.shape}")
+    print(f"Running LSTM search on data shapes:", flush=True)
+    print(f"  X_train: {X_train.shape}, y_train: {y_train.shape}", flush=True)
+    print(f"  X_val: {X_val.shape}, y_val: {y_val.shape}", flush=True)
+    print(f"  X_test: {X_test.shape}, y_test: {y_test.shape}", flush=True)
     
     # Ensure targets are reshaped for Keras compatibility
     y_train = y_train.reshape(-1, 1)
     y_val = y_val.reshape(-1, 1)
     y_test = y_test.reshape(-1, 1)
     
-    # Run the search
-    best_params, best_score, search_results = _run_search(
-        X_train, y_train, X_val, y_val, X_test, y_test, scaler, seq_length, cfg
-    )
+    # Run the search for each algorithm
+    all_results = []
+    best_overall_score = float('inf')
+    best_overall_params = None
+    
+    for algorithm_name in cfg["algorithms"]:
+        print(f"\n{'='*80}", flush=True)
+        print(f"Running {algorithm_name} optimization...", flush=True)
+        print(f"{'='*80}", flush=True)
+        
+        # Create optimizer-specific problem wrapper
+        problem = _create_lstm_problem(X_train, y_train, X_val, y_val, X_test, y_test, cfg)
+        
+        # Select and run algorithm
+        algorithm = _select_algorithm(algorithm_name, cfg["population_size"])
+        task = Task(problem, max_iters=cfg["iterations"], optimization_type=OptimizationType.MINIMIZATION)
+        
+        best_solution, best_fitness = algorithm.run(task)
+        best_params = _hyperparameters_from_vector(best_solution)
+        
+        print(f"\n{algorithm_name} optimization complete!", flush=True)
+        print(f"  Best params: {best_params}", flush=True)
+        print(f"  Best fitness: {best_fitness:.6f}", flush=True)
+        
+        all_results.append({
+            "algorithm": algorithm_name,
+            "best_params": best_params,
+            "best_fitness": best_fitness,
+            "convergence": task.convergence_data()
+        })
+        
+        if best_fitness < best_overall_score:
+            best_overall_score = best_fitness
+            best_overall_params = best_params
     
     return {
-        "best_params": best_params,
-        "best_score": best_score,
-        "search_results": search_results,
+        "best_params": best_overall_params,
+        "best_score": best_overall_score,
+        "search_results": all_results,
         "scaler": scaler
     }
+
+
+def _create_lstm_problem(X_train, y_train, X_val, y_val, X_test, y_test, config):
+    """Create LSTM optimization problem with pre-loaded data."""
+    
+    class LSTMProblemWithData(Problem):
+        def __init__(self):
+            super().__init__(dimension=4, lower=0, upper=1)
+            self.X_train = X_train
+            self.y_train = y_train
+            self.X_val = X_val
+            self.y_val = y_val
+            self.X_test = X_test
+            self.y_test = y_test
+            self.config = config
+        
+        def _evaluate(self, x):
+            params = _hyperparameters_from_vector(x)
+            print(
+                f"  Evaluating: units={params['units']} layers={params['num_layers']} "
+                f"seq={params['seq']} lr={params['learning_rate']:.5f}",
+                flush=True,
+            )
+            
+            # Note: seq parameter is ignored here since data is pre-windowed
+            # In future, could re-window data dynamically if needed
+            
+            input_dim = (self.X_train.shape[1], self.X_train.shape[2])
+            output_dim = 1
+            
+            model = _build_model(
+                input_dim,
+                output_dim,
+                params["units"],
+                params["num_layers"],
+                params["learning_rate"],
+            )
+            
+            callbacks = [
+                EarlyStopping(
+                    monitor="val_loss",
+                    patience=self.config["patience"],
+                    restore_best_weights=True,
+                ),
+                ProgressPrinter(
+                    step=50,
+                    prefix=f"    [u={params['units']} l={params['num_layers']}]",
+                    total_epochs=self.config["num_epochs"],
+                ),
+            ]
+            
+            model.fit(
+                self.X_train,
+                self.y_train,
+                epochs=self.config["num_epochs"],
+                batch_size=2 ** self.config["batch_size_power"],
+                verbose=0,
+                shuffle=True,
+                validation_data=(self.X_val, self.y_val),
+                callbacks=callbacks,
+            )
+            
+            test_loss = model.evaluate(self.X_test, self.y_test, verbose=0)
+            print(f"    → Test loss: {test_loss:.6f}", flush=True)
+            return test_loss
+    
+    return LSTMProblemWithData()
 
 
 def _prepare_data(option, datatype_opt, seq):

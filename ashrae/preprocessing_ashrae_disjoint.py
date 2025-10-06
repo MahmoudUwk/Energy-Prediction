@@ -212,7 +212,13 @@ def preprocess_ashrae_disjoint_splits(
     print("ASHRAE PREPROCESSING WITH DISJOINT BUILDING SPLITS")
     print("=" * 80)
     
-    data_path = Path(__file__).parent.parent / "dataset/ASHRAE/ashrae-energy-prediction"
+    # Import here to avoid circular dependency
+    try:
+        from .ashrae_config import ASHRAE_DATA_ROOT
+    except ImportError:
+        from ashrae_config import ASHRAE_DATA_ROOT
+    
+    data_path = ASHRAE_DATA_ROOT
     
     # Load and filter data
     train_data, _, building_metadata, weather_train, _ = load_and_filter_ashrae_data(
