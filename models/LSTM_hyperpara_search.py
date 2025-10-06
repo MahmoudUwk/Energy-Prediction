@@ -51,16 +51,20 @@ class ProgressPrinter(Callback):
             print(msg, flush=True)
 
 def _hyperparameters_from_vector(x: np.ndarray) -> Dict[str, Any]:
-    # Narrowed search space around proven-good configuration
-    # units ~ [56, 96], layers fixed to 1, seq in [20, 26], lr in [0.005, 0.02]
-    units = int(56 + x[0] * 40)
-    num_layers = 1
-    seq = int(20 + x[2] * 6)
-    learning_rate = 0.005 + x[3] * 0.015
+    # User-requested search space:
+    # units in [32, 512], num_layers in [1, 4], seq in [3, 32], lr in [0.005, 0.02]
+    units = int(32 + x[0] * (512 - 32))  # 32..512
+    num_layers = int(1 + x[1] * (4 - 1))  # 1..4
+    seq = int(3 + x[2] * (32 - 3))  # 3..32
+    learning_rate = 0.005 + x[3] * 0.015  # 0.005..0.02
+    # Clamp to ensure bounds
+    units = max(32, min(units, 512))
+    num_layers = max(1, min(num_layers, 4))
+    seq = max(3, min(seq, 32))
     return {
-        "units": max(8, units),
+        "units": units,
         "num_layers": num_layers,
-        "seq": max(1, seq),
+        "seq": seq,
         "learning_rate": learning_rate,
     }
 

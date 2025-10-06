@@ -98,7 +98,7 @@ LSTM_SEARCH_CONFIG = {
     "iterations": 12,
     "algorithms": ("Mod_FireflyAlgorithm", "FireflyAlgorithm"),
     "plot_convergence": True,
-    "batch_size_power": 5,  # 2^5 = 32
+    "batch_size_power": 9,  # 2^9 = 512
     "patience": 20,
     "persist_models": True,
 }
