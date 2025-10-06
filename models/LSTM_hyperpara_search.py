@@ -86,34 +86,31 @@ def _build_model(input_dim, output_dim, units, num_layers, learning_rate):
     return model
 
 
-def run_lstm_search(X_train, y_train, X_val, y_val, X_test, y_test, scaler, seq_length):
+def run_lstm_search(X_train_raw, y_train_raw, X_val_raw, y_val_raw, X_test_raw, y_test_raw, scaler, windowing_func):
     """
-    Run LSTM hyperparameter search with pre-loaded data.
+    Run LSTM hyperparameter search with RAW data (not windowed).
+    Data is windowed dynamically per iteration based on sequence length parameter.
     
     Args:
-        X_train: Training features (3D array: samples, timesteps, features)
-        y_train: Training targets (2D array: samples, 1)
-        X_val: Validation features (3D array)
-        y_val: Validation targets (2D array)
-        X_test: Test features (3D array)
-        y_test: Test targets (2D array)
+        X_train_raw: Training features (2D array: samples, features) - NOT windowed
+        y_train_raw: Training targets (1D array) - NOT windowed
+        X_val_raw: Validation features (2D array) - NOT windowed
+        y_val_raw: Validation targets (1D array) - NOT windowed
+        X_test_raw: Test features (2D array) - NOT windowed
+        y_test_raw: Test targets (1D array) - NOT windowed
         scaler: Scaler object for inverse transformation
-        seq_length: Sequence length
+        windowing_func: Function to apply sliding window (e.g., get_ashrae_lstm_data_disjoint)
         
     Returns:
         dict: Search results including best parameters and metrics
     """
     cfg = LSTM_SEARCH_CONFIG
     
-    print(f"Running LSTM search on data shapes:", flush=True)
-    print(f"  X_train: {X_train.shape}, y_train: {y_train.shape}", flush=True)
-    print(f"  X_val: {X_val.shape}, y_val: {y_val.shape}", flush=True)
-    print(f"  X_test: {X_test.shape}, y_test: {y_test.shape}", flush=True)
-    
-    # Ensure targets are reshaped for Keras compatibility
-    y_train = y_train.reshape(-1, 1)
-    y_val = y_val.reshape(-1, 1)
-    y_test = y_test.reshape(-1, 1)
+    print(f"Running LSTM search on RAW data shapes:", flush=True)
+    print(f"  X_train_raw: {X_train_raw.shape}, y_train_raw: {y_train_raw.shape}", flush=True)
+    print(f"  X_val_raw: {X_val_raw.shape}, y_val_raw: {y_val_raw.shape}", flush=True)
+    print(f"  X_test_raw: {X_test_raw.shape}, y_test_raw: {y_test_raw.shape}", flush=True)
+    print(f"  (Windowing will occur per-iteration based on seq parameter)", flush=True)
     
     # Run the search for each algorithm
     all_results = []
@@ -125,8 +122,11 @@ def run_lstm_search(X_train, y_train, X_val, y_val, X_test, y_test, scaler, seq_
         print(f"Running {algorithm_name} optimization...", flush=True)
         print(f"{'='*80}", flush=True)
         
-        # Create optimizer-specific problem wrapper
-        problem = _create_lstm_problem(X_train, y_train, X_val, y_val, X_test, y_test, cfg)
+        # Create optimizer-specific problem wrapper with RAW data and windowing function
+        problem = _create_lstm_problem(
+            X_train_raw, y_train_raw, X_val_raw, y_val_raw, X_test_raw, y_test_raw, 
+            windowing_func, cfg
+        )
         
         # Select and run algorithm
         algorithm = _select_algorithm(algorithm_name, cfg["population_size"])
@@ -158,32 +158,51 @@ def run_lstm_search(X_train, y_train, X_val, y_val, X_test, y_test, scaler, seq_
     }
 
 
-def _create_lstm_problem(X_train, y_train, X_val, y_val, X_test, y_test, config):
-    """Create LSTM optimization problem with pre-loaded data."""
+def _create_lstm_problem(X_train_raw, y_train_raw, X_val_raw, y_val_raw, X_test_raw, y_test_raw, windowing_func, config):
+    """Create LSTM optimization problem with RAW data and dynamic windowing."""
     
     class LSTMProblemWithData(Problem):
         def __init__(self):
             super().__init__(dimension=4, lower=0, upper=1)
-            self.X_train = X_train
-            self.y_train = y_train
-            self.X_val = X_val
-            self.y_val = y_val
-            self.X_test = X_test
-            self.y_test = y_test
+            self.X_train_raw = X_train_raw
+            self.y_train_raw = y_train_raw
+            self.X_val_raw = X_val_raw
+            self.y_val_raw = y_val_raw
+            self.X_test_raw = X_test_raw
+            self.y_test_raw = y_test_raw
+            self.windowing_func = windowing_func
             self.config = config
         
         def _evaluate(self, x):
             params = _hyperparameters_from_vector(x)
+            seq_len = params['seq']
+            
             print(
                 f"  Evaluating: units={params['units']} layers={params['num_layers']} "
-                f"seq={params['seq']} lr={params['learning_rate']:.5f}",
+                f"seq={seq_len} lr={params['learning_rate']:.5f}",
                 flush=True,
             )
             
-            # Note: seq parameter is ignored here since data is pre-windowed
-            # In future, could re-window data dynamically if needed
+            # Apply sliding window with current seq parameter
+            try:
+                X_train, y_train, X_val, y_val, X_test, y_test = self.windowing_func(
+                    self.X_train_raw, self.y_train_raw,
+                    self.X_val_raw, self.y_val_raw,
+                    self.X_test_raw, self.y_test_raw,
+                    seq_length=seq_len
+                )
+            except Exception as e:
+                print(f"    ✗ Windowing failed for seq={seq_len}: {e}", flush=True)
+                return 1e6  # Return large loss on failure
             
-            input_dim = (self.X_train.shape[1], self.X_train.shape[2])
+            # Reshape targets for Keras
+            y_train = y_train.reshape(-1, 1)
+            y_val = y_val.reshape(-1, 1)
+            y_test = y_test.reshape(-1, 1)
+            
+            print(f"    Windowed shapes: X_train={X_train.shape}, X_val={X_val.shape}, X_test={X_test.shape}", flush=True)
+            
+            input_dim = (X_train.shape[1], X_train.shape[2])
             output_dim = 1
             
             model = _build_model(
@@ -202,23 +221,23 @@ def _create_lstm_problem(X_train, y_train, X_val, y_val, X_test, y_test, config)
                 ),
                 ProgressPrinter(
                     step=50,
-                    prefix=f"    [u={params['units']} l={params['num_layers']}]",
+                    prefix=f"    [u={params['units']} l={params['num_layers']} s={seq_len}]",
                     total_epochs=self.config["num_epochs"],
                 ),
             ]
             
             model.fit(
-                self.X_train,
-                self.y_train,
+                X_train,
+                y_train,
                 epochs=self.config["num_epochs"],
                 batch_size=2 ** self.config["batch_size_power"],
                 verbose=0,
                 shuffle=True,
-                validation_data=(self.X_val, self.y_val),
+                validation_data=(X_val, y_val),
                 callbacks=callbacks,
             )
             
-            test_loss = model.evaluate(self.X_test, self.y_test, verbose=0)
+            test_loss = model.evaluate(X_test, y_test, verbose=0)
             print(f"    → Test loss: {test_loss:.6f}", flush=True)
             return test_loss
     

@@ -119,10 +119,11 @@ def main():
 
     # Import ASHRAE preprocessing and config after path setup
     from ashrae.preprocessing_ashrae_disjoint import preprocess_ashrae_disjoint_splits, get_ashrae_lstm_data_disjoint
+    from ashrae.ashrae_config import ASHRAE_TRAINING_CONFIG
     from config import LSTM_SEARCH_CONFIG
 
     print("[CALLER] Loading ASHRAE dataset...", flush=True)
-    # Load ASHRAE data
+    # Load ASHRAE data (RAW, not windowed yet - windowing happens per-iteration)
     X_train, y_train, X_val, y_val, X_test, y_test, scaler = preprocess_ashrae_disjoint_splits(
         target_samples=250_000,
         train_fraction=0.4,
@@ -130,28 +131,23 @@ def main():
         test_fraction=0.4,
     )
 
-    # Get LSTM sequences
-    seq_length = LSTM_SEARCH_CONFIG["sequence_lengths"][0]
-    X_tr_lstm, y_tr_lstm, X_va_lstm, y_va_lstm, X_te_lstm, y_te_lstm = get_ashrae_lstm_data_disjoint(
-        X_train, y_train, X_val, y_val, X_test, y_test, seq_length=seq_length
-    )
-
-    print(f"[CALLER] Data shapes for LSTM search:", flush=True)
-    print(f"  X_train: {X_tr_lstm.shape}, y_train: {y_tr_lstm.shape}", flush=True)
-    print(f"  X_val: {X_va_lstm.shape}, y_val: {y_va_lstm.shape}", flush=True)
-    print(f"  X_test: {X_te_lstm.shape}, y_test: {y_te_lstm.shape}", flush=True)
+    print(f"[CALLER] Raw data shapes:", flush=True)
+    print(f"  X_train: {X_train.shape}, y_train: {y_train.shape}", flush=True)
+    print(f"  X_val: {X_val.shape}, y_val: {y_val.shape}", flush=True)
+    print(f"  X_test: {X_test.shape}, y_test: {y_test.shape}", flush=True)
 
     print("[CALLER] Launching LSTM hyperparameter search...", flush=True)
-    # Run LSTM hyperparameter search using the new function
+    print("         (Data will be windowed dynamically based on seq parameter)", flush=True)
+    # Run LSTM hyperparameter search - pass RAW data, windowing function, and scaler
     results = hp.run_lstm_search(
-        X_train=X_tr_lstm,
-        y_train=y_tr_lstm,
-        X_val=X_va_lstm,
-        y_val=y_va_lstm,
-        X_test=X_te_lstm,
-        y_test=y_te_lstm,
+        X_train_raw=X_train,
+        y_train_raw=y_train,
+        X_val_raw=X_val,
+        y_val_raw=y_val,
+        X_test_raw=X_test,
+        y_test_raw=y_test,
         scaler=scaler,
-        seq_length=seq_length
+        windowing_func=get_ashrae_lstm_data_disjoint
     )
 
     print("=" * 80, flush=True)
