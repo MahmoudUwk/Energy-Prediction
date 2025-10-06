@@ -81,8 +81,8 @@ def main():
         'gamma': ['scale', 'auto', 0.01],
     }
 
-    print("\n🔍 Starting hyperparameter tuning with GridSearchCV...")
-    print(f"Parameter grid: {param_grid}")
+    print("\n🔍 Starting hyperparameter tuning with RandomizedSearchCV...")
+    print(f"Parameter distributions: {param_distributions}")
     
     # Create base SVR model
     base_svr = SVR(kernel='rbf')
