@@ -95,11 +95,11 @@ LSTM_SEARCH_CONFIG = {
     "run_search": True,
     "population_size": 5,
     "num_epochs": 2500,
-    "iterations": 10,
+    "iterations": 15,
     "algorithms": ("Mod_FireflyAlgorithm", "FireflyAlgorithm"),
     "plot_convergence": True,
-    "batch_size_power": 12,
-    "patience": 20,
+    "batch_size_power": 10,
+    "patience": 30,
     "persist_models": True,
 }
 
