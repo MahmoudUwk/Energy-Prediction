@@ -187,12 +187,21 @@ def run_lstm_search(
 
         if best_fitness < best_overall_score:
             best_overall_score = best_fitness
+            best_overall_params = best_params
+
     return {
         "best_params": best_overall_params,
         "best_score": best_overall_score,
         "search_results": all_results,
         "scaler": scaler,
     }
+def _create_lstm_problem(
+    X_train_raw,
+    y_train_raw,
+    X_val_raw,
+    y_val_raw,
+    X_test_raw,
+    y_test_raw,
     windowing_func,
     scaler,
     config,
