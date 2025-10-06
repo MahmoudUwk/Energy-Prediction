@@ -109,6 +109,35 @@ conda run -n FF python -m ashrae.call_samfor_ashrae
 conda run -n FF python -m ashrae.call_lstm_search_ashrae
 ```
 
+## 📁 Centralized ASHRAE Results
+
+All ASHRAE models now use a centralized results saving system:
+
+```
+results/ashrae/
+├── svr/
+│   ├── metrics.csv              # Model performance metrics
+│   ├── model_info.json          # Model parameters and metadata
+│   └── artifacts/
+│       └── SVR_ASHRAE.obj       # Unscaled predictions and test data
+├── samfor/
+│   ├── metrics.csv
+│   ├── model_info.json
+│   └── artifacts/
+│       └── SAMFOR.obj
+└── lstm/
+    ├── metrics.csv              # LSTM results (from log_results_LSTM)
+    ├── model_info.json          # Best parameters and metadata
+    ├── training_log.json        # Training history and convergence
+    └── artifacts/
+        └── LSTM_ModFF.obj       # Unscaled predictions and test data
+```
+
+**Standardized Artifacts Include:**
+- Unscaled ground truth (`y_test`) and predictions (`y_test_pred`)
+- Model parameters, timing, and metadata
+- Consistent file naming and structure across all models
+
 ## 📊 Datasets
 
 ### Portuguese Dataset
@@ -124,7 +153,7 @@ conda run -n FF python -m ashrae.call_lstm_search_ashrae
 - **Features**: Building metadata, weather data, temporal features
 - **Preprocessing**: MinMax scaling (fit on train only), one-hot encoding; `building_id` preserved and not scaled for windowing
 - **Sequence Length**: 23 timesteps
-- **Sample Size**: ~250,000 total rows using disjoint building splits (Train≈105k, Val≈53k, Test≈105k)
+- **Sample Size**: ~130,000 total windows using disjoint building splits (Train≈52k, Val≈26k, Test≈52k)
  - **Resampling**: None for ASHRAE 1s/1Hz; dataset already at target granularity
 
 ## 🔧 Key Features

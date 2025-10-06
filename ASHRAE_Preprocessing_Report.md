@@ -61,6 +61,7 @@
 - Method: MinMaxScaler (0.0 to 1.0 range), FIT ON TRAIN ONLY; applied to val/test
 - Columns: numeric features only; `building_id` is excluded from scaling and used for windowing
 - Important: Uses `MINMAX_FEATURE_RANGE` from `config.py`
+- Target normalization: FIT ON TRAIN ONLY; applied to val/test (val/test may exceed [0,1] if outside train range)
 
 ### Target Preparation
 - Target: `meter_reading` (kWh); no log transform (MinMax only)
@@ -68,27 +69,32 @@
 
 ### Sequencing (for LSTM)
 - Sequence length: 23
-- Disjoint building splits: Train=12, Val=6, Test=12 buildings (approx. 105k/53k/105k rows)
+- Disjoint building splits: Configurable via `ashrae_config.py`
+  - `train_buildings`: 6 (configurable)
+  - `val_buildings`: None (auto-allocated)
+  - `test_buildings`: None (auto-allocated)
 - Windows generated per building; no window crosses building boundary
+- Current allocation: ~52k train, ~26k val, ~52k test windows
 
 ### Output Shapes (disjoint-split windows)
-- `X_train_lstm`: (~105132, 23, ~17)
-- `y_train_lstm`: (~105132,)
-- `X_val_lstm`: (~52566, 23, ~17)
-- `y_val_lstm`: (~52566,)
-- `X_test_lstm`: (~105132, 23, ~17)
-- `y_test_lstm`: (~105132,)
+- `X_train_lstm`: (~52k, 23, ~17) - 6 train buildings × ~8.7k samples each
+- `y_train_lstm`: (~52k,)
+- `X_val_lstm`: (~26k, 23, ~17) - 3 val buildings × ~8.7k samples each
+- `y_val_lstm`: (~26k,)
+- `X_test_lstm`: (~52k, 23, ~17) - 6 test buildings × ~8.7k samples each
+- `y_test_lstm`: (~52k,)
 
 ### Consistency vs Original Dataset
-- Original: MinMax scaling (0.0-1.0); sequential windows
-- ASHRAE: MinMax scaling (0.0-1.0) with train-only fitting; disjoint building splits; per-building windows
+- Original (Portuguese): MinMax scaling (0.0-1.0); sequential windows; single building
+- ASHRAE: MinMax scaling (0.0-1.0) with train-only fitting; disjoint building splits; per-building windows; multi-building
 - ✅ Both datasets use consistent scaling methodology with proper train-only fitting
+- ✅ ASHRAE uses disjoint building evaluation for better generalization testing
 
 ### Implementation Notes
-- Code: `ashrae/preprocessing_ashrae.py` (moved from tools/ for organization)
-- Test script: `ashrae/test_ashrae_preprocessing.py`
-- Training scripts: `ashrae/train_ashrae_lstm_comb.py`, `ashrae/train_ashrae_lstm.py`
-- Preprocessing preserves original project code for Portuguese dataset
-- All import paths updated to reflect new ashrae/ folder structure
+- Core preprocessing: `ashrae/preprocessing_ashrae_disjoint.py`
+- Caller scripts: `ashrae/call_svr_ashrae.py`, `ashrae/call_samfor_ashrae.py`, `ashrae/call_lstm_search_ashrae.py`
+- Configuration: `ashrae/ashrae_config.py` with configurable building counts
+- Disjoint building evaluation for better generalization testing
+- All scripts use relative imports and unified preprocessing pipeline
 
 

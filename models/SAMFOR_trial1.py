@@ -8,6 +8,16 @@ from sklearn.svm import SVR
 
 from config import SAMFOR_SAMFOR_PARAMS
 from sklearn.svm import LinearSVR
+
+# Import ASHRAE results saver for consistent saving
+import sys
+from pathlib import Path
+ashrae_path = Path(__file__).parent.parent / "ashrae"
+if str(ashrae_path) not in sys.path:
+    sys.path.insert(0, str(ashrae_path))
+
+from save_ashrae_results import save_ashrae_samfor_results
+
 from tools.preprocess_data2 import (
     MAE,
     MAPE,
@@ -18,7 +28,6 @@ from tools.preprocess_data2 import (
     log_results,
     persist_model_results,
     plot_test,
-    save_object,
     time_call,
 )
 
@@ -94,18 +103,16 @@ def main():
         params.get("persist_models", []),
     )
 
-    # Save unscaled predictions and ground truth for downstream plotting
-    save_object(
-        {
-            "y_test": np.asarray(y_true).flatten(),
-            "y_test_pred": np.asarray(y_pred).flatten(),
-            "seq_length": seq_length,
-            "algorithm": alg_name,
-            "datatype": params["datatype"],
-            "train_time_min": train_time,
-            "test_time_s": test_time,
-        },
-        save_path / f"{alg_name}.obj",
+    # Save results using centralized ASHRAE saver
+    saved_files = save_ashrae_samfor_results(
+        metrics={"RMSE": rmse, "MAE": mae, "MAPE": mape},
+        y_true=y_true,
+        y_pred=y_pred,
+        train_time_min=train_time,
+        test_time_s=test_time,
+        algorithm=alg_name,
+        seq_length=seq_length,
+        datatype=params["datatype"],
     )
 
 

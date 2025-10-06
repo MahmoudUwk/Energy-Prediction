@@ -11,11 +11,22 @@ import pandas as pd
 from pathlib import Path
 from typing import Tuple, Optional, Dict, List
 
-from .ashrae_config import (
-    ASHRAE_TRAINING_CONFIG,
-    ASHRAE_FEATURE_CONFIG,
-    ASHRAE_DATA_SPLITS,
-)
+try:
+    # Try relative import first (when called as module)
+    from .ashrae_config import (
+        ASHRAE_TRAINING_CONFIG,
+        ASHRAE_FEATURE_CONFIG,
+        ASHRAE_DATA_SPLITS,
+        ASHRAEDatasetAnalysis,
+    )
+except ImportError:
+    # Fall back to absolute import (when called directly)
+    from ashrae_config import (
+        ASHRAE_TRAINING_CONFIG,
+        ASHRAE_FEATURE_CONFIG,
+        ASHRAE_DATA_SPLITS,
+        ASHRAEDatasetAnalysis,
+    )
 
 from tools.preprocess_data2 import sliding_windows2d_lstm
 
@@ -60,11 +71,15 @@ def select_buildings_for_disjoint_splits(
     val_samples = 0
     test_samples = 0
     
-    # Allocate buildings to splits
-    # Optional limits from config
-    train_limit = ASHRAE_TRAINING_CONFIG.get("train_building_limit")
-    val_limit = ASHRAE_TRAINING_CONFIG.get("val_building_limit")
-    test_limit = ASHRAE_TRAINING_CONFIG.get("test_building_limit")
+    # Get building counts from config
+    train_buildings_count = ASHRAE_TRAINING_CONFIG.get("train_buildings")
+    val_buildings_count = ASHRAE_TRAINING_CONFIG.get("val_buildings")
+    test_buildings_count = ASHRAE_TRAINING_CONFIG.get("test_buildings")
+
+    # Fallback to limits if specific counts not provided
+    train_limit = train_buildings_count if train_buildings_count is not None else ASHRAE_TRAINING_CONFIG.get("train_building_limit")
+    val_limit = val_buildings_count if val_buildings_count is not None else ASHRAE_TRAINING_CONFIG.get("val_building_limit")
+    test_limit = test_buildings_count if test_buildings_count is not None else ASHRAE_TRAINING_CONFIG.get("test_building_limit")
 
     for _, row in building_counts.iterrows():
         building_id = row['building_id']

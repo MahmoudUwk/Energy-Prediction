@@ -23,14 +23,28 @@ from tools.preprocess_data2 import (
     RMSE,
     ensure_three_dim,
     expand_dims,
-    get_SAMFOR_data,
-    inverse_transf,
     log_results_LSTM,
     prepare_lstm_targets,
-    save_object,
     subset_lstm_features,
     loadDatasetObj,
 )
+
+# Import ASHRAE results saver for consistent saving
+import sys
+from pathlib import Path
+ashrae_path = Path(__file__).parent.parent / "ashrae"
+if str(ashrae_path) not in sys.path:
+    sys.path.insert(0, str(ashrae_path))
+
+from save_ashrae_results import save_ashrae_lstm_results
+
+# Import ASHRAE-specific functions for disjoint preprocessing
+from preprocessing_ashrae_disjoint import (
+    preprocess_ashrae_disjoint_splits,
+    get_ashrae_lstm_data_disjoint,
+)
+from ashrae_config import ASHRAE_TRAINING_CONFIG
+ASHRAE_MODE = True
 
 # from niapy.algorithms.basic import BeesAlgorithm
 
@@ -75,7 +89,27 @@ def _build_model(input_dim, output_dim, units, num_layers, learning_rate):
 
 
 def _prepare_data(option, datatype_opt, seq):
-    return get_SAMFOR_data(option, datatype_opt, seq)
+    if ASHRAE_MODE and datatype_opt == "1s":
+        # Use ASHRAE disjoint preprocessing for 1s dataset
+        X_train, y_train, X_val, y_val, X_test, y_test, scaler = preprocess_ashrae_disjoint_splits(
+            target_samples=ASHRAE_TRAINING_CONFIG["max_samples"],
+            train_fraction=ASHRAE_TRAINING_CONFIG["train_fraction"],
+            val_fraction=ASHRAE_TRAINING_CONFIG["val_fraction"],
+            test_fraction=ASHRAE_TRAINING_CONFIG["test_fraction"],
+        )
+
+        # Get LSTM sequences with per-building windowing
+        X_train, y_train, X_val, y_val, X_test, y_test = get_ashrae_lstm_data_disjoint(
+            X_train, y_train, X_val, y_val, X_test, y_test, seq_length=seq
+        )
+
+        # Return in expected format (save_path, test_time_axis, scaler)
+        save_path = f"results/ashrae"
+        test_time_axis = None  # Not used in ASHRAE
+        return X_train, y_train, X_val, y_val, X_test, y_test, save_path, test_time_axis, scaler
+    else:
+        # ASHRAE preprocessing is required for 1s dataset
+        raise ValueError(f"ASHRAE preprocessing required for datatype '{datatype_opt}' but ASHRAE_MODE is {ASHRAE_MODE}")
 
 
 class LSTMHyperparameterOptimization(Problem):
@@ -97,6 +131,12 @@ class LSTMHyperparameterOptimization(Problem):
         output_dim = 1
         y_train = prepare_lstm_targets(y_train)
         y_test = prepare_lstm_targets(y_test)
+        y_val = prepare_lstm_targets(y_val)
+
+        # Ensure targets are shape (n, 1)
+        y_train = np.reshape(y_train, (-1, 1))
+        y_val = np.reshape(y_val, (-1, 1))
+        y_test = np.reshape(y_test, (-1, 1))
 
         model = _build_model(
             input_dim,
@@ -124,7 +164,7 @@ class LSTMHyperparameterOptimization(Problem):
             y_train,
             epochs=self.config["num_epochs"],
             batch_size=2 ** self.config["batch_size_power"],
-            verbose=0,
+            verbose=1,
             shuffle=True,
             validation_data=(X_val, y_val),
             callbacks=callbacks,
@@ -173,6 +213,10 @@ def _train_with_best_params(config, datatype_opt, best_params, algorithm_name):
         scaler,
     ) = _prepare_data(config["option"], datatype_opt, best_params["seq"])
 
+    # For ASHRAE, y_train etc. are already scaled [0,1], no need for inverse_transf during training
+    # But we need to inverse transform for metrics calculation
+    pass
+
     y_train = prepare_lstm_targets(y_train)
     input_dim = (X_train.shape[1], X_train.shape[2])
     output_dim = y_train.shape[-1]
@@ -206,7 +250,7 @@ def _train_with_best_params(config, datatype_opt, best_params, algorithm_name):
         y_train,
         epochs=config["num_epochs"],
         batch_size=2 ** (config["batch_size_power"] - 1),
-        verbose=0,
+        verbose=1,
         shuffle=True,
         validation_data=(X_val, y_val),
         callbacks=callbacks,
@@ -218,8 +262,10 @@ def _train_with_best_params(config, datatype_opt, best_params, algorithm_name):
 
     best_epoch = int(np.argmin(history.history["val_loss"]))
 
-    y_test = inverse_transf(y_test, scaler)
-    y_pred = inverse_transf(model.predict(X_test), scaler)
+    # For ASHRAE, use the target_scaler from preprocessing to inverse transform
+    y_test_orig = scaler.inverse_transform(y_test.reshape(-1, 1)).flatten()
+    y_pred_orig = scaler.inverse_transform(model.predict(X_test).reshape(-1, 1)).flatten()
+    y_test, y_pred = y_test_orig, y_pred_orig
 
     rmse = RMSE(y_test, y_pred)
     mae = MAE(y_test, y_pred)
@@ -241,19 +287,17 @@ def _train_with_best_params(config, datatype_opt, best_params, algorithm_name):
     ]
 
     log_results_LSTM(row, datatype_opt, str(save_path))
-    # Save unscaled arrays for plotting/scatter and reproducibility
-    save_object(
-        {
-            "y_test": np.asarray(y_test).flatten(),
-            "y_test_pred": np.asarray(y_pred).flatten(),
-            "best_params": best_params,
-            "best_epoch": best_epoch,
-            "algorithm": algorithm_name,
-            "datatype": datatype_opt,
-            "train_time_min": 0,
-            "test_time_s": 0,
-        },
-        save_path / f"{algorithm_name}.obj",
+    # Save results using centralized ASHRAE saver
+    saved_files = save_ashrae_lstm_results(
+        metrics={"RMSE": rmse, "MAE": mae, "MAPE": mape},
+        y_true=y_test,
+        y_pred=y_pred,
+        best_params=best_params,
+        best_epoch=best_epoch,
+        algorithm=algorithm_name,
+        datatype=datatype_opt,
+        train_time_min=0,
+        test_time_s=0,
     )
 
     print(f"{algorithm_name} -> RMSE: {rmse:.4f}, MAE: {mae:.4f}, MAPE: {mape:.2f}%")
@@ -286,7 +330,11 @@ def main():
                 flush=True,
             )
 
-            base_save_path = Path(get_SAMFOR_data(0, datatype_opt, 0, 1))
+            if ASHRAE_MODE and datatype_opt == "1s":
+                base_save_path = Path("results/ashrae")
+            else:
+                # ASHRAE preprocessing is required for 1s dataset
+                raise ValueError(f"ASHRAE preprocessing required for datatype '{datatype_opt}' but ASHRAE_MODE is {ASHRAE_MODE}")
 
             if cfg["run_search"]:
                 problem = LSTMHyperparameterOptimization(cfg, datatype_opt)

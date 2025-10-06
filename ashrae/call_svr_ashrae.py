@@ -14,7 +14,8 @@ from .preprocessing_ashrae_disjoint import (
     get_ashrae_lstm_data_disjoint,
 )
 from .ashrae_config import ASHRAE_TRAINING_CONFIG, ASHRAE_RESULTS_ROOT
-from tools.preprocess_data2 import RMSLE, save_object
+from .save_ashrae_results import save_ashrae_svr_results
+from tools.preprocess_data2 import RMSLE
 
 
 def calc_metrics(y_true: np.ndarray, y_pred: np.ndarray) -> Dict[str, float]:
@@ -85,25 +86,19 @@ def main() -> bool:
     print(f"  Train time (min): {train_time:.2f}")
     print(f"  Test time (s):   {test_time:.2f}")
 
-    # Save outputs
-    results_dir = ASHRAE_RESULTS_ROOT / "svr"
-    results_dir.mkdir(parents=True, exist_ok=True)
-
-    pd.DataFrame([metrics]).to_csv(results_dir / "metrics.csv", index=False)
-
-    save_object(
-        {
-            "y_test": y_true,
-            "y_test_pred": y_pred,
-            "seq_length": seq_len,
-            "algorithm": "SVR_ASHRAE",
-            "train_time_min": train_time,
-            "test_time_s": test_time,
-        },
-        results_dir / "SVR_ASHRAE.obj",
+    # Save outputs using centralized saver
+    saved_files = save_ashrae_svr_results(
+        metrics=metrics,
+        y_true=y_true,
+        y_pred=y_pred,
+        train_time_min=train_time,
+        test_time_s=test_time,
+        seq_length=seq_len,
     )
 
-    print(f"\nSaved metrics and predictions to: {results_dir}")
+    print(f"\nSaved results to: {saved_files['metrics'].parent}")
+    for save_type, path in saved_files.items():
+        print(f"  {save_type}: {path.name}")
     return True
 
 
