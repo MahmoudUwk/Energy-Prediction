@@ -61,18 +61,23 @@ def select_buildings_for_disjoint_splits(
     test_samples = 0
     
     # Allocate buildings to splits
+    # Optional limits from config
+    train_limit = ASHRAE_TRAINING_CONFIG.get("train_building_limit")
+    val_limit = ASHRAE_TRAINING_CONFIG.get("val_building_limit")
+    test_limit = ASHRAE_TRAINING_CONFIG.get("test_building_limit")
+
     for _, row in building_counts.iterrows():
         building_id = row['building_id']
         count = row['sample_count']
         
         # Allocate to the split that needs more samples
-        if train_samples < target_train_samples:
+        if train_samples < target_train_samples and (train_limit is None or len(train_buildings) < train_limit):
             train_buildings.append(building_id)
             train_samples += count
-        elif val_samples < target_val_samples:
+        elif val_samples < target_val_samples and (val_limit is None or len(val_buildings) < val_limit):
             val_buildings.append(building_id)
             val_samples += count
-        elif test_samples < target_test_samples:
+        elif test_samples < target_test_samples and (test_limit is None or len(test_buildings) < test_limit):
             test_buildings.append(building_id)
             test_samples += count
         else:

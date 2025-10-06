@@ -162,6 +162,10 @@ ASHRAE_TRAINING_CONFIG = {
     "max_buildings": 100,           # Limit number of buildings to use
     "building_selection_strategy": "diverse",  # "diverse", "random", "largest"
     "ensure_diversity": True,         # Ensure different building types
+    # Building limits per split (optional overrides)
+    "train_building_limit": 3,        # Limit number of buildings in TRAIN split
+    "val_building_limit": None,       # Use automatic allocation if None
+    "test_building_limit": None,      # Use automatic allocation if None
     
     # Model hyperparameters (from paper Table II)
     "lstm_units": 72,               # Fixed as per paper
