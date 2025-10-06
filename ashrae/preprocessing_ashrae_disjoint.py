@@ -10,6 +10,7 @@ import numpy as np
 import pandas as pd
 from pathlib import Path
 from typing import Tuple, Optional, Dict, List
+import json
 
 try:
     # Try relative import first (when called as module)
@@ -18,6 +19,7 @@ try:
         ASHRAE_FEATURE_CONFIG,
         ASHRAE_DATA_SPLITS,
         ASHRAEDatasetAnalysis,
+        ASHRAE_SPLIT_PERSISTENCE,
     )
 except ImportError:
     # Fall back to absolute import (when called directly)
@@ -26,6 +28,7 @@ except ImportError:
         ASHRAE_FEATURE_CONFIG,
         ASHRAE_DATA_SPLITS,
         ASHRAEDatasetAnalysis,
+        ASHRAE_SPLIT_PERSISTENCE,
     )
 
 # Import sliding_windows2d_lstm with fallback for script execution
@@ -236,10 +239,45 @@ def preprocess_ashrae_disjoint_splits(
     print(f"   • Val ({val_fraction:.0%}): {target_val:,}")
     print(f"   • Test ({test_fraction:.0%}): {target_test:,}")
     
-    # Select buildings for disjoint splits
-    train_buildings, val_buildings, test_buildings = select_buildings_for_disjoint_splits(
-        building_metadata, train_data, target_train, target_val, target_test
-    )
+    # Select buildings for disjoint splits with optional persistence
+    train_buildings: List[int]
+    val_buildings: List[int]
+    test_buildings: List[int]
+
+    use_fixed = ASHRAE_SPLIT_PERSISTENCE.get("fix_building_splits", False)
+    splits_file = ASHRAE_SPLIT_PERSISTENCE.get("splits_file")
+
+    if use_fixed and splits_file and Path(splits_file).exists():
+        print(f"\n📁 Loading fixed building splits from: {splits_file}")
+        try:
+            with open(splits_file, "r") as f:
+                saved = json.load(f)
+            train_buildings = list(saved.get("train", []))
+            val_buildings = list(saved.get("val", []))
+            test_buildings = list(saved.get("test", []))
+            print(
+                f"   • Loaded splits → Train: {len(train_buildings)}, Val: {len(val_buildings)}, Test: {len(test_buildings)}"
+            )
+        except Exception as e:
+            print(f"   ✗ Failed to load splits, regenerating: {e}")
+            train_buildings, val_buildings, test_buildings = select_buildings_for_disjoint_splits(
+                building_metadata, train_data, target_train, target_val, target_test
+            )
+    else:
+        train_buildings, val_buildings, test_buildings = select_buildings_for_disjoint_splits(
+            building_metadata, train_data, target_train, target_val, target_test
+        )
+        if use_fixed and splits_file:
+            try:
+                with open(splits_file, "w") as f:
+                    json.dump({
+                        "train": train_buildings,
+                        "val": val_buildings,
+                        "test": test_buildings,
+                    }, f)
+                print(f"   ✓ Saved fixed building splits to: {splits_file}")
+            except Exception as e:
+                print(f"   ✗ Failed to save splits: {e}")
     
     # Prepare each split
     print(f"\n📦 Preparing split data...")
@@ -327,7 +365,8 @@ def get_ashrae_lstm_data_disjoint(
     Assumes 'building_id' column exists in X_* and is NOT scaled.
     """
     def windows_for_split(X: pd.DataFrame, y: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
-        features_cols = [c for c in X.columns if c != 'building_id']
+        # Include building_id as a feature to unify preprocessing across models
+        features_cols = list(X.columns)
         X_np = X[features_cols].values
         bld = X['building_id'].values
         # Concatenate target first for compatibility with sliding_windows2d_lstm

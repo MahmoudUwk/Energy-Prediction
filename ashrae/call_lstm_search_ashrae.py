@@ -67,57 +67,7 @@ def run_lstm_search_ashrae(algorithms: List[str], output_suffix: str = ""):
         except Exception as e:
             print(f"[ERROR] Failed to write to progress CSV: {e}", flush=True)
 
-    # Wrap _save_artifacts to log search-phase best params
-    _orig_save_artifacts = hp._save_artifacts
-
-    def _save_artifacts_wrapped(task, best_params, save_path, prefix, config):
-        append_progress(
-            {
-                "phase": "search",
-                "datatype": tuple(getattr(config, "datatype_options", ("1s",)))[0]
-                if isinstance(config, dict) and "datatype_options" in config
-                else "1s",
-                "algorithm": prefix,
-                "units": best_params.get("units"),
-                "layers": best_params.get("num_layers"),
-                "seq": best_params.get("seq"),
-                "learning_rate": best_params.get("learning_rate"),
-                "save_path": str(save_path),
-                "artifact": f"Best_param{prefix}.obj",
-            }
-        )
-        return _orig_save_artifacts(task, best_params, save_path, prefix, config)
-
-    hp._save_artifacts = _save_artifacts_wrapped
-
-    # Wrap _train_with_best_params to log training phase
-    _orig_train_best = hp._train_with_best_params
-    try:
-        from tools.preprocess_data2 import get_SAMFOR_data
-    except Exception:
-        get_SAMFOR_data = None
-
-    def _train_with_best_params_wrapped(config, datatype_opt, best_params, algorithm_name):
-        append_progress(
-            {
-                "phase": "train_start",
-                "datatype": datatype_opt,
-                "algorithm": algorithm_name,
-                "units": best_params.get("units"),
-                "layers": best_params.get("num_layers"),
-                "seq": best_params.get("seq"),
-                "learning_rate": best_params.get("learning_rate"),
-            }
-        )
-
-        result = _orig_train_best(config, datatype_opt, best_params, algorithm_name)
-
-        # Log training completion with centralized saver (but don't override the main save)
-        # The main LSTM script already saves via save_ashrae_lstm_results
-
-        return result
-
-    hp._train_with_best_params = _train_with_best_params_wrapped
+    # Legacy wrappers for artifacts/training are no longer used and have been removed
 
     # Import ASHRAE preprocessing and config after path setup
     from ashrae.preprocessing_ashrae_disjoint import preprocess_ashrae_disjoint_splits, get_ashrae_lstm_data_disjoint

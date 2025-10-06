@@ -8,6 +8,9 @@ from typing import Dict, Any, Tuple
 BASE_DIR = Path(__file__).resolve().parent.parent  # Project root
 ASHRAE_DATA_ROOT = BASE_DIR / "dataset" / "ASHRAE"
 ASHRAE_RESULTS_ROOT = BASE_DIR / "results" / "ashrae"
+ASHRAE_SPLITS_DIR = ASHRAE_RESULTS_ROOT / "splits"
+ASHRAE_SPLITS_DIR.mkdir(parents=True, exist_ok=True)
+DISJOINT_SPLITS_FILE = ASHRAE_SPLITS_DIR / "disjoint_building_splits.json"
 
 # =============================================================================
 # ASHRAE DATASET SIZE ANALYSIS
@@ -144,6 +147,12 @@ ASHRAE_DATA_SPLITS = {
     "train": 0.40,    # 40% for training (100k of 250k)
     "val": 0.20,       # 20% for validation (50k of 250k)
     "test": 0.40,      # 40% for testing (100k of 250k)
+}
+
+# Persistent split configuration to ensure reproducible building selections
+ASHRAE_SPLIT_PERSISTENCE = {
+    "fix_building_splits": True,          # When True, load/save splits to DISJOINT_SPLITS_FILE
+    "splits_file": DISJOINT_SPLITS_FILE,  # JSON file with {train: [], val: [], test: []}
 }
 
 # Verify splits sum to 1.0
