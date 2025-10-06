@@ -51,11 +51,17 @@ class ProgressPrinter(Callback):
             print(msg, flush=True)
 
 def _hyperparameters_from_vector(x: np.ndarray) -> Dict[str, Any]:
+    # Narrowed search space around proven-good configuration
+    # units ~ [56, 96], layers fixed to 1, seq in [20, 26], lr in [0.005, 0.02]
+    units = int(56 + x[0] * 40)
+    num_layers = 1
+    seq = int(20 + x[2] * 6)
+    learning_rate = 0.005 + x[3] * 0.015
     return {
-        "units": int(x[0] * 116 + 10),
-        "num_layers": int(x[1] * 4) + 1,  # max 4 layers
-        "seq": int(x[2] * 30 + 1),
-        "learning_rate": x[3] * 2e-2 + 0.5e-3,
+        "units": max(8, units),
+        "num_layers": num_layers,
+        "seq": max(1, seq),
+        "learning_rate": learning_rate,
     }
 
 
@@ -201,6 +207,10 @@ def _create_lstm_problem(
             self.eval_counter = 0
             self.eval_history: list[dict[str, Any]] = []
             self.best_eval: dict[str, Any] | None = None
+            self.best_score: float = float("inf")
+
+        def get_best_evaluation(self):
+            return self.best_eval
         
         def _evaluate(self, x):
             params = _hyperparameters_from_vector(x)
@@ -266,46 +276,65 @@ def _create_lstm_problem(
                 callbacks=callbacks,
             )
             
-            # Evaluate and compute metrics
-            test_loss = model.evaluate(X_test, y_test, verbose=0)  # MSE on scaled targets
-            y_pred = model.predict(X_test, verbose=0)
+            # Evaluate and compute metrics ON VALIDATION SET (objective)
+            val_loss_scaled = model.evaluate(X_val, y_val, verbose=0)
+            y_val_pred = model.predict(X_val, verbose=0)
 
-            # Scaled metrics (as before)
-            mse_scaled = test_loss
-            rmse_scaled = RMSE(y_test, y_pred)
-            mae_scaled = MAE(y_test, y_pred)
-            mape_scaled = MAPE(y_test, y_pred)
-            r2_scaled = R2(y_test, y_pred)
+            # Scaled metrics (validation)
+            val_mse_scaled = val_loss_scaled
+            val_rmse_scaled = RMSE(y_val, y_val_pred)
+            val_mae_scaled = MAE(y_val, y_val_pred)
+            val_mape_scaled = MAPE(y_val, y_val_pred)
+            val_r2_scaled = R2(y_val, y_val_pred)
 
-            # Original-scale metrics using provided scaler (inverse transform)
+            # Original-scale metrics (validation)
             try:
-                y_test_orig = self.scaler.inverse_transform(y_test.reshape(-1, 1)).flatten()
-                y_pred_orig = self.scaler.inverse_transform(y_pred.reshape(-1, 1)).flatten()
-                rmse_orig = RMSE(y_test_orig, y_pred_orig)
-                mae_orig = MAE(y_test_orig, y_pred_orig)
-                mape_orig = MAPE(y_test_orig, y_pred_orig)
-                r2_orig = R2(y_test_orig, y_pred_orig)
+                y_val_orig = self.scaler.inverse_transform(y_val.reshape(-1, 1)).flatten()
+                y_val_pred_orig = self.scaler.inverse_transform(y_val_pred.reshape(-1, 1)).flatten()
+                val_rmse_orig = RMSE(y_val_orig, y_val_pred_orig)
+                val_mae_orig = MAE(y_val_orig, y_val_pred_orig)
+                val_mape_orig = MAPE(y_val_orig, y_val_pred_orig)
+                val_r2_orig = R2(y_val_orig, y_val_pred_orig)
             except Exception as inv_exc:
-                # Fallback to scaled metrics if inverse transform fails
-                print(f"    ⚠️ Inverse transform failed, reporting scaled metrics only: {inv_exc}", flush=True)
-                y_test_orig = None
-                y_pred_orig = None
-                rmse_orig = np.nan
-                mae_orig = np.nan
-                mape_orig = np.nan
-                r2_orig = np.nan
+                print(f"    ⚠️ Inverse transform failed on val set: {inv_exc}", flush=True)
+                y_val_orig = None
+                y_val_pred_orig = None
+                val_rmse_orig = float(val_rmse_scaled)
+                val_mae_orig = float(val_mae_scaled)
+                val_mape_orig = float(val_mape_scaled)
+                val_r2_orig = float(val_r2_scaled)
 
-            # Print metrics (both scales)
-            print(f"    → Metrics:", flush=True)
+            # Print metrics (validation)
+            print("    → Validation metrics:", flush=True)
             print(
-                f"       SCALED  -> MSE: {mse_scaled:.6f}, RMSE: {rmse_scaled:.6f}, MAE: {mae_scaled:.6f}, MAPE: {mape_scaled:.2f}%, R²: {r2_scaled:.4f}",
+                f"       SCALED  -> MSE: {val_mse_scaled:.6f}, RMSE: {val_rmse_scaled:.6f}, MAE: {val_mae_scaled:.6f}, MAPE: {val_mape_scaled:.2f}%, R²: {val_r2_scaled:.4f}",
                 flush=True,
             )
-            if y_test_orig is not None:
-                print(
-                    f"       ORIGINAL-> RMSE: {rmse_orig:.6f}, MAE: {mae_orig:.6f}, MAPE: {mape_orig:.2f}%, R²: {r2_orig:.4f}",
-                    flush=True,
-                )
+            print(
+                f"       ORIGINAL-> RMSE: {val_rmse_orig:.6f}, MAE: {val_mae_orig:.6f}, MAPE: {val_mape_orig:.2f}%, R²: {val_r2_orig:.4f}",
+                flush=True,
+            )
+
+            # Fitness: minimize validation RMSE on original scale
+            fitness = float(val_rmse_orig)
+
+            # Track best evaluation
+            if fitness < self.best_score:
+                self.best_score = fitness
+                self.best_eval = {
+                    "params": params,
+                    "seq": seq_len,
+                    "val_metrics": {
+                        "RMSE_scaled": float(val_rmse_scaled),
+                        "MAE_scaled": float(val_mae_scaled),
+                        "MAPE_scaled": float(val_mape_scaled),
+                        "R2_scaled": float(val_r2_scaled),
+                        "RMSE_orig": float(val_rmse_orig),
+                        "MAE_orig": float(val_mae_orig),
+                        "MAPE_orig": float(val_mape_orig),
+                        "R2_orig": float(val_r2_orig),
+                    },
+                }
             
             # Save results to CSV after each evaluation
             self.eval_counter += 1
@@ -327,17 +356,17 @@ def _create_lstm_problem(
                     "num_layers": params["num_layers"],
                     "seq": seq_len,
                     "learning_rate": params["learning_rate"],
-                    # Scaled metrics
-                    "MSE_scaled": mse_scaled,
-                    "RMSE_scaled": rmse_scaled,
-                    "MAE_scaled": mae_scaled,
-                    "MAPE_scaled": mape_scaled,
-                    "R2_scaled": r2_scaled,
-                    # Original-scale metrics
-                    "RMSE_orig": rmse_orig,
-                    "MAE_orig": mae_orig,
-                    "MAPE_orig": mape_orig,
-                    "R2_orig": r2_orig,
+                    # Validation scaled metrics
+                    "VAL_MSE_scaled": val_mse_scaled,
+                    "VAL_RMSE_scaled": val_rmse_scaled,
+                    "VAL_MAE_scaled": val_mae_scaled,
+                    "VAL_MAPE_scaled": val_mape_scaled,
+                    "VAL_R2_scaled": val_r2_scaled,
+                    # Validation original-scale metrics
+                    "VAL_RMSE_orig": val_rmse_orig,
+                    "VAL_MAE_orig": val_mae_orig,
+                    "VAL_MAPE_orig": val_mape_orig,
+                    "VAL_R2_orig": val_r2_orig,
                     # Training meta
                     "epochs_trained": epochs_trained,
                 }
@@ -356,7 +385,7 @@ def _create_lstm_problem(
                 except Exception as e:
                     print(f"    ✗ Failed to save results: {e}", flush=True)
 
-            return test_loss
+            return fitness
     
     return LSTMProblemWithData()
 
