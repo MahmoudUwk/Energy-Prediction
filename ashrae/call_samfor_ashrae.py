@@ -23,7 +23,7 @@ def main():
     from config import SAMFOR_SAMFOR_PARAMS
     from .save_ashrae_results import save_ashrae_samfor_results
 
-    # Load ASHRAE data
+    # Load ASHRAE data - standardized parameters
     print("Loading ASHRAE dataset...")
     X_train, y_train, X_val, y_val, X_test, y_test, scaler = preprocess_ashrae_disjoint_splits(
         target_samples=250_000,
@@ -33,7 +33,7 @@ def main():
     )
 
     # Get LSTM sequences then flatten for SAMFOR (2D data)
-    seq_length = SAMFOR_SAMFOR_PARAMS["sequence_length"]
+    seq_length = 7  # Standardized sequence length
     X_tr_lstm, y_tr_lstm, X_va_lstm, y_va_lstm, X_te_lstm, y_te_lstm = get_ashrae_lstm_data_disjoint(
         X_train, y_train, X_val, y_val, X_test, y_test, seq_length=seq_length
     )
@@ -68,7 +68,7 @@ def main():
     print(f"  y_val: {y_val_scaled.shape}")
     print(f"  y_test: {y_test_scaled.shape}")
 
-    # Define reduced hyperparameter space for SVR (to limit total fits)
+    # Reduced hyperparameter space for faster execution
     param_distributions = {
         'C': [0.1, 1.0, 10.0, 100.0],
         'epsilon': [0.001, 0.01, 0.1, 0.2],
@@ -81,14 +81,14 @@ def main():
     # Create base SVR model
     base_svr = SVR(kernel='rbf')
     
-    # Perform randomized search with limited trials
+    # Perform randomized search with reduced trials
     start_tune = time.time()
     grid_search = RandomizedSearchCV(
         estimator=base_svr,
         param_distributions=param_distributions,
-        n_iter=8,
+        n_iter=8,  # Reduced to max 8 fits
         scoring='neg_mean_squared_error',  # Use MSE for regression
-        cv=2,  # fewer folds to reduce fits
+        cv=2,  # Reduced folds to keep total fits low
         n_jobs=5,
         verbose=1,
         random_state=42,

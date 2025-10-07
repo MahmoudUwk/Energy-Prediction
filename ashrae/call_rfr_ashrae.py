@@ -23,7 +23,7 @@ def main():
     from .save_ashrae_results import save_ashrae_rfr_results
     from config import SAMFOR_SAMFOR_PARAMS
 
-    # Load ASHRAE data
+    # Load ASHRAE data - standardized parameters
     print("Loading ASHRAE dataset...")
     X_train, y_train, X_val, y_val, X_test, y_test, scaler = preprocess_ashrae_disjoint_splits(
         target_samples=250_000,
@@ -33,7 +33,7 @@ def main():
     )
 
     # Get LSTM sequences then flatten to 2D for RFR
-    seq_length = SAMFOR_SAMFOR_PARAMS["sequence_length"]
+    seq_length = 7  # Standardized sequence length
     X_tr_lstm, y_tr_lstm, X_va_lstm, y_va_lstm, X_te_lstm, y_te_lstm = get_ashrae_lstm_data_disjoint(
         X_train, y_train, X_val, y_val, X_test, y_test, seq_length=seq_length
     )

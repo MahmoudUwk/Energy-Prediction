@@ -1,0 +1,1174 @@
+
+
+
+
+
+
+\documentclass[journal]{IEEEtran}
+%\usepackage{cite}
+%
+% If IEEEtran.cls has not been installed into the LaTeX system files,
+% manually specify the path to it like:
+% \documentclass[journal]{../sty/IEEEtran}
+% Some very useful LaTeX packages include:
+% (uncomment the ones you want to load)
+% *** MISC UTILITY PACKAGES ***
+%
+%\usepackage{ifpdf}
+% Heiko Oberdiek's ifpdf.sty is very useful if you need conditional
+% compilation based on whether the output is pdf or dvi.
+% usage:
+% \ifpdf
+%   % pdf code
+% \else
+%   % dvi code
+% \fi
+% The latest version of ifpdf.sty can be obtained from:
+% http://www.ctan.org/pkg/ifpdf
+% Also, note that IEEEtran.cls V1.7 and later provides a builtin
+% \ifCLASSINFOpdf conditional that works the same way.
+% When switching from latex to pdflatex and vice-versa, the compiler may
+% have to be run twice to clear warning/error messages.
+% *** CITATION PACKAGES ***
+%
+\usepackage{cite}
+% cite.sty was written by Donald Arseneau
+
+
+
+
+
+
+
+% *** GRAPHICS RELATED PACKAGES ***
+%
+\ifCLASSINFOpdf
+  % \usepackage[pdftex]{graphicx}
+  % declare the path(s) where your graphic files are
+  % \graphicspath{{../pdf/}{../jpeg/}}
+  % and their extensions so you won't have to specify these with
+  % every instance of \includegraphics
+  % \DeclareGraphicsExtensions{.pdf,.jpeg,.png}
+\else
+  % or other class option (dvipsone, dvipdf, if not using dvips). graphicx
+  % will default to the driver specified in the system graphics.cfg if no
+  % driver is specified.
+  % \usepackage[dvips]{graphicx}
+  % declare the path(s) where your graphic files are
+  % \graphicspath{{../eps/}}
+  % and their extensions so you won't have to specify these with
+  % every instance of \includegraphics
+  % \DeclareGraphicsExtensions{.eps}
+\fi
+% graphicx was written by David Carlisle and Sebastian Rahtz. It is
+% required if you want graphics, photos, etc. graphicx.sty is already
+% installed on most LaTeX systems. The latest version and documentation
+% can be obtained at: 
+% http://www.ctan.org/pkg/graphicx
+% Another good source of documentation is "Using Imported Graphics in
+% LaTeX2e" by Keith Reckdahl which can be found at:
+% http://www.ctan.org/pkg/epslatex
+%
+% latex, and pdflatex in dvi mode, support graphics in encapsulated
+% postscript (.eps) format. pdflatex in pdf mode supports graphics
+% in .pdf, .jpeg, .png and .mps (metapost) formats. Users should ensure
+% that all non-photo figures use a vector format (.eps, .pdf, .mps) and
+% not a bitmapped formats (.jpeg, .png). The IEEE frowns on bitmapped formats
+% which can result in "jaggedy"/blurry rendering of lines and letters as
+% well as large increases in file sizes.
+%
+% You can find documentation about the pdfTeX application at:
+% http://www.tug.org/applications/pdftex
+
+
+
+
+
+% *** MATH PACKAGES ***
+%
+%\usepackage{amsmath}
+% A popular package from the American Mathematical Society that provides
+% many useful and powerful commands for dealing with mathematics.
+%
+% Note that the amsmath package sets \interdisplaylinepenalty to 10000
+% thus preventing page breaks from occurring within multiline equations. Use:
+%\interdisplaylinepenalty=2500
+% after loading amsmath to restore such page breaks as IEEEtran.cls normally
+% does. amsmath.sty is already installed on most LaTeX systems. The latest
+% version and documentation can be obtained at:
+% http://www.ctan.org/pkg/amsmath
+
+
+
+
+
+% *** SPECIALIZED LIST PACKAGES ***
+%
+%\usepackage{algorithmic}
+% algorithmic.sty was written by Peter Williams and Rogerio Brito.
+% This package provides an algorithmic environment fo describing algorithms.
+% You can use the algorithmic environment in-text or within a figure
+% environment to provide for a floating algorithm. Do NOT use the algorithm
+% floating environment provided by algorithm.sty (by the same authors) or
+% algorithm2e.sty (by Christophe Fiorio) as the IEEE does not use dedicated
+% algorithm float types and packages that provide these will not provide
+% correct IEEE style captions. The latest version and documentation of
+% algorithmic.sty can be obtained at:
+% http://www.ctan.org/pkg/algorithms
+% Also of interest may be the (relatively newer and more customizable)
+% algorithmicx.sty package by Szasz Janos:
+% http://www.ctan.org/pkg/algorithmicx
+
+
+
+
+% *** ALIGNMENT PACKAGES ***
+%
+%\usepackage{array}
+% Frank Mittelbach's and David Carlisle's array.sty patches and improves
+% the standard LaTeX2e array and tabular environments to provide better
+% appearance and additional user controls. As the default LaTeX2e table
+% generation code is lacking to the point of almost being broken with
+% respect to the quality of the end results, all users are strongly
+% advised to use an enhanced (at the very least that provided by array.sty)
+% set of table tools. array.sty is already installed on most systems. The
+% latest version and documentation can be obtained at:
+% http://www.ctan.org/pkg/array
+
+
+% IEEEtran contains the IEEEeqnarray family of commands that can be used to
+% generate multiline equations as well as matrices, tables, etc., of high
+% quality.
+
+
+
+
+% *** SUBFIGURE PACKAGES ***
+%\ifCLASSOPTIONcompsoc
+%  \usepackage[caption=false,font=normalsize,labelfont=sf,textfont=sf]{subfig}
+%\else
+%  \usepackage[caption=false,font=footnotesize]{subfig}
+%\fi
+% subfig.sty, written by Steven Douglas Cochran, is the modern replacement
+% for subfigure.sty, the latter of which is no longer maintained and is
+% incompatible with some LaTeX packages including fixltx2e. However,
+% subfig.sty requires and automatically loads Axel Sommerfeldt's caption.sty
+% which will override IEEEtran.cls' handling of captions and this will result
+% in non-IEEE style figure/table captions. To prevent this problem, be sure
+% and invoke subfig.sty's "caption=false" package option (available since
+% subfig.sty version 1.3, 2005/06/28) as this is will preserve IEEEtran.cls
+% handling of captions.
+% Note that the Computer Society format requires a larger sans serif font
+% than the serif footnote size font used in traditional IEEE formatting
+% and thus the need to invoke different subfig.sty package options depending
+% on whether compsoc mode has been enabled.
+%
+% The latest version and documentation of subfig.sty can be obtained at:
+% http://www.ctan.org/pkg/subfig
+
+
+
+
+% *** FLOAT PACKAGES ***
+%
+%\usepackage{fixltx2e}
+% fixltx2e, the successor to the earlier fix2col.sty, was written by
+% Frank Mittelbach and David Carlisle. This package corrects a few problems
+% in the LaTeX2e kernel, the most notable of which is that in current
+% LaTeX2e releases, the ordering of single and double column floats is not
+% guaranteed to be preserved. Thus, an unpatched LaTeX2e can allow a
+% single column figure to be placed prior to an earlier double column
+% figure.
+% Be aware that LaTeX2e kernels dated 2015 and later have fixltx2e.sty's
+% corrections already built into the system in which case a warning will
+% be issued if an attempt is made to load fixltx2e.sty as it is no longer
+% needed.
+% The latest version and documentation can be found at:
+% http://www.ctan.org/pkg/fixltx2e
+
+
+%\usepackage{stfloats}
+% stfloats.sty was written by Sigitas Tolusis. This package gives LaTeX2e
+% the ability to do double column floats at the bottom of the page as well
+% as the top. (e.g., "\begin{figure*}[!b]" is not normally possible in
+% LaTeX2e). It also provides a command:
+%\fnbelowfloat
+% to enable the placement of footnotes below bottom floats (the standard
+% LaTeX2e kernel puts them above bottom floats). This is an invasive package
+% which rewrites many portions of the LaTeX2e float routines. It may not work
+% with other packages that modify the LaTeX2e float routines. The latest
+% version and documentation can be obtained at:
+% http://www.ctan.org/pkg/stfloats
+% Do not use the stfloats baselinefloat ability as the IEEE does not allow
+% \baselineskip to stretch. Authors submitting work to the IEEE should note
+% that the IEEE rarely uses double column equations and that authors should try
+% to avoid such use. Do not be tempted to use the cuted.sty or midfloat.sty
+% packages (also by Sigitas Tolusis) as the IEEE does not format its papers in
+% such ways.
+% Do not attempt to use stfloats with fixltx2e as they are incompatible.
+% Instead, use Morten Hogholm'a dblfloatfix which combines the features
+% of both fixltx2e and stfloats:
+%
+% \usepackage{dblfloatfix}
+% The latest version can be found at:  
+% http://www.ctan.org/pkg/dblfloatfix
+
+
+
+
+%\ifCLASSOPTIONcaptionsoff
+%  \usepackage[nomarkers]{endfloat}
+% \let\MYoriglatexcaption\caption
+% \renewcommand{\caption}[2][\relax]{\MYoriglatexcaption[#2]{#2}}
+%\fi
+% endfloat.sty was written by James Darrell McCauley, Jeff Goldberg and 
+% Axel Sommerfeldt. This package may be useful when used in conjunction with 
+% IEEEtran.cls'  captionsoff option. Some IEEE journals/societies require that
+% submissions have lists of figures/tables at the end of the paper and that
+% figures/tables without any captions are placed on a page by themselves at
+% the end of the document. If needed, the draftcls IEEEtran class option or
+% \CLASSINPUTbaselinestretch interface can be used to increase the line
+% spacing as well. Be sure and use the nomarkers option of endfloat to
+% prevent endfloat from "marking" where the figures would have been placed
+% in the text. The two hack lines of code above are a slight modification of
+% that suggested by in the endfloat docs (section 8.4.1) to ensure that
+% the full captions always appear in the list of figures/tables - even if
+% the user used the short optional argument of \caption[]{}.
+% IEEE papers do not typically make use of \caption[]'s optional argument,
+% so this should not be an issue. A similar trick can be used to disable
+% captions of packages such as subfig.sty that lack options to turn off
+% the subcaptions:
+% For subfig.sty:
+% \let\MYorigsubfloat\subfloat
+% \renewcommand{\subfloat}[2][\relax]{\MYorigsubfloat[]{#2}}
+% However, the above trick will not work if both optional arguments of
+% the \subfloat command are used. Furthermore, there needs to be a
+% description of each subfigure *somewhere* and endfloat does not add
+% subfigure captions to its list of figures. Thus, the best approach is to
+% avoid the use of subfigure captions (many IEEE journals avoid them anyway)
+% and instead reference/explain all the subfigures within the main caption.
+% The latest version of endfloat.sty and its documentation can obtained at:
+% http://www.ctan.org/pkg/endfloat
+%
+% The IEEEtran \ifCLASSOPTIONcaptionsoff conditional can also be used
+% later in the document, say, to conditionally put the References on a 
+% page by themselves.
+
+
+
+
+% *** PDF, URL AND HYPERLINK PACKAGES ***
+%
+%\usepackage{url}
+% url.sty was written by Donald Arseneau. It provides better support for
+% handling and breaking URLs. url.sty is already installed on most LaTeX
+% systems. The latest version and documentation can be obtained at:
+% http://www.ctan.org/pkg/url
+% Basically, \url{my_url_here}.
+
+
+
+
+% *** Do not adjust lengths that control margins, column widths, etc. ***
+% *** Do not use packages that alter fonts (such as pslatex).         ***
+% There should be no need to do such things with IEEEtran.cls V1.6 and later.
+% (Unless specifically asked to do so by the journal or conference you plan
+% to submit to, of course. )
+
+
+% correct bad hyphenation here
+
+
+
+%\addbibresource{biblographyfile.bib}
+
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage[ruled,vlined]{algorithm2e}
+\usepackage{multirow}
+\usepackage{array}
+\usepackage{booktabs}
+\usepackage[table]{xcolor}
+\usepackage{tabularx}
+\usepackage{subfigure}
+\usepackage{caption}
+\usepackage{hyperref}
+\usepackage{subcaption}
+\usepackage{lipsum}
+% *** SUBFIGURE PACKAGES ***
+\ifCLASSOPTIONcompsoc
+\usepackage[caption=false,font=normalsize,labelfont=sf,textfont=sf]{subfig}
+else
+\usepackage[caption=false,font=footnotesize]{subfig}
+\fi
+\begin{document}
+%
+% paper title
+% Titles are generally capitalized except for words such as a, an, and, as,
+% at, but, by, for, in, nor, of, on, or, the, to and up, which are usually
+% not capitalized unless they are the first or last word of the title.
+% Linebreaks \\ can be used within to get better formatting as desired.
+% Do not put math or special symbols in the title.
+\title{ModLSTM: Modified Firefly-Driven LSTM for Energy Consumption Forecasting in Net-Zero Energy Buildings}
+
+
+
+\author{\IEEEauthorblockN{Mahmoud Sallam\IEEEauthorrefmark{1}, Deepika\IEEEauthorrefmark{2},
+Kuljeet Kaur,~\IEEEmembership{Member,~IEEE}\IEEEauthorrefmark{3}, Neeru Jindal,~\IEEEmembership{Member,~IEEE}\IEEEauthorrefmark{4}, Sahil Garg,~\IEEEmembership{Member,~IEEE}\IEEEauthorrefmark{5}, Georges Kaddoum,~\IEEEmembership{Member,~IEEE}\IEEEauthorrefmark{6},  Mukesh Singh,~\IEEEmembership{Senior Member,~IEEE}\IEEEauthorrefmark{7}, and Yatindra Nath Singh,~\IEEEmembership{Senior Member,~IEEE}\IEEEauthorrefmark{8}}\\}
+
+%Email: \IEEEauthorrefmark{1}rsharma_phd22@thapar.edu,
+%\IEEEauthorrefmark{2}author.two@add.on.net,
+%\IEEEauthorrefmark{3}author.three@add.on.net,
+%\IEEEauthorrefmark{4}author.four@add.on.net}}
+\maketitle
+
+% As a general rule, do not put math, special symbols or citations
+% in the abstract or keywords.
+
+
+\begin{abstract} 
+
+
+
+
+
+
+Net-Zero Energy Buildings (NZEBs) are present-day constructions capable of generating sufficient clean energy for their consumption. Since these buildings tend to rely on clean energy from Renewable Energy Sources (RESs), there is a challenge of control when and how much energy is generated. Thus, energy consumption prediction is essential to manage supply and demand using RESs and energy storage solutions. However, considering that the underlying electrical appliances have uncertain and non-linear energy consumption patterns, effectively predicting energy consumption is a tedious task. Accordingly, the existing prediction schemes, such as Random Forest Regressor (RFR), Support Vector Regressor (SVR), and Long-Short-Term Memory (LSTM), face various problems like vanishing gradients, limited memory cells, and fixed-length inputs. To overcome these issues, in this study, we propose a hybrid framework that combines the LSTM and Firefly (FF) optimization algorithms. LSTM learns complex long-term dependencies and efficiently predicts energy variations. In addition, the standard FF is modified (thereafter referred to as modified FF, MFF) to address existing issues, such as premature convergence and limited global search in complex time-series data. More specifically, FF is modified with additional components, such as chaotic logistic maps, adaptive inertia weight, and levy flight. These components generate an initially diverse population of fireflies, adjust attractiveness parameters, regulate local and global exploration capabilities, and accelerate local search by creating new best solutions. Due to these modifications, the proposed combination of LSTM and MFF converges faster, requires fewer iterations, and requires less processing time. For a comprehensive evaluation of the proposed work, the simulation results are analyzed using the Portuguese house time-series dataset. \textcolor{red}{The results prove the efficacy of the proposed methodology, as it achieved an RMSE of 23.55W, and R² of 0.99 and outperformed the existing schemes.} Optimized prediction of energy consumption can be used to synchronize energy supply and demand, as well as to facilitate green buildings to create a more sustainable environment.
+\end{abstract}
+
+
+\begin{IEEEkeywords}
+Energy efficiency, green buildings, long-short term memory, modified firefly, net-zero energy buildings
+\end{IEEEkeywords}
+
+\IEEEpeerreviewmaketitle
+\section{Introduction}
+
+\IEEEPARstart{T}{oday}, many nations around the world emphasize the use of RESs \cite{Ref18} because their optimal use reduces global carbon emissions and fosters the economy \cite{Ref19}. Reflecting this trend, the concept of NZEBs has emerged. Representing the most modern buildings of our time, NZEBs cater to their energy consumption by the available RESs. Since the concept of NZEBs is innovative and climate-centric, a strong shift in the design of buildings is observed. According to the Allied Business Intelligence report, over 5.5K buildings, both commercial and residential, will become NZEBs by 2027 worldwide, representing a major increase from 1,200 in 2022 \cite{Ref31}. However, despite the building momentum for NZEBs, there are different challenges requiring attention. For example, effectively and accurately predicting energy consumption of these buildings and matching it with renewable energy generation is critical to NZEBs' wide-scale implementation. For instance, appliances in commercial and residential NZEBs consume a major proportion of energy, and their respective energy profiles are quite varied \cite{Ref18}. Most of these appliances have periodicity in energy consumption at different time scales. Furthermore, this form of time-series data largely depends on various factors, such as weather, temperature, types of appliances, and so forth. In addition, it introduces uncertainty in the forecasting of energy consumption and non-linear dependency on different variables \cite{Ref22}. The aforementioned factors make the prediction of energy consumption an intricate task. In addition, there is a need to achieve a dynamic balance between energy demand and green energy generation, which requires handling fluctuations in RESs, along with uncertain user consumption patterns. 
+
+To address these challenges, there is a need for an accurate energy consumption forecasting in different time intervals. Overall, types of forecasting are categorized into the following four different time intervals: (1) ultra-short-term forecasting, which is between minutes and an hour; (2) short-term, which is up to a week; (3) medium-term, which is between a week and a year; and, finally, (4) long-term, which is longer than a year. The ultra-short-term and short-term forecasts facilitate energy scheduling, while energy management and power system approaches depend on medium and long-term forecasts \cite{Ref32} \cite{Ref33}. Previous studies used different time intervals to predict energy consumption-namely, one-hour, thirty-minutes, fifteen-minutes, one-minute, and one-second ahead energy predictions, demonstrating the adaptability of the forecasts on various timescales \cite{Ref10}. Furthermore, the researchers had implemented statistical, Machine Learning (ML), Deep Learning (DL), and ensemble methods for energy consumption prediction, as comparatively given in the Table. \ref{tab:combined_comparison}. In what follows, the related works that form the basis for this study are discussed in further detail. 
+
+
+\begin{table*}[!t]
+\centering
+\renewcommand{\arraystretch}{1.1}
+\caption{\textcolor{cyan}{Energy prediction and optimization techniques}}
+\label{tab:combined_comparison}
+\begin{tabular}{p{0.8cm}p{3.1cm}p{5.1cm}p{5.1cm}}
+\toprule
+\textbf{Article} & 
+\textbf{Approach} & 
+\textbf{Characteristics} & 
+\textbf{Limitations/Gaps} \\ 
+\midrule
+\cite{Ref40} & Seasonal Auto-Regressive Integrated
+Moving Average (SARIMA) & Better predictor than ARIMA in capturing seasonal time series data. & Poor handling of highly non-linear data. \\
+\cite{Ref44} & Linear SVR & Efficient with small data sets. & Slower in dealing with huge data sets. \\
+\cite{Ref301} & Nonlinear SVR with Gaussian kernel function & Transforms non-linear data into linear form using kernel function. & Inefficient handling of highly non-linear data. \\
+\cite{Ref47} & Least Square Support
+Vector Regressor (LSSVR) & Improved efficiency in non-linear energy data sets. & Limited performance. \\
+\cite{Ref6} & RFR & Solves high-dimensional data, trains model faster. & Performs effectively only in short-term predictions. \\
+\cite{Ref45} & LSTM & Captures sequential and long-term dependencies, complex, nonlinear, time series data. & Slower and complex. \\
+\cite{Ref25} & FF & Handles subdivisions, addresses multiple nodes, and simple design. & Tends to get stuck at local minima due to exploration–exploitation imbalance. \\
+\cite{ref4} & Hybrid SAMFOR model & Strong capability for non-linear fitting. & Sensitive to parameter tuning. \\
+\cite{RC59} & Deep leraning architecture+IHHO & Improved HHO tunes parameters to handle shifts in usage patterns. & Sensitive to find parameters in a search space; limited cross-domain generalization. \\
+\cite{RC58} & Hybrid deep-learning architecture and Differential Evolution (DE)  & DE searches optimal hyperparameters to improve prediction. & Computationally intensive search. \\
+\cite{RC57} & LSTM + Dragonfly and Firefly & Meta-heuristics select informative features to enhance LSTM forecasting. & Slow convergence on high-dimensional problem. \\
+\cite{RC5} & LSTM+PSO & PSO tunes LSTM hyperparameters to improve short-term load forecasting. & Limited to short-term horizons and converge prematurely. \\
+\cite{RC55} & LSTM+ Grey Wolf Optimization & Less prone to premature convergence & Poor balancing between exploitation and exploration. \\
+\bottomrule
+\end{tabular}
+\end{table*}
+
+
+
+
+
+In recent years, traditional statistical methodologies have been implemented for the energy consumption and generation forecast problem-namely, Auto-Regressive Integrated Moving Average (ARIMA), and SARIMA \cite{Ref23}\cite{Ref8}. The statistical ARIMA method was found to outperform exponential smoothing-additive and multiplicative models on linear data \cite{Ref7}. However, the ARIMA method is suitable only for linear and short-term forecasts \cite{Ref20}. In \cite{ref16}, the authors proposed an extension of the ARIMA model, namely SARIMA, to capture seasonal patterns in the data. This approach was found to provide better predictions for linear, and seasonal time-series and struggled with highly non-linear data. Overall, energy management has evolved between data-driven approaches for energy consumption, where traditional methods were not effective to predict seasonal and non-linear trends \cite{Industrial2025}
+With the advent of ML/DL methodologies, such as RFR, SVR, and LSTM, it became possible to handle complex models that can easily learn and predict based on non-linear data \cite{Ref},\cite{Ref2},\cite{Ref21}. Therefore, research focus shifted to identifying the best energy-saving solutions for smart buildings using ML/DL techniques. For instance, in \cite{Ref9}, Ma \textit{et al.} implemented an SVR approach to provide a regression function that performed well in small-size energy data sets. Non-linear SVR use a kernel function to transform non-linear data into linear form\cite{Ref9}. According to \cite{Ref5}, the Gaussian Kernel Function is the most commonly used by non-linear SVR models on time-series data. Furthermore, according to \cite{Ref}, SVR is slower in dealing with huge data sets; however, LSSVR can easily solve linear equations as compared to quadratic programming problems, while using a squared loss function. Furthermore, Chaou \textit{et al.} in \cite{Ref17} employed LSSVR to handle non-linear energy data, improving prediction efficiency, using features, such as days of the week, hours of the day, outdoor humidity, outdoor temperature, and past energy consumption. In addition, Cerquitelli \textit{et al}.\cite{Ref15} and Pham \textit{et al.}, \cite{Ref24} employed the RFR approach, which can solve high-dimensional data and training model much faster, and perform only in the short-term prediction of the approach was found to effectively predict energy. To overcome this problem, the authors implemented LSTM \cite{LSTM2023}, \cite{Ref14}. The results revealed that the LSTM model provides more accurate energy predictions by effectively capturing complex, non-linear, and time series data. In \cite{Hybrid2025}, attention-based LSTM more effectively captured long-term dependencies and manage memory updates, thereby effectively improving its performance in predicting energy consumption.
+
+
+
+  
+Several studies also proposed meta-heuristic optimization techniques to find the features from solution space \cite{RC1},\cite{RC2}. It was observed that nature-inspired metaheuristic approaches dynamically explore the space locally and globally to select optimal hyperparameters \cite{RC3}, \cite{RC4}. For instance, Kim \textit{et al}. implemented a PSO technique as an effective method to address the problem of global exploration \cite{Ref27}. Unlike the Genetic Algorithm (GA), PSO eliminates crossover and mutation operations \cite{Ref28}. It focuses on evaluating the fitness of each individual in an entire population, simplifying the optimization process. In another relevant study, Soudaei \textit{et al}. \cite{Ref29} employed a meta-heuristic DE-based technique to forecast the usage of energy in housing buildings. This technique includes operators like GA to change the behavior of PSO and the ability to converge faster at global minima. Other relevant study \cite{Ref25} showed that, unlike DE and PSO, FF technique, which automatically handles subdivisions and addresses multiple nodes, is an efficient optimization technique. The FF approach also identifies optimal solutions in an earlier stage. However, it generally gets stuck at local minima as a consequence of exploration and exploitation challenges. Accordingly, in \cite{Ref18}, \cite{ref16}, \cite{RC5}, the authors proposed multi-objective solutions that combine, meta-heuristic and DL techniques. For instance, in \cite{Ref}, Ngo \textit{et al.} proposed the hybrid SAMFOR model that integrates SARIMA, LSSVR, and FF. This model outperformed regression models such as SARIMA, LSSVR, and RFR, demonstrating superior performance. However, the hybrid SAMFOR model implemented in the benchmark study faces challenges in terms of capturing the temporal dependencies and adaptive patterns in highly dynamic and large-scale datasets. This limits its effectiveness in accurately predicting energy consumption complex patterns. To address this concern, the present study aims to address these challenges of existing models by proposing advanced hybrid technique which ensures reliable energy consumption prediction. Efficient energy prediction contributes to enhancing the integration of RESs.
+
+
+\subsection{Motivation}
+Enhanced energy efficiency and the optimal use of green energy are primary objectives for NZEBs. To achieve these objectives and attain net-zero power production, energy forecasting plays a significant role, thereby helping to reduce global carbon emissions \cite{Ref2},\cite{Ref26}, \cite{Ref3}. However, 
+since the energy consumption data have a lot of uncertainty and non-linearity \cite{ref16},
+an accurate energy usage forecasting is challenging. Furthermore, the energy data are time-series based and exhibit variability at different time stamps. Several previous studies \cite{Ref}, \cite{Ref3}, \cite{Ref6} failed to effectively handle these time-series energy data to precisely and accurately predict future energy predictions. This can be attributed to various reasons, such as long-term dependencies, vanishing gradient problem, limited memory cells, stuck at local minima, and global exploration. \textcolor{red}{According to existing meta-heuristic-based hybrid approaches, such as LSTM-PSO, LSTM-DE and LSTM-GWO, searches the solution, controlled by static and predefined parameters \cite{RC5}, \cite{RC58}.\cite{RC55}. Therefore, these schemes lacks in adaptability and balancing between exploration and exploitation to handle high-dimensional data.} In light of this, the motivation of the present study is to develop an optimized data-driven energy model for effectively predicting the energy consumption of the buildings. To this end, we propose MoDLSTM model, which integrates the features of LSTM networks and MFF technique \cite{Ref11},\cite{Ref12}. On the one hand, the LSTM addresses the issues of non-linearity, limited memory cells, long-term dependencies, and the vanishing gradient problem. On the other hand, the nature-inspired MFF optimization technique resolves the problem of exploitation and exploration.
+ 
+ \subsection{Contributions}
+ Key contributions of the proposed schemes can be summarized as follows:
+ \begin{enumerate}
+     
+   
+
+\item We propose a hybrid ModLSTM model for the prediction of time-series energy consumption of Portuguese household building. The proposed model integrates the features of LSTM and modified FF \textit{i.e.} MFF. This amalgamation effectively handles the problem of non-linear and complex energy consumption patterns. To the best of our knowledge, this type of hybridization has not been previously used to develop an efficient energy prediction model.
+
+
+
+   
+\item The developed multi-objective ModLSTM framework is improved with logistic chaotic maps, adaptive inertia weight, and levy flight mechanisms. This framework effectively addresses the critical challenges of existing schemes, such as long-term dependency, vanishing gradient problem, and the balance between local exploitation and global exploration. In addition, the parallel processing capabilities of MFF enhance the optimization and computational efficiency and ensure robustness in the energy consumption forecasting.
+
+
+
+
+ 
+   
+ \item \textcolor{orange}{Finally, the precision of the proposed scheme is evaluated and compared with existing schemes using multiple quantitative metrics. These evaluation metrics calculate the magnitude of prediction errors, model fitness, computational efficiency, and resource utilization. The effectiveness and objectives of the model are validated with metrics and statistical test results.}
+ 
+ 
+ 
+ 
+ 
+
+ \end{enumerate}
+  
+ \subsection{Organisation}  
+ The remainder of this paper is organized as follows. The operation of the proposed scheme is illustrated in Section \ref{Proposed Methodology}. The mathematical modeling of the proposed scheme is described in Section \ref{Mathematical Modeling}. The results are analyzed in Section \ref{Results and Discussion}. Finally, the conclusions are drawn in Section \ref{Conclusion}. 
+
+
+
+ 
+ \begin{figure*}[!h]
+    \centering
+    \includegraphics[height=2.92in]{energy prediction/Proposed model(11).jpg}
+    \caption{The proposed scheme.}
+    \label{fig:proposed model}
+\end{figure*}
+
+
+ 
+\section{Proposed Methodology} \label{Proposed Methodology}
+This section explains the methodology of the proposed scheme, providing a detailed description of its related workflow. In this study, we introduce a novel hybrid model that combines LSTM and MFF to control energy consumption patterns over time. Figure \ref{fig:proposed model} illustrates the proposed model that comprises of different phases, including data acquisition, data analysis, training model, and performance evaluation.  
+
+\subsection{Data Acquisition}
+The data acquisition process is given in this section. The Portuguese home dataset is chosen because it contains important metrics and extensive time-series data on energy usage, which makes it ideal for accurate forecasting. This dataset is actively utilized in the state-of-the-art work and is openly available on the Open Source Foundation (OSF) repository, in contrast to other datasets that might have limited number of elements or restricted access. Table \ref{tab:appliances} gives a list of appliances ranging from kitchen appliances to electronic devices, which represents  high-dimensionality and nonlinear relationship in the dataset. The broad spectrum of appliances highlights the model's ability to capture a wide range of energy consumption behaviors, in order to adapt different household environments. 
+
+\subsection{Data Analysis}
+In this phase, the time-series data were extracted from the appliances and normalized. The extracted energy consumption features from the acquired dataset were in the form of active power, reactive power, voltage, and current. These features were analyzed using correlation coefficients to identify relationships between variables and complex patterns.
+The data were further restructured using the sliding window technique to extract the sequential time-series data \cite{Ref2}. Sequential time-series data were provided as input to the training model step by step.
+
+\subsection{Training Model}
+To train the prediction model, all historical sequential inputs were fed to the LSTM model, an advanced variant of recurrent neural networks specifically designed to retain information over extended sequences and predict sequential data. During training, an LSTM model was initialized with hyperparameters as input, such as the number of hidden units, number of layers, sequence length, number of dense layers, and the learning rate. The number of hidden units and layers determines the model's complexity and capacity to capture non-linear and hierarchical patterns in the energy data, to balance between underfitting and overfitting. The sequence length controls the temporal range for learning dependencies, improving both prediction accuracy and computational efficiency. The learning rate plays a crucial role in ensuring stable and efficient model convergence during training. These hyper-parameters were fine tuned using a meta-heuristic MFF technique. The firefly in MFF technique generated a set of hyper-parameters in each iteration using a logistic chaotic map and further mapped them using a mapper function. The ModLSTM model iteratively learnt the consumption patterns from the training dataset and validated its prediction using the testing and validation dataset. The Mean Squared Error (MSE) was then calculated with respect to the test dataset, which was related to the corresponding firefly for the best fitness value. 
+
+\subsection{Performance Evaluation}
+Finally, the performance evaluation phase ensured the efficiency of the prediction model through a comprehensive comparative analysis with existing approaches. The model predictions were evaluated using testing and validation datasets to ensure reliability. Various evaluation metrics, including Root Mean Square Error (RMSE), Mean Absolute Error (MAE), Mean Absolute Percentage Error (MAPE), and $R^2$, were used to measure its accuracy and overall performance.  
+
+
+ \begin{table}[htbp]
+\centering
+\caption{List of appliances in the household building.}
+\label{tab:appliances}
+\begin{tabular}{|c|l|l|}
+\hline
+\rowcolor[HTML]{C0C0C0}
+\textbf{ID} & \multicolumn{2}{c|}{\textbf{Appliance}} \\ \hline
+1  & Coffee Machine           & Fridge \\ \hline
+2  & Freezer                  & Hand Mixer \\ \hline
+3  & Hair Dryer + Straightener & Kettle \\ \hline
+4  & Macbook 2007             & Macbook Pro 2011 (1) \\ \hline
+5  & Macbook Pro 2011 (2)     & Microwave \\ \hline
+6  & Stove + Oven             & TV Philips \\ \hline
+7  & TV Sharp                 & TV Grunding \\ \hline
+8  & TV Samsung               & TV LG \\ \hline
+9  & Toaster                  & Vacuum Cleaner \\ \hline
+\end{tabular}
+\end{table}
+
+
+\section{Mathematical Modeling}\label{Mathematical Modeling}
+In this section, we discuss the overall mathematical framework for the proposed LSTM-MFF. The proposed model mainly consists of two components: LSTM for prediction and MFF for hyper-parameter optimization. In what follows, we present detailed information regarding these components.
+
+
+
+\subsection{The LSTM Model}
+\textcolor{magenta}{The proposed scheme uses a DL-based framework that employs the LSTM model (see Fig. \ref{LSTM} for its architecture). LSTM is a type of recurrent neural network that resolve issues such as long-term dependencies and the vanishing gradient. This model also handles sequential data effectively. The entire LSTM model consists of four fundamental gates, namely the forget gate, input gate, output gate, and cell state. Forget gate $f_t$ of LSTM determines which information from the previous step should be retained during feed-forward propagation. This process is managed by an initial activation function $\sigma$, as shown in Eq. \eqref{forget}.}
+
+
+
+\begin{figure}[!h]
+    \centering
+    \includegraphics[width= 9cm]{energy prediction/LSTM Architeture.drawio.png}
+        \caption{Architecture of the LSTM approach.}
+    \label{LSTM}
+\end{figure}
+
+
+
+ 
+
+\begin{equation}\label{forget}
+f_t = \sigma \left( W_f \cdot [h_{t-1}, x_t] + b_f \right).
+\end{equation}
+
+
+\textcolor{magenta}{In Eq. \eqref{forget}, the sigmoid activation function outputs a value between 0 and 1, based on
+the previous hidden state and the current input state. This regulates the previous cell state
+using an element-wise multiplication operation. The forget gate bias vector modifies the sigmoid
+activation function that improves the flexibility and learning efficiency of the model. Forget gate
+weight matrix that controls the flow of past information. A value of 1 retains all information,
+zero for complete removal, and values between zero and one allow partial transfer of the previous
+state to the current state, as mentioned as follows.}
+
+
+\begin{equation}\label{input}
+i_t = \sigma(W_i \cdot [h_{t-1}, x_t] + b_i)
+\end{equation}
+\begin{equation}\label{tanh input}
+\tilde{C}_t = \tanh(W_c \cdot [h_{t-1}, x_t] + b_c)
+\end{equation}
+
+\textcolor{magenta}{The symbol $i_t$ denotes input gate vector, at time $t$. The symbol $\sigma$ represents sigmoid activation function. $W_i$ is the weight matrix associated with the forget gate. $h_{t-1}$ denotes hidden state from the previous time step. The $x_t$ is the current input vector and $b_i$ denotes bias vector for input gate.}
+
+
+\textcolor{magenta}{The next step includes selecting what information goes into the cell state. This is done in two stages. First, input gate, which is a sigmoid layer, identifies the information that will be
+updated. Subsequently, a tanh layer computes a vector of new candidate values, which could
+potentially be added in the cell state. These two values are integrated to update the cell state. At each time step, previous cell state
+interacts with the forget gate to determine what information should be retained. Furthermore,
+the updated information is combined with new inputs from input gate to create the new cell
+state, or update memory, as given in equation given as follows.}
+
+\begin{equation}\label{cell state}
+C_t = f_t \cdot C_{t-1} + i_t \cdot \tilde{C}_t
+\end{equation}
+
+\textcolor{magenta}{In above equation, $f_t$ denotes the forget gate. ${C}_t$, $C_{t-1}$ and $\tilde{C}_t$ represent the candidate cell, the previous cell state and the new cell
+state, respectively.}
+
+
+
+\textcolor{magenta}{In the last step, the hidden state ${h}_t$  is computed. The tangent function ($tanh$) is applied to the
+cell state ${C}_t$ and the result passes through the softmax layer to produce its output ${o}_t$, as shown in Eqs. \eqref{outut}-\eqref{tanho}. The cell
+state values are scaled between -1 and 1 to filter the outputs. After this, MSE loss calculates the difference between predicted and actual target to provide a basis for
+error correction.}
+
+
+
+\begin{equation}\label{outut}
+o_t = \sigma(W_o \cdot [h_{t-1}, x_t] + b_o)
+\end{equation}
+\begin{equation}\label{tanho}
+h_t = o_t \cdot \tanh(C_t)
+\end{equation}
+
+ 
+
+\begin{equation} \label{Loss}
+\text{Loss} = \frac{1}{N} \sum_{i=1}^{N} \left( y_i - \hat{y}_i \right)^2
+\end{equation}
+
+In the backpropagation process, gradients are propagated in the backward direction using loss as described in Eq. \eqref{Output gradient}-\eqref{candidate cell state gradient}. These gradients, $\frac{\partial Loss}{\partial o_t}$, $\frac{\partial Loss}{\partial C_t}$, $\frac{\partial Loss}{\partial f_t}$, $\frac{\partial Loss}{\partial i_t}$, $\frac{\partial Loss}{\partial \tilde{C}_t}$, are computed with respective gates, \textit{i.e.} $\hat{y}_t$, $h_t$, $f_t$, $i_t$, and $\tilde{C}_t$.
+
+
+\begin{equation}\label{Output gradient}
+    \frac{\partial Loss}{\partial o_t} = \frac{\partial Loss}{\partial h_t} \odot \tanh(C_t)
+\end{equation}
+
+
+
+\begin{equation}\label{cell state gradient}
+    \frac{\partial Loss}{\partial C_t} = \frac{\partial Loss}{\partial h_t} \odot o_t \cdot (1 - \tanh^2(C_t)) + \frac{\partial Loss}{\partial C_{t+1}} \odot f_{t+1}
+\end{equation}
+
+\begin{equation}\label{forget gate gradient}
+    \frac{\partial Loss}{\partial f_t} = \frac{\partial Loss}{\partial C_t} \odot C_{t-1}
+\end{equation}
+
+\begin{equation}\label{input gate gradient}
+    \frac{\partial Loss}{\partial i_t} = \frac{\partial Loss}{\partial C_t} \odot \tilde{C}_t
+\end{equation}
+
+
+\begin{equation}\label{candidate cell state gradient}
+    \frac{\partial Loss}{\partial \tilde{C}_t} = \frac{\partial Loss}{\partial C_t} \odot i_t \cdot (1 - \tanh^2(\tilde{C}_t))
+\end{equation}
+
+Furthermore, the weights and biases of each gate, \textit{i.e.} $W_f$, $W_i$, $W_c$, $W_o$, and $b_f$, $b_i$, $b_c$, $b_o$, are updated during the backpropagation process to minimize loss, \textit{i.e.} MSE. Finally, the weight and bias are updated using the standard method, as mentioned below.
+
+\begin{equation}\label{weights update}
+    W_{t+1} = W_t - \eta \cdot \frac{\partial Loss}{\partial W_t}
+\end{equation}
+
+
+\begin{equation} \label{bais update}
+    b_{t+1} = b_t - \eta \cdot \frac{\partial Loss}{\partial b_t}
+\end{equation}
+
+\textcolor{magenta}{The Adam optimizer then updates the weights $W_t$ and biases $b_t$. This calculates the gradients, such as $\frac{\partial Loss}{\partial W_t}$ and $\frac{\partial Loss}{\partial b_t}$. The parameters are further adjusted in the direction to minimize
+MSE. The size of each update is controlled by the learning rate $\eta$. After each iteration, the
+model has updated its weight $W_{t+1}$ and bias $b_{t+1}$.
+Similarly, the feed-forward and back-propagation processes are continued with each epoch. The calculated loss indicates the reduction or enhancement in loss during each iteration.}
+\begin{equation}\label{convergence}
+\text{Stop training if } \frac{\text{Loss}_{\text{previous}} - \text{Loss}_{\text{current}}}{\text{Loss}_{\text{previous}}} < \epsilon
+\end{equation}
+
+Furthermore, the relative improvement between the previous loss value ${\text{Loss}_{\text{previous}}}$ and the current loss value ${\text{Loss}_{\text{current}}}$ is calculated.  
+This process continues iteratively until the point when a model has minimized the error at the threshold $\epsilon$ and the model is converged.
+
+
+
+
+
+
+
+ 
+
+\begin{figure*}[!h]
+    \centering
+    \includegraphics[height=3in]{energy prediction/lstm-mffs.drawio(5).drawio.png}
+    \caption{The process of hyper-parameter optimization using MFF.}
+    \label{fig:A deep Learning Framework using LSTM and Modified Firefly}
+\end{figure*}
+
+
+
+\subsection{A Meta-heuristic Firefly Approach}
+
+\subsubsection{The Conventional Firefly Approach}
+The FF is a nature-inspired meta-heuristic approach. The primary purpose of the light behind these FF is to attract each other. The intensity of the fireflies decreases with distance, and fireflies move in search space for exploration. This nature-inspired behavior of fireflies is adopted by standard meta heuristic FF optimization, to optimize the solution. The FF approach operates with the following three factors: the mutual attraction of fireflies; their brightness (which establishes how attractive they are in relation to each other's distance), and the search region of the optimization problem responsible for controlling their luminescence. 
+
+
+The equation of FF is given by Eq. \eqref{eq:firefly}.
+\begin{equation}
+\mathbf{x}_i(t+1) = \mathbf{x}_i(t) + \beta_0 e^{-\gamma r^2} (\mathbf{x}_j - \mathbf{x}_i) + \alpha(t) \mathbf{\epsilon},
+\label{eq:firefly}
+\end{equation}
+
+
+where ${x}_i(t+1)$ and ${x}_i(t)$ represent the new position of the $i^{th}$ firefly at the time $t$+1 and the current position of the $i^{th}$ firefly at the time $t$, respectively. Furthermore, symbol $\beta_0$ is the initial attractiveness constant, defining the base level of attraction between fireflies. The symbol $e^{-\gamma r^2}$  depicts how attractiveness decreases with distance. Symbol $\gamma$ is the coefficient for light absorption that determines the rate at which attractiveness fades with distance. Meanwhile, symbol $r$ is the distance between $i^{th}$ and $j^{th}$ fireflies, calculated as $||{x}_j - {x}_i||$. This indicates the direction and magnitude of attraction of $j^{th}$ firefly to $i^{th}$ firefly, which also causes their movement. Finally, $\alpha(t)$ and ${\epsilon}$ are scaling factors for random movement and random vectors to add stochasticity to movement, allowing the firefly to explore the search space.
+
+
+
+
+\subsubsection{A Novel Modified Firefly Approach}
+
+The conventional FF is a meta-heuristic optimization technique inspired by the tendency of fireflies to flash. This method has issues, such as premature convergence and limited global search or exploration. \textcolor{blue}{The FF method, which is discussed in Subsection III-B(1), is modified with additional parameters to resolve such issues of standard FF \cite{FF} and to identify both local and global optimum values.} These parameters are chaotic maps (logistic and Gauss/mouse maps) and levy flights (see the discussion below). 
+
+\paragraph{Logistic Chaotic Maps}
+Logistic chaotic maps generate initial population of hyper-parameter settings for the LSTM model, ensuring exploration of the search space. The logistic maps show chaotic behavior for certain parameters as shown in Eq. \eqref{log}.
+
+
+\begin{equation}\label{log}
+    x_{n+1} = r x_n (1 - x_n), \quad 0 \leq x \leq 1 \quad 
+\end{equation}
+where \(x_n\) is a value at the current iteration \(n\), \(x_n+1\) is a value at the next iteration \(n+1\), and \(r\) is a parameter between 0 and 1 that determines the behavior of a map. Parameter \(x_n\) is an initial solution, generated using this map, avoiding local minima, and finding a global optimum.
+
+
+
+
+\paragraph{Gauss Maps}
+The Gauss maps update attractiveness parameter $\beta$, while the optimization process ensures the linear and non-linear updates for better exploration and exploitation. The Gauss map is defined as shown in Eq. \eqref{fraq}. 
+\begin{equation}
+\label{fraq}
+{\beta_{t+1}} = \frac{1}{\beta_t}{\mod(1)}
+\end{equation}
+\textcolor{blue}{At each iteration, the next value of $\beta$, $\beta_{t+1}$ is computed as the reciprocal of the current value $\beta_t$, with the results reduced to modulus 1.} This process produces a sequences of values that randomly appear and show chaotic behavior, ensuring that $\beta$ evolves unpredictably between 0 and 1. This enhances exploration across a large range of values and reduces the risks that the optimization process converges prematurely.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+\paragraph{Levy Flights}
+Finally, the levy flights parameters
+are used to move fireflies to brighter fireflies with a step length, following a levy distribution, and ensuring the balance between local exploitation and global exploration. The step length of levy flights is calculated as shown in Eq. \eqref{levy}.
+
+\begin{equation}\label{levy}
+    X_i \leftarrow X_i + \text{Levy}(X_j - X_i)
+\end{equation}
+Eq. \eqref{levy} represents the step length using levy flights that is used to update the solutions to provide global search.  For example, symbols \(X_i\) and \(X_j\) represent the candidate solution in the search space. If \(X_j\) has a better fitness value than \(X_i\), then the algorithm moves \(X_i\) closer to \(X_j\). This movement improves the chances of converging towards the global optimum by exploiting the better solution \(X_j\) while exploring the search space.
+
+
+
+
+
+
+
+
+\subsubsection{A Modified Firefly-driven LSTM Approach}
+
+
+            In this subsection, we discuss the novel study that implements MFF with the LSTM approach.
+            The proposed algorithm \ref{alg:WF} is designed to optimize the hyper-parameters of LSTM, as illustrated in Fig. \ref{fig:A deep Learning Framework using LSTM and Modified Firefly}. The hyper-parameters are the number of hidden units of each LSTM layer, the number of layers, the length of the sequence, and the learning rate for the Adam optimizer, all of which are tuned using MFF, as given in Table \ref{Hyperparameters Values Of Schemes}. \textcolor{blue}{The initial inputs of these hyperparameters were not fixed and the same, but these were defined with specific ranges. In detail, the initial population was selected using uniform random sampling. However, logistic chaotic maps, Gauss Maps, and Levy flight in MFF dynamically chose the best candidate solution from search space while taking the exploration and exploitation issue into account.} Next, the mapping function is the core output that relates the optimal solution ($X_{opt}$) to the real hyper-parameter values.
+Initially, ($X_{opt}$) is set to infinity, while the parameter $\eta$ is set to 0.4, indicating the initial optimization point with the goal of decreasing the error. The firefly population is initialized using values generated by a logistic chaotic map by creating a vector for each firefly (see Eq. \eqref{vector}).
+
+
+
+
+\begin{algorithm}[htp]
+		\SetAlgoLined
+		\DontPrintSemicolon
+		\KwIn{
+			\begin{itemize}
+				\item 
+				Hyper-parameters range for: number of hidden units, number of layers, sequence length, number dense layer units, learning rate. 
+				\item Population size for the search algorithm N, max\_iterations.
+		\end{itemize}} 
+		\KwOut{opt\_solution \tcp{\small Best solution found for the hyper-parameters.} }
+		\textbf{Initialize}:
+		\begin{itemize}
+			\item  $y^* = \infty$, $\eta = 0.4$  \tcp{\small $y^*$ as the best solution.}
+	
+			\item  $\mathbf{X}_n=[\mathbf{x}_1,\mathbf{x}_2,\mathbf{x}_3,...,\mathbf{x}_N],
+			\mathbf{x}_n =[x_1,x_2,x_3,x_4,x_5], x_i\in [0,1]$. \tcp{\small initial population using logistic chaotic map.}
+		\end{itemize}
+		\textbf{Define}:
+		\begin{itemize}
+			\item 
+			$\mathbf{h}(\mathbf{x}_n)$ = mapper($\mathbf{x}_n$,parameters\_range).
+			\item $\mathbf{D}(\mathbf{x}_n) =$ Dataset($\mathbf{x}_n$)
+			\item $F(\mathbf{x}_n)$  = LSTM( $\mathbf{D}(\mathbf{x}_n)$ , $\mathbf{h}(\mathbf{x}_n)$ ).
+ 			\item $y_n(F(\mathbf{x}_n) ) = $ MSE($F(\mathbf{x}_n)$ , true values) \tcp{\small cost function.}
+		\end{itemize}
+		
+		\While{$t<$ max\_iterations}
+		{
+				 $\alpha = \alpha_0 0.9^{t}$\;
+				 update $\beta$ via chaotic map operator (Gauss map).\;
+				 Evaluate the population solutions $\mathbf{y}=[y_1(\mathbf{x}_1),y_2(\mathbf{x}_2),...,y_N(\mathbf{x}_N)]$.
+				 $y^* = \min( \min(\mathbf{y}), y^* )$.\; %\tcp{\small update best cost.} 
+				
+				 $\mathbf{x}^* =\mathrm{arg\,min}(y^*)$\tcp{\small update best solution.}
+				
+				 		\For{i=1:N}{
+					 \For{j=1:N}
+					{
+						 \If{$I_j>I_i$}
+						{
+							Move $X_i$ to $X_j$ using Levy flight step length
+						}
+					}
+				}
+				
+		 }
+		opt\_solution = mapper($\mathbf{x}^* $,parameters\_range)\;
+		return opt\_solution 
+		\caption{\centering The proposed LSTM-MFF-based optimized solution}
+		\label{alg:WF}
+	\end{algorithm}
+
+
+
+
+
+ 
+
+
+\begin{equation}\label{vector}
+    \text{[} x_1,x_2,x_3,x_4 \text{]},    \quad 0 \leq x_i \leq 1 \quad 
+\end{equation}
+
+Each $[x_i]$ given in Eq. \eqref{vector} is between 0 and 1. These vectors represent a potential solution corresponding to a set of LSTM hyperparameters. In addition, the fitness of each firefly is indicated as $F(X_n)$, which is calculated based on the MSE between the result predicted by the LSTM model trained using parameters derived from $X_n$ and the actual result in the test data set. The algorithm iteratively adjusts light absorption coefficient $\alpha$ using an exponential decay factor of 0.9. This reduces visibility of the fireflies to enhance exploitation capabilities. In addition, the attractiveness of fireflies $\beta$ is dynamically updated using a chaotic map, such as Gauss map. This helps to maintain diversity in the population and prevent premature convergence. During each iteration, the fitness value for each firefly is evaluated, and the best solution ($X_{opt}$) is updated. For instance, if a $j^{th}$ FF has a lower MSE than a firefly \textit{i}, then the algorithm moves the firefly from \textit{i} to \textit{j} using the Levy flight step length, thereby enabling both local and global exploration of hyper-parameter space. The iteration process continues until the maximum number of iterations is reached, ensuring a potential optimal setting for the LSTM hyperparameters.
+       
+
+
+
+\begin{table}[!h]
+\centering
+\caption{\centering Best hyper-parameter values achieved for the optimized prediction outcomes.}
+
+\label{Hyperparameters Values Of Schemes}
+
+\begin{tabular}{|p{0.22\linewidth}|p{0.1\linewidth}|p{0.12\linewidth}|p{0.12\linewidth}|p{0.12\linewidth}|}
+\hline
+\rowcolor[HTML]{C0C0C0}
+\hline
+\centering \textbf{Schemes} & \centering \textbf{Units} & \centering \textbf{N\_Layer} &  \centering\textbf{Sequence} & \textbf{L\_Rate }\\
+\hline
+Modified Firefly & \centering 72 & \centering 1 & \centering 23 & 0.010 \\
+\hline
+\centering Firefly & \centering 92 & \centering 1 & \centering 30 & 0.004 \\
+\hline
+\centering LSTM & \centering 15& \centering 1 & \centering 7 & 0.001 \\
+\hline
+
+\end{tabular}
+\end{table}   
+
+
+
+
+
+
+
+
+
+
+\section{Results and Discussion} \label{Results and Discussion}
+
+In this section, we provide a comprehensive discussion on the simulation environment, a detailed analysis of the proposed scheme's findings, and compare the results with the existing schemes.
+
+\subsection{The Simulation Environment}
+
+The simulation environment used in the present study was set up with the following specifications: This includes a 12\textsuperscript{th} generation Intel(R) Core(TM), i9-12900 processor operating at 2400 MHz with 16 cores and 24 logical processors, supported by 32GB of RAM and a GeForce RTX 3080 GPU. The scheme development was performed on integrating the Spyder IDE, Keras, Scikit-learn, and TensorFlow 2.10 libraries with Python (version 3.9). In addition, MFF technique was designed independently, since it was not included in the built-in features of Niapy library used to implement nature-inspired algorithms.
+
+
+
+\subsection{Data}
+
+In this study, we used time-series energy data collected from various appliances within a Portuguese household over a period of 96 days (see Table \ref{tab:appliances} for further detail) \cite{Ref2}. The original dataset with one sample per second was preprocessed using the moving average. Next, one percent of the overall sample dataset was selected for the subsequent model implementation.
+
+
+
+
+
+
+\begin{table}[htp]
+\centering
+\caption{Feature selection from the original dataset.}
+\label{Features Selection of Time Series dataset}
+\small
+\begin{tabular}{|p{0.18\linewidth}|p{0.47\linewidth}|p{0.18\linewidth}|}
+\hline
+\rowcolor[HTML]{C0C0C0}
+\textbf{Column} & \textbf{Description} & \textbf{Units} \\ \hline
+Timestamp & Timestamp (YYYY-MM-DD-HH-MM-SS) when the record was collected (UTC) & \textit{Datetime}  \\
+\hline
+P & Active Power & \textit{Watt} \\
+\hline
+Q & Reactive Power & \textit{VAR}  \\
+\hline
+V & Voltage RMS & \textit{Volt}  \\
+\hline
+I & Current RMS & \textit{Amp} \\ \hline
+\end{tabular}
+\end{table}
+
+
+
+
+
+\begin{table}[htp]
+  \centering
+  \caption{Portuguese household dataset with timestamps.}
+  \label{Dataset With Timestamps}
+  \resizebox{0.482\textwidth}{1\height}{%
+    \begin{tabular}{|c|c|c|c|c|}
+    \rowcolor[HTML]{C0C0C0}
+      \hline
+      \textbf{Timestamp} & \textbf{P} & \textbf{Q} & \textbf{V} & \textbf{I} \\
+      \hline
+      2016-10-05  23:05:00:932 & 0.0119  & -0.0062 & 0.2578 & 0.0272 \\
+      \hline
+      2016-10-05 23:05:01.932 & 0.0252 & -0.0132  & 0.5445 & 0.0574 \\
+      \hline
+      2016-10-05 23:05:02.932 & 0.0230  & -0.0121 & 0.4981 & 0.0524 \\
+      \hline
+      2016-10-05 23:05:03.932 & 0.0232  & -0.0122 & 0.5046 & 0.0531 \\
+      \hline
+      2016-10-05 23:05:04.932 & 0.0238  & -0.0124 & 0.5147 & 0.0543 \\
+      \hline
+      ... & .... & .... & .... & .... \\
+      \hline
+      2016-12-31 16:11:52.343 & 0.0832  & -0.0044 & 0.4908 & 0.1712 \\
+      \hline
+      2016-12-31 16:11:53.343 & 0.0869  & -0.0047 & 0.5120 & 0.1788 \\
+      \hline
+      2016-12-31 16:11:54.343 & 0.0814  & -0.0043 & 0.4793 & 0.1674 \\
+      \hline
+      2016-12-31 16:11:55.343 & 0.0886  & -0.0047 & 0.5218 & 0.1822 \\
+      \hline
+      2016-12-31 16:11:56.343 & 0.0000  & 0.0000 & 0.0000 & 0.0000 \\
+      \hline
+    \end{tabular}%
+  }
+\end{table}
+
+\begin{table}[!h]
+  \centering
+  \caption{Feature extraction from the original dataset.}
+  \label{Feature Extraction}
+  \resizebox{0.47\textwidth}{1\height}{%
+  \begin{tabular}{|c|c|c|c|c|c|c|}
+  \rowcolor[HTML]{C0C0C0}
+    \hline
+     \textbf{P} & \textbf{Q} & \textbf{V} & \textbf{I} & \textbf{MoH} & \textbf{DoW} & \textbf{HoD}\\
+    \hline
+    0.0119  & -0.0062 & 0.2578 & 0.0272 & 5 & 2 & 23 \\
+    \hline
+    0.0252 & -0.0132 & 0.5445 & 0.0574 & 5 &  2 & 23 \\
+    \hline
+     0.0230 & -0.0121 & 0.4981 & 0.0524 & 5 & 2 & 23 \\
+    \hline
+    0.0232  & -0.0122 & 0.5046 & 0.0531 & 5 & 2 & 23 \\
+    \hline
+    0.0238 &  -0.0124 & 0.5147 & 0.0543 & 5 & 2 & 23 \\
+    \hline
+  \end{tabular}%
+  }
+\end{table}
+
+
+
+ 
+\begin{figure}[!h]
+    \centering
+    \includegraphics[width= 9cm]{energy prediction/improved Matrix1.png}
+        \caption{Visualization of feature correlation of the data set.}
+    \label{Features correlation }
+\end{figure}
+The dataset consisted of the following four features: active power ($P$), reactive power ($Q$), voltage ($V$), and current ($I$) normalized with suitable parameters (see Tables \ref{Features Selection of Time Series dataset}-\ref{Dataset With Timestamps}). The correlation analysis for these features showed a strong correlation between $P$ and $I$, indicating potential redundancy (see Fig. \ref{Features correlation }). Therefore, column $I$ was eliminated to reduce the complexity of the model. Concurrently, Minute of Hour (MoH), Day of Week (DoW), and Hour of the Day (HoD) were extracted from the original dataset (see Table \ref{Feature Extraction}). Thereafter, the dataset was divided into 80\% for training and validation (with 30\% of this used for validation) and  20\% for testing, resulting in the overall split of 56\% training, 24\% validation, and 20\% testing. 
+
+
+
+
+
+
+
+
+\subsection{Evaluation Metrics}
+The proposed scheme's performance was evaluated based on actual and predicted results. For the evaluations, different metrics were included. These metrics were RMSE, MAE, and MAPE, and $R^2$ error. Furthermore, average errors in a grouping of forecasts were determined by MAE, while the percentages of error per estimate were determined by MAPE. For evaluating the goodness of fit of a regression model, the metric $R^2$ is an effective approach. All such metrics are mathematically represented in Eq. \eqref{RMSE1}-\eqref{R_Score}.
+
+
+
+
+
+
+ 
+
+
+
+\begin{equation}
+RMSE = \sqrt{\frac{1}{n} \sum_{i=1}^{n} (\hat{y}_i - y_i)^2}.
+\label{RMSE1}
+\end{equation}
+
+
+\begin{equation}
+    MAE = \frac{1}{n} \sum_{i=1}^{n} \left| \hat{y}_i - y_i \right|.
+    \label{MAE1}
+\end{equation}
+
+
+\begin{equation}
+MAPE = \frac{1}{n} \sum_{i=1}^{n} \left| \frac{y_i - \hat{y}_i}{y_i} \right|.
+\label{MAPE1}
+\end{equation}
+
+
+\begin{equation}
+    R^2 = 1-\frac{\sum_{i=1}^{n} (y_i -\hat{y}_i^2)}{\sum_{i=1}^{n} (y_i- \bar{y}^2)}.
+    \label{R_Score}
+\end{equation}
+
+where \(\hat{y}_i \), \( y_i \), and \( n \) represent predicted value, actual value, and the total number of observations, respectively. 
+
+
+
+ \begin{figure}[!h]
+		\centering		\includegraphics[width=3.63in]{ppp.pdf}
+		\caption{\centering RMSE for the best firefly solution in each iteration using convergence graph.}
+		\label{ff and mff}
+	\end{figure}
+
+
+
+ \begin{figure}[!h]
+		\centering
+		\includegraphics[width=3.45in]{results_updated/bar_plot_1sMAE.eps}
+		\caption{\centering Comparison for the MAE using different algorithms.}
+		\label{MAE}
+	\end{figure}
+\begin{figure}[!h]
+		\centering
+		\includegraphics[width=3.45in]{results_updated/bar_plot_1sRMSE.eps}
+		\caption{Comparison for the RMSE using different algorithms.}
+		\label{RMSE}
+	\end{figure}
+
+ 	
+
+  	\begin{figure}[!h]
+		\centering
+		\includegraphics[width=3.45in]{results_updated/bar_plot_1sMAPE.eps}
+		\caption{Comparison for the MAPE using different algorithms.}
+		\label{MAPE}
+	\end{figure}
+
+\begin{figure}[!h]
+		\centering
+		\includegraphics[width=3.45in]{results_updated/bar_plot_1sr2_score.eps}
+		\caption{Comparison for the $R^2$ using different algorithms.}
+		\label{R2}
+	\end{figure}
+
+ \begin{figure*}[!h]
+	\centering
+	\includegraphics[width=\linewidth, height=\linewidth]{energy prediction/newdata/PredictionsVsReal1s.png}
+	\caption{\centering Visualization of the performance analysis of existing schemes and LSTM-MFF based on data variation.}
+	\label{prediction vs real}
+	%\vspace{-15pt}
+\end{figure*}
+
+
+
+\begin{figure*}[!h]
+	%neeeds to be updated, xaxis -28:28
+	\centering
+	\includegraphics[scale=.56]{results_updated/scatter_plot_1s.png}
+	\caption{An illustration of the proposed scheme vs. the existing schemes in terms of prediction of active power (in Watt).}
+	\label{SCATTER PLOT}
+	\vspace{-15pt}
+\end{figure*}
+
+
+\subsection{A Case Study of the Proposed Scheme}
+As mentioned above, for a comprehensive analysis of the proposed ModLSTM model, the case study of energy consumption prediction at 1-second time interval was conducted. A key limitation of the standard FF lies in its initialization, which typically relies on uniform random sampling, leading to an unevenly distributed initial population. As a result, the algorithm's ability to explore the search space is restricted from the outset, increasing the risk of premature convergence. To address this challenge, this case study employs the MFF, where the population is strategically initialized using a logistic chaotic map. This approach ensures a more diverse and systematically distributed initial population, enhancing exploration and reducing convergence issues. Subsequently, LSTM was trained with a training dataset, and the parameters of LSTM were adjusted using a modified approach of fireflies in each iteration. Similarly, the best solution was updated at each iteration, and this process continued until it reached the convergence point. Fig. \ref{ff and mff} shows that the MFF converged after the sixth iteration, whereas the FF converged after twelve iteration. It is observed that MFF provided broader coverage of the search space, preventing the model from stagnating at local minima and enhancing its ability to find superior solutions.
+
+\textcolor{red}{Specifically, ablation analysis reveals that each component of MFF plays a unique and complementary role in improving optimization. If the levy flight parameter was removed from MFF, then it converged in $8^{th}$ iteration and caused a significant degradation in accuracy. As it confirmed its ability to solve the exploration issue and escape local minima. On the other hand, MFF without chaotic initialization converged slowly in $12^{th}$ iteration owing to low diversity in the population. However, incorporating adaptive inertia with MFF, it balanced the search in local and global minima. Henceforth, the combined effects of these parameters strengthen the MFF algorithm. As a result, converged faster and more stable in the sixth iteration.}
+
+
+
+\subsection{Performance Comparison with the Existing Schemes }
+
+The effectiveness of the proposed model was validated by comparing its performance with existing schemes, such as SVR, RFR, SAMFOR, LSTM, and LSTM-FF (see Fig. \ref{MAE}). Specifically, MAE was used to evaluate the performance algorithms, the lower value indicating a more accurate prediction. In the results, SVR and RFR showed the highest values of 55W and 32W, respectively, whereas SAMFOR's MAE amounted to 40W, which was higher than RFR, but lower than SVR. As compared to regression algorithms, LSTM showed extreme reduction in MAE, or 10W, while the LSTM-FF improved further, reducing MAE to 7W. Finally, the proposed LSTM-MFF showed the lowest MAE of 5W, indicating the most accurate prediction model in this comparison. 
+
+Similarly, RMSE was measured to analyze the performance of the aforementioned algorithms.  RMSE analysis in Fig. \ref{RMSE} showed that traditional models, such as RFR, SVR, and SAMFOR, had a higher MAE value between 150W and 175W, indicating poor performance compared to LSTM and LSTM-FF, which obtained 40W and 25W, respectively. However, the proposed LSTM-MFF model demonstrated the best performance among all algorithms in this analysis, with the lowest RMSE value of 20W. \textcolor{blue}{Fig.\ref{MAPE} shows that traditional models, such as RFR and SVR had the highest errors, with 6\% and 10\% MAPE, respectively. Furthermore, the SAMFOR model had a MAPE of 5\%, indicating better performance but it was still unsatisfactory. However, the baseline LSTM model achieved 3\% MAPE, which outperformed the regression-based algorithms. Finally, LSTM-FF and LSTM-MFF both scored MAPE close to 1\%. 
+Similarly, Fig. \ref{R2} also shows that regression-based algorithms, namely RFR and SVR, and the hybrid SAMFOR model $R^2$ perform inferior as Compared to LSTM model and its extended variants. As a result, LSTM-FF and LSTM-MFF scores 0.9978 and 0.9979 $R^2$, respectively. Consequently, LSTM-MFF model fits efficiently and provides superior accuracy than all baseline models.}
+
+
+ 
+ In Addition, the comparative performance analysis also indicated that traditional models, such as RFR and SVR were effective for linear types of regression problems. These models faced issues to capture the non-linear and temporal dependencies of data. 
+ Among the regression algorithms, the SAMFOR model performed better for predicting data with low variation; however, it significantly degraded the performance while applying high variation energy data. On the other hand, SVR and SAMFOR models also faced challenges dealing with the large datasets. Furthermore, the LSTM and LSTM-FF models captured long input sequences and temporal data; however, the LSTM-MFF technique fit the data more effectively, achieving reliable results. 
+  Fig. \ref{prediction vs real} illustrates energy prediction for four-hour-ahead using various models, including RFR, SVR, SAMFOR, LSTM, LSTM-FF, and LSTM-MFF. The short-term variation caused mismatches in expected active power for both SVR and RFR, whereas SAMFOR model provided a slightly improved pattern assessing, but fell short in handling immense variations. The LSTM model generally outperformed other regression models, with the LSTM-FF improving response to fluctuations. As a result, the proposed LSTM-MFF closely matched the actual values in active power, particularly during impulsive power fluctuations.
+ 
+   Fig. \ref{SCATTER PLOT} demonstrates that the proposed LSTM-MFF outperformed other algorithms. The SVR model significantly deviated from the optimum line, as actual values surpassed 1500 watts. Further, it predicted the higher actual values, with prediction data-points clustering below 1000 watts. RFR performed better; however, it still predicted under 1000 watts. The SAMFOR model indicated improvement, but its predictions for actual values above 2000 watts were still inadequate. On the other hand, the significant higher scattering was demonstrated in LSTM, especially for actual values above 1500 watts. To compare, the LSTM-MFF model showed a closed cluster of data points around optimum line, particularly for actual values above 2000 watts, where under-prediction was observed. Finally, the proposed LSTM-MFF aligned the most closely with the optimal line, effectively predicting both high and low values up to 3500 watts.
+
+   \begin{table*}[!h]
+    \centering
+    \color{orange}{
+    \caption{\centering \textcolor{orange}{Comparison of the proposed solution with the existing schemes.}}
+    \label{Results per hour}
+    \begin{tabular}{lccccccccc}
+    \rowcolor[HTML]{C0C0C0}
+        \hline
+        \textbf{Schemes} & \textbf{RMSE (W)} & \textbf{MAE (W)} & \textbf{MAPE} & \textbf{$R^2$} & \textbf{Train Time} & \textbf{Test Time} & \textbf{Parameters} & \textbf{Memory (MB)} & \textbf{Latency (ms/sample)} \\
+        \hline
+        SVR & 146.86 & 55.84 & 9.991 & 0.9200 & 0.29 & 2.8  & 50  & 60  & 12 \\
+        RFR & 142.76 & 35.60 & 5.696 & 0.9244 & 2.50 & 0.20 & 150 & 80  & 5  \\
+        SAMFOR & 164.39 & 46.26 & 4.581 & 0.8997 & 3.00 & 26.5 & 200 & 100 & 25 \\
+        LSTM & 30.97  & 11.36 & 2.936 & 0.9964 & 7.00 & 3.0  & 420 & 210 & 8  \\
+        LSTM FF & 24.21 & 7.966 & 3.009 & 0.9978 & 10.0 & 2.4  & 650 & 280 & 6  \\
+        \textbf{LSTM-MFF} & \textbf{23.554} & \textbf{6.605} & \textbf{2.512} & \textbf{0.9979} & \textbf{4.50} & \textbf{2.0} & \textbf{300} & \textbf{150} & \textbf{4} \\
+        \hline
+    \end{tabular}}
+\end{table*}
+
+
+The results of a comprehensive comparison of the proposed LSTM-MFF with existing schemes are shown in Table \ref{Results per hour}. In the table, the RMSE values for LSTM-FF and the proposed LSTM-MFF are very close, at 24.2 and 23.55, respectively. However, achieving this required additional processing time and iterations. MFF facilitated a faster identification of the optimal solution within the global search space, leading to earlier convergence. The computational efficiency of LSTM-MFF in terms of convergence stability and its superior prediction accuracy is also evaluated. Overall, the LSTM MFF obtained superior results as compared to the other schemes (namely, 23.554 RMSE, 6.605 MAE, 2.512 MAPE, and 0.9979 $R^2$). These results suggest that the proposed scheme accurately predicts irregular energy consumption with the highest precision.
+
+\textcolor{orange}{As per computational cost is concerned, SVR and RFR needed a minimum training time of up to 0.29 and 2.5 per second, but a higher inference latency of 12 and 5 milliseconds, respectively. LSTM and LSTM-FF required substantial parameters and memory. On the other hand, the LSTM-MFF required only 4.5 seconds for training, 150 MB of memory, and the lowest latency of 4 milliseconds per sample. In conclusion, LSTM-MFF achieved optimal computational efficiency with superior accuracy.}  
+
+
+\begin{figure}[!h]
+		\centering
+\includegraphics[width=3.5in]{boxplot.png}
+		\caption{ \centering {ANOVA test to compare the performance of different algorithms.}}
+		\label{Boxplot}
+	\end{figure}
+
+
+    
+ The Analysis of Variance (ANOVA) test was also implemented for statistical analysis to compare the performance of the different algorithms implemented in this study. The test was performed by first calculating the absolute error for each model that was previously defined as the difference between the predicted and actual values.  Subsequently, these errors distributions were analyzed using one-way ANOVA to assess statistical differences among the models. This test produced a p-value of 0, strongly rejecting the null hypothesis that all forecasting models have equivalent error distributions. 
+Fig. \ref{Boxplot} shows the results of the ANOVA test using a boxplot and ensures that the differences in absolute errors among the models were statistically significant and not due to random variation. The box plot analysis revealed significant variations in the predictive performance of the models evaluated. SVR and RFR models demonstrated the highest median error of 19.43 and the broadest Interquartile Range (IQR), indicating inferior performance. Similarly, the SAMFOR model was performed comparably to the LSTM based approaches, and it attained second-lowest median error. LSTM and LSTM-FF obtained relatively lower median errors. The proposed ModLSTM model achieved the lowest median error of 3.07 and the tightest IQR between 1.43 and 5.70, which demonstrated superior accuracy compared to other approaches. The smaller IQR and lower whisker bounds of the proposed ModLSTM demonstrated its enhanced robustness and reduced variability in predictions.
+ Overall, these results were aligned with performance evaluation metrics, particularly highlighting the superior accuracy of the LSTM variants and the proposed ModLSTM with the lowest error.
+
+\subsection{Edge-based Deployment Feasibility}
+\textcolor{cyan}{The results show that ModLSTM converges faster than standard FF. ModLSTM has only 1.2×
+training overhead as compared to LSTM. Once the model was trained, the final model was inherently small with a single-layer LSTM with 72 hidden units and a memory footprint under
+2MB. This makes the model lightweight and suitable for real-time edge deployment. Edge
+platforms such as Raspberry Pi, ARM Cortex-A processors, and NVIDIA Jetson boards can
+run a single-layer ModLSTM of this size without difficulty. This makes the model capable of
+being deployed directly in low-power embedded systems for energy management system to achieve NZEBs goals.}
+
+\section{Future Directions}
+
+\subsection{\textcolor{cyan}{Ethical Implications}}
+
+
+\subsubsection{\textcolor{cyan}{Large-Scale Deployment, Bias and Fairness} }\textcolor{cyan}{The study includes a benchmark Portuguese house dataset. Moreover, there is further scope to expand this evaluation in a distinguished dataset with weather and appliance-based usage patterns. In the future, we will extend the ModLSTM by fusing multi-source data from multiple buildings, such as REFIT and UK-DALE. Implementing the proposed model on the dataset of multiple buildings and cities would ensure bias and fairness, during large-scale deployment.}
+
+
+
+
+\subsubsection{\textcolor{cyan}{User Data Privacy}}
+\textcolor{cyan}{ModLSTM can be combined with privacy-preserving techniques, such as federated learning. The user's behavioral pattern and personal sensitive information can also be protected using Differential Privacy, while simulating the model of distributed buildings.}
+
+\subsubsection{\textcolor{cyan}{Algorithmic Transparency}} \textcolor{cyan}{Explainable AI-based SHAP method can be further used with ModLSTM to improve model interpretability. SHAP will provide feature attribution of individual input to make the user understand the model's decision-making process.}
+\subsection{IOT Integration and Model Advancements}
+\subsubsection{\textcolor{cyan}{{Smart Buildings}}}
+\textcolor{cyan}{Future work will focus on large-scale integration in heterogeneous smart buildings. Authors plan to implement an edge-based framework for system scalability and interoperability. In this way, compliance will be provided with emerging smart building standards, such as BACnet and MQTT-based IOT architectures.}
+\subsubsection{\textcolor{cyan}{{Transformer-based Models}}}
+\textcolor{cyan}{ The proposed work shows how ModLSTM efficiently handles sequential dependencies. As human consumption patterns are uncertain, the future study will shift its focus to seek seasonal and annual trends for the energy management system. Where, the Transformer-based models with its multi-head attention will solve the issue of limited memory cell. Therefore, this architecture will efficiently learn long-range dependencies.}
+\vspace{0.5em}
+\textcolor{red}{\subsection{Stakeholder Implications}
+\subsubsection{Policymakers} ModLSTM can be extended to simulate policy-driven scenarios. These scenarios can be renewable energy incentives, low-carbon pricing schemes, and demand-response regulations. Thus, simulating energy demand in distinguished policy assumptions, ModLSTM could help policymakers design data-driven schemes that increase the adoption of NZEBs.
+\subsubsection{Building Designers} Beyond short-term forecasting, ModLSTM results can be extended to a digital twin. The designers can then virtually test the integration of the RESs, the HVAC configuration, and storage requirements in the early design process to increase the energy efficiency of the building.
+\subsubsection{Energy Managers} The current study focuses on forecasting energy, but ModLSTM results can be embedded in a real-time energy management system. Integrating the predictions with control algorithms can allow to automate load scheduling, adaptive participation in demand-response programs. In this way, the proposed framework can be shifted from a predictive model to an energy control framework for NZEBs.}
+
+\section{Conclusion} \label{Conclusion}
+In this paper, we presented an effective DL framework for accurately forecasting building energy consumption. This framework contributes to achieving NZEB's goals for self-sustainability. The results revealed that the proposed ModLSTM framework achieved superior performance in capturing complex long-term dependencies and overcoming the limitations of existing schemes by amalgamating LSTM and MFF. The effectiveness of the proposed model was then evaluated against traditional energy consumption prediction techniques, such as RFR, SVR, SAMFOR, LSTM, and LSTM-FF. The regression and SAMFOR techniques handled low variation data, whereas LSTM and its extended techniques were found to achieve superior results with high variation data. Therefore, the energy prediction during 1-second time intervals highlighted the efficient outcome of the LSTM-MFF approach that converged faster,  iterated less, and achieved the lowest MSE. These results offer important implications in the context of NZEBs initiatives, energy efficiency, and environmental sustainability. Further research can explore various areas of the applications of this framework in smart consumer electronics, edge-based energy optimization, and
+sustainable building practices.  
+
+
+
+ \section*{Acknowledgements} This research was supported by the Department of Science and Technology (DST) and the India-Canada Centre for Innovative Multidisciplinary Partnerships to Accelerate Community Transformation and Sustainability (IC-IMPACTS), and the Centre of Excellence with grant NO. (DST/IC/IC-IMPACTS/2022/P-8 (G)).
+ 
+ 
+ 
+
+\ifCLASSOPTIONcaptionsoff
+  \newpage
+\fi
+\medskip
+\bibliography{biblographyfile}
+\bibliographystyle{ieeetr}
+%\printbibliography
+\end{document}
+
+
+
+
+
+\begin{table*}[!h]
+    \centering
+    \caption{\centering Comparison of the proposed solution with the existing schemes.}
+    \label{Results per hour}
+    \begin{tabular}{lcccc}
+    \rowcolor[HTML]{C0C0C0}
+        \hline
+    \textbf{Schemes}  & \textbf{RMSE (W)} & \textbf{MAE (W)} & \textbf{MAPE} (\%) & \textbf{$R^2$ score}\\
+        \hline
+        SVR & 146.86 & 55.84 & 9.991 & 0.9200\\
+        RFR & 142.76 & 35.60 & 5.696 & 0.9244 \\
+        SAMFOR & 164.39 & 46.26 & 4.581 & 0.8997\\
+        LSTM & 30.97 & 11.36 & 2.936 & 0.9964\\
+        LSTM FF & 24.21 & 7.966 & 3.009 &0.9978\\
+        LSTM-MFF & \textbf{23.554} & \textbf{6.605} & \textbf{2.512} &\textbf{0.9979}\\
+        \hline
+    \end{tabular}
+\end{table*}
+
+
+In Eq. \eqref{forget}, the sigmoid activation function $\sigma$ calculates a value between 0 and 1 for each component of the cell state $C_{t-1}$, using the previous hidden state $h_{t-1}$ and the current input state $x_t$. This value is further applied through an element-wise multiplication operation on $f_t$ and $C_{t-1}$. Here, $b_f$ is a forget gate bias vector that modifies sigmoid activation function, providing greater flexibility and improving the model's learning efficiency. $W_f$ refers to forget gate weight matrix that measures how much information is retained or discarded. Specifically, a value of 1 preserves all information, while a value of 0 discards all information; the values between 0 and 1 control the proportion of information passed from previous state to current state (see Eq. \eqref{input}-\eqref{tanh input}).
+
+
+
+The next step includes selecting what information goes into the cell state. This is done in two stages. First, input gate $i_t$, which is a sigmoid layer, identifies the information that will be updated. Subsequently, a tanh layer computes a vector of new candidate values $\tilde{C}_t$, which could potentially be added in the cell state. These two values are integrated to update the cell state. The cell state acts as the memory in an LSTM, providing a major advantage over traditional recurrent neural networks for handling long sequences. At each time step, previous cell state $C_{t-1}$ interacts with the forget gate to determine what information should be retained. Furthermore, the updated information is combined with new inputs from input gate $f_t$ to create the new cell state $\tilde{C}_t$, or update memory (see in Eq. \eqref{cell state}).
+
+
+
+Finally, hidden state $h_t$ is computed and passed through softmax layer to produce its output $o_t$ after applying the hyperbolic tangent function ($tanh$) to the cell state $C_t$, as shown in Eq. \eqref{outut}-\eqref{tanho}. This essentially causes the cell state values to be scaled ranging from -1 to 1, which effectively filters their outputs. Next, the loss function, namely, Mean Squared Error (MSE),  calculates the difference between predicted output and actual target, providing a basis for error correction.
+
+
+Next, the adjustment of weight and bias parameters is performed using the Adam optimizer by computing the gradients, such as $\frac{\partial Loss}{\partial W_t}$ and $\frac{\partial Loss}{\partial b_t}$ of the loss function with respect to these parameters. The current weight parameter $W_o$ and the current bias $b_t$ are adjusted in the direction that minimizes the loss function, \textit{i.e.} MSE, with the magnitude of updates specified by learning rate $\eta$. After each iteration $t$, the model has updated its weight  $W_{t+1}$  and bias $b_{t+1}$.

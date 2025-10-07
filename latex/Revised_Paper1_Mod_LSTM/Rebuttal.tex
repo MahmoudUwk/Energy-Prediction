@@ -1,0 +1,579 @@
+\documentclass[12pt]{article}
+\usepackage[a4paper,top=15mm,left=20mm,right=20mm]{geometry}
+\usepackage{lineno,hyperref}
+\usepackage{subfigure}
+\usepackage{graphicx}
+\usepackage{epstopdf}
+%\usepackage{subcaption}
+\usepackage{graphicx}
+\usepackage{multirow}
+\usepackage{enumitem}
+%\usepackage{subcaption}
+\usepackage{color,soul}
+\usepackage{xcolor}
+\modulolinenumbers[5]
+\usepackage{longtable}
+\usepackage{amsfonts}
+\usepackage{pifont}
+\usepackage{csquotes}
+\usepackage{threeparttable}
+\usepackage{threeparttablex}
+%\usepackage{biblatex}
+\usepackage{array} % add in preamble
+\usepackage[figuresright]{rotating}
+\usepackage{amsmath,bbm}
+\usepackage{colortbl}
+\usepackage{xcolor}
+\usepackage[ruled,vlined]{algorithm2e}
+\usepackage{setspace}
+\usepackage{mathtools}
+\DeclarePairedDelimiter\floor{\lfloor}{\rfloor}
+\usepackage[capitalise]{cleveref}
+\renewcommand{\baselinestretch}{1}
+
+
+
+%\title{ \textit\textbf
+
+
+\begin{document}
+\hspace{-0.7cm}\textbf{Title:} Energy Consumption Forecasting in Net-Zero
+Energy Buildings: Firefly-Driven LSTM for Smart
+Consumer Electronics and Edge-Based Energy
+Optimization\\
+%\begin{center}
+	\textbf{Manuscript ID: }\text{TCE-2025-08-2516}\\
+	\textbf{Manuscript Type:} Original Article
+%\end{center}
+
+
+
+\begin{center}
+	\fontsize{14}{1}\textbf{\underline{Response to Editor}}\\
+\end{center}
+
+The authors sincerely thank the Editor and Reviewers for their valuable time and constructive feedback, which have greatly helped in improving the manuscript. We have carefully addressed all the suggestions and incorporated the corresponding revisions into the updated version.
+
+
+
+\begin{center}
+	\fontsize{14}{1}\textbf{\underline{Response to Reviewers}}\\
+\end{center}
+
+
+\begin{center}
+\fontsize{14}{1}\textbf{\underline{Reviewer 1}}\\
+\end{center}
+
+
+
+
+
+\noindent\textbf{Comment 1:} \textbf{Summary of the Manuscript:} This manuscript presents a novel hybrid forecasting model, referred to as ModLSTM, which integrates a Long Short-Term Memory (LSTM) network with a Modified Firefly (MFF) optimization algorithm. The study focuses on predicting energy consumption in Net-Zero Energy Buildings (NZEBs), with emphasis on smart consumer electronics and edge-based control. The Portuguese household energy dataset was used to evaluate the proposed model, and its performance was benchmarked against classical machine learning models such as Support Vector Regression (SVR), Random Forest Regression (RFR), and the SAMFOR hybrid model.
+The hybrid architecture improves upon standard LSTM models by addressing issues like vanishing gradients, fixed memory, and inadequate hyperparameter tuning. The introduction of chaotic maps and Levy flights into the firefly optimization process enhances search space exploration and avoids premature convergence. The authors report significant performance improvements in terms of MAE, RMSE, MAPE, and R² over baseline models. \newline
+\vspace{0.15cm}\textbf{Response:}
+\noindent\textcolor{black}{We sincerely thank the reviewer for recognizing the key aspects of our manuscript.}\newline
+\newline
+
+\noindent\textbf{Comment 2:} \textbf{Strengths of the Manuscript:} 
+
+
+
+
+
+
+\noindent\textbf{Comment 2.1:} \textbf{Novel Hybrid Approach:} The integration of LSTM with a Modified Firefly algorithm represents a compelling advancement in time-series prediction. By embedding logistic chaotic maps, adaptive inertia weight, and Levy flight, the MFF addresses the classical limitations of the Firefly Algorithm, particularly its susceptibility to local minima and early convergence. This enriched design ensures broader search space exploration and increases convergence speed. \newline
+
+
+   
+   
+   \noindent\textbf{Comment 2.2:} \textbf{Relevance to NZEB and Smart Energy Systems:} Given the increasing global emphasis on sustainable architecture, including NZEBs, the proposed method is highly relevant. The capacity to accurately forecast short-term energy demand from heterogeneous household devices supports efficient energy resource allocation, demand response, and load balancing—key components in NZEB operations. \newline
+
+
+   \noindent\textbf{Comment 2.3:} \textbf{Performance Evaluation with Real-World Data:} The study utilizes a high-resolution, real-world dataset collected over 96 days from a Portuguese household, which enhances the practical significance of the model. The decision to sample data at one-second intervals further stresses the temporal sensitivity of the prediction task and highlights the robustness of the model under complex, high-frequency conditions. \newline
+
+
+
+\noindent\textbf{Comment 2.4:} \textbf{Performance Evaluation with Real-World Data:} The manuscript presents a rigorous comparison against a variety of benchmark models. It convincingly demonstrates that the proposed ModLSTM model consistently outperforms SVR, RFR, SAMFOR, and both untuned and Firefly-optimized LSTM variants. The inclusion of statistical significance testing using ANOVA strengthens the validity of the conclusions. 
+\vspace{0.15cm}
+%\newline
+
+\hspace{-1.5em}\textbf{Response:}
+\noindent\textcolor{black}{Authors appreciate the reviewer’s encouragement and valuable feedback highlighting the strengths of the manuscript.}\newline
+\newline
+
+\noindent\textbf{Comment 3:} \textbf{Weaknesses and Areas for Improvement}
+\newline
+
+
+
+\noindent\textcolor{black}{\noindent\textbf{Comment 3.1:} \textbf{Limited Dataset Diversity:} While the Portuguese household dataset is widely used and publicly available, it represents a singular context—one household in a specific geographic and climatic region. This limits the generalizability of the model. Incorporating datasets from diverse buildings, climates, and consumer behavior patterns would bolster the claim of model robustness.}
+\vspace{0.15cm}
+
+\hspace{-1.5em}\textbf{Response:}
+The authors sincerely thank the reviewer for highlighting the importance of dataset diversity in strengthening the robustness and generalizability of the proposed model. We fully agree that incorporating datasets from varied geographic, climatic, and behavioral contexts (e.g., REFIT, UK-DALE, PECAN Street) would provide valuable additional insights.
+
+However, the integration of such datasets within the scope of this study posed practical challenges. In particular, these datasets differ substantially from the Portuguese household dataset in terms of sampling resolution, granularity (appliance-level versus aggregate consumption), and preprocessing requirements. Direct comparison without extensive harmonization would risk compromising consistency and reproducibility. 
+
+For this reason, and in alignment with prior studies in the literature, we focused on the Portuguese dataset, which is publicly available, widely used, and well-suited for benchmarking.
+We acknowledge this as a limitation and have explicitly noted it in the revised manuscript. Looking ahead, we are committed to extending our work to include REFIT, UK-DALE, and other diverse datasets as part of future research to enhance model robustness and external validity. We are grateful to the reviewer for underscoring this valuable direction.\newline
+\newline
+
+
+
+
+\noindent{\noindent\textbf{Comment 3.2:} \textbf{Insufficient Discussion on Computational Complexity:
+} Although the manuscript emphasizes convergence speed and improved optimization, it does not quantify the additional computational burden introduced by MFF compared to standard Firefly or LSTM-only models. Given that edge-based systems have limited computational resources, a discussion of model scalability and real-time deployment feasibility would be valuable.}
+\vspace{0.15cm}
+
+\hspace{-1.5em}\textbf{Response:}
+\noindent\textcolor{black}{We thank the reviewer for highlighting the importance of discussing computational complexity and deployment feasibility. We have extended the analysis by incorporating a comparative evaluation of computational overhead for all benchmark models.
+This includes training time, number of parameters, memory usage, and latency, as provided in \textbf{Table VII} in the revised manuscript. This comparative analysis explicitly quantifies the overhead introduced by MFF in comparison to the standard Firefly and LSTM models.}\newline
+\newline
+
+
+\noindent\textbf{Comment 3.3:} \textbf{Ethical and Practical Considerations Missing:} The paper lacks a discussion on the ethical implications of automated decision-making in energy management systems, particularly concerning privacy and fairness in user behavior modeling. Additionally, the manuscript could benefit from elaboration on practical deployment—how the ModLSTM model would integrate with existing building management systems or smart meters. 
+\vspace{0.15cm}
+
+%%%%%%%%%%%%%%%%%
+\hspace{-1.5em}{\textbf{Response:} In the revised manuscript, the authors have included a dedicated subsections titled “\textbf{Ethical Implications” and "Edge-Based Deployment Feasibility"} to address the reviewer’s concern.
+\vspace{0.15cm}
+
+\textbf{a) Ethical Implications:}
+The proposed ModLSTM framework relies exclusively on open-source, anonymized datasets, ensuring that no personally identifiable information is exposed in the current study. In line with the reviewer’s suggestion, we will implement advanced privacy-preserving mechanisms such as federated learning and differential privacy in future work to safeguard user data during real-time deployment. Furthermore, we will also implement fairness validation strategies to detect and mitigate biases arising from variations in user behavior and appliance usage patterns across different households.\textbf{(Section:V-A, Page No.: 12, Column: Right, Color: Cyan)}
+\vspace{0.15cm}
+
+\textbf{b) Edge-based Deployment Feasibility:}
+In the revised version, we have elaborated on how the proposed ModLSTM model can be integrated into existing energy management systems (EMS) and smart metering infrastructures. Its lightweight architecture and modular design make it suitable for deployment on both edge devices and cloud-based platforms, supporting automated decision-making for optimal energy scheduling in line with NZEB goals. As part of future work, we will implement large-scale pilot testing of the ModLSTM framework within real-world EMS environments to further evaluate interoperability, scalability, and deployment efficiency.} \textbf{(Section: IV-F, Page No.: 12, Column: Left, Color: Cyan)}\newline
+%%%%%%%%%%%\newline
+\newline
+
+
+
+\noindent\textbf{Comment 4:} \textbf{Recommended Revisions}
+
+
+% \hspace{-1.5em}\textbf{Response:}
+% \noindent\textcolor{blue}{ We acknowledge the reviewer’s valuable recommendations. We have carefully revised the manuscript, following the recommendations.}\newline
+
+
+
+
+\noindent\textcolor{black}{\noindent\textbf{Comment 4.1:} \textbf{Include Broader Dataset Validation:} To ensure that the model is adaptable and robust across different environments, the authors are encouraged to validate their framework on additional datasets or simulate varying conditions such as seasonal changes, occupancy variations, or regional power usage norms.}
+\vspace{0.15cm}
+
+\hspace{-1.5em}\textbf{Response:}
+We sincerely appreciate the reviewer’s thoughtful observation regarding dataset diversity and the importance of testing across multiple contexts to strengthen the claim of robustness. We fully agree that incorporating datasets from diverse buildings, climates, and consumer behavior patterns would provide a more comprehensive evaluation of the model.
+
+At present, our analysis is constrained to the Portuguese household dataset due to the public availability and accessibility of standardized consumption records. Unfortunately, comparable open datasets with similar granularity and consistency across different regions were not available to us during this study. We have therefore focused on extracting as much insight as possible from this widely used benchmark dataset, which has also been employed in prior studies to enable comparability.
+
+We acknowledge this as a limitation and have highlighted it explicitly in the revised manuscript. Looking ahead, we are actively exploring the possibility of extending our work to additional datasets as they become available. We believe such extensions will be a valuable direction for future research, and we thank the reviewer for underscoring its importance.\newline
+\newline
+
+
+
+
+\noindent\textbf{Comment 4.2:} \noindent\textcolor{black}{\textbf{Elaborate on Computational Resource Requirements:} A brief complexity analysis or runtime comparison among models would clarify the practicality of deploying the ModLSTM framework in low-power embedded systems, which is crucial for smart edge devices in NZEBs.}
+
+\vspace{0.15cm}
+
+\noindent{\textbf{Response:}  We have added a comparative analysis of computational complexity and runtime in Section IV. The results show that ModLSTM converges faster than standard FF. ModLSTM has only ~1.2× training overhead as compared to LSTM. Once the model was trained, the final model was inherently small with a single-layer LSTM with 72 hidden units and a memory footprint under 2MB. This makes the model lightweight and suitable for real-time edge deployment. Edge platforms such as Raspberry Pi, ARM Cortex-A processors, and NVIDIA Jetson boards can run a single-layer ModLSTM of this size without difficulty. This makes the model capable of being deployed directly in low-power embedded systems for NZEBs.}
+ \textbf{(Section:IV-F, Page No.: 12, Column: Left, Color: Cyan)}\newline
+\newline
+\noindent\textbf{Comment 4.3:} \textbf{Add a Section on Ethical Implications:} The authors should consider incorporating a short section addressing the ethical dimensions of data-driven energy forecasting, such as user data privacy, algorithmic transparency, and biases in prediction models. This is increasingly expected in AI-enabled control systems, especially those affecting consumers directly.
+\vspace{0.15cm}
+
+\hspace{-1.5em}\textbf{Response:}
+In the revised manuscript, the authors have included a dedicated subsection, 
+titled as \textbf{“Ethical Implications”} to address the reviewer’s concern. Specifically, we have discussed the important facts, such as user data privacy, algorithmic transparency, and bias mitigation in AI-based control systems.
+\vspace{0.15cm}
+
+\textbf{1. User Data Privacy:} Future work will integrate privacy-preserving learning frameworks, such as federated learning and secure data aggregation. Techniques like differential privacy will be explored to prevent sensitive information leakage during data sharing across distributed sources.
+\vspace{0.15cm}
+
+\textbf{2. Algorithmic Transparency:} Future work will incorporate explainable AI (XAI) techniques, such as SHAP, to enhance interpretability. Visualization and feature attribution methods will be used to make the model decision process transparent to end users.
+\vspace{0.15cm}
+
+\textbf{3. Bias and Fairness in Prediction Models:} Two benchmark datasets have been incorporated in the revised manuscript, to  minimize dataset-specific bias and improve model generalization. Future work will extend this evaluation to diverse datasets representing different user demographics and appliance profiles to ensure fairness and robustness of the proposed framework.\newline
+The detailed description of the same is included in the revised manuscript. \textbf{(Section: V-A, Page No.: 12, Column: Right, Color: Cyan).}
+\newline
+
+\noindent\textbf{Comment 4.4:} \textbf{Discuss Real-World Integration Pathways:} While the study is methodologically strong, a forward-looking discussion on how the proposed model could be integrated into actual energy management infrastructure—such as IoT frameworks or energy management systems (EMS)—would add practical depth.
+\vspace{0.15cm}
+
+\hspace{-1.5em}\textbf{Response:}
+\noindent\textcolor{black}{In response, we have added a brief discussion in the Conclusion section outlining potential real-world integration pathways for the proposed ModLSTM framework. Specifically, we have highlighted that the model can be embedded within IoT-enabled Energy Management Systems (EMS) for real-time demand prediction and adaptive control in NZEBs.}\newline
+\noindent\textcolor{black}{The model’s lightweight computational structure and fast convergence make it suitable for edge or cloud-based deployment, where it can process sensor data streams and provide proactive energy scheduling. Furthermore, the proposed framework can be integrated with the EMS to dynamically balance generation and consumption. Future research will explore its deployment through IoT gateways using protocols such as MQTT or OPC-UA evaluate its interoperability with existing smart building infrastructures.}
+\noindent\textcolor{black}{ The detailed description of the
+same has been incorporated in the manuscript \textbf{(Section: V-B(1), pp.: 12-13, Column: Left-Right, Color: Cyan).}}\newline
+
+
+
+
+\noindent\textbf{Comment 4.5:} \textbf{Suggested Citations:} \\
+DOI: 10.32604/cmc.2023.033273 \\
+DOI: 10.1109/ACCESS.2023.3298955 \\
+DOI: 10.3390/math10234421 \\
+DOI: 10.32604/cmc.2023.031723 \\
+DOI: 10.110a9/ACCESS.2023.3253430 \\
+
+\hspace{-1.5em}\textbf{Response:} \noindent\textcolor{black}{As per the suggestions of the reviewer, the authors  have added the relevant research outcomes
+of these papers and cited as \textbf{[38],[39],[40],[41],[45]} in the revised manuscript.}\newline
+\newline
+%DOI: 10.32604/cmc.2023.033273 is cited as reference number \cite{RC1}.\\
+%DOI: 10.1109/ACCESS.2023.3298955 is cited as reference number \cite{RC2}.\\
+%DOI: 10.3390/math10234421 is cited as reference number \cite{RC3}.\\
+%DOI: 10.32604/cmc.2023.031723 is cited as reference number \cite{RC4}.\\
+%DOI: 10.110a9/ACCESS.2023.3253430 is cited as reference number \cite{RC5}.\\
+
+
+
+
+\begin{center}
+	\fontsize{14}{1}\textbf{\underline{Response to Reviewer 2}}\\
+\end{center}
+
+
+
+The manuscript “Energy Consumption Forecasting in Net-Zero Energy Buildings: Firefly-Driven LSTM for Smart Consumer Electronics and Edge-Based Energy Optimization” presents a work of good novelty, strong validation, and high relevance. It is technically sound, but it still requires some revisions—especially the inclusion of diverse datasets, ablation studies, and a clearer justification of novelty.
+\vspace{0.15cm}
+
+\hspace{-1.5em}\textbf{Response:}\noindent\textcolor{black}{The authors sincerely thank the reviewer for recognizing the novelty, technical soundness, and relevance of our work. We have carefully addressed the suggested revisions by clarifying the novelty, conducting additional analyses where feasible, and explicitly noting dataset limitations with future directions.}\newline
+\newline
+
+\noindent\textbf{Strengths:} \newline
+\noindent\textbf{Comment 1:} The paper demonstrates strong technical rigor in the field of energy consumption forecasting, smart buildings, and hybrid optimization methods.
+
+
+\noindent\textbf{Comment 2:} The integration of the Modified Firefly Algorithm (MFF) with LSTM to improve forecasting accuracy is a valuable contribution.
+
+
+\noindent\textbf{Comment 3:} The experimental validation is comprehensive, comparing the proposed method against multiple benchmarks (SVR, RFR, LSTM, SAMFOR, and LSTM-FF). The proposed approach consistently shows superior results.
+
+
+
+\noindent\textbf{Comment 4:} The statistical validation using ANOVA further improves the credibility of the findings.
+
+
+
+\noindent\textbf{Comment 5:} The hybridization of LSTM with MFF (using chaotic maps, adaptive inertia, and levy flights) is original in this context and addresses key shortcomings of standard Firefly optimization.
+
+
+
+
+\noindent\textbf{Comment 6:} The focus on Net-Zero Energy Buildings (NZEBs) and edge-based optimization is timely and relevant to sustainability goals.
+
+
+
+
+\noindent\textbf{Comment 7:} The mathematical modeling of both LSTM and MFF is clearly explained with equations.
+
+
+
+\noindent\textbf{Comment 8:} Performance evaluation includes a wide range of metrics (RMSE, MAE, MAPE, R²) and detailed comparisons.
+
+
+
+\noindent\textbf{Comment 9:} The results show significant improvements (e.g., MAE reduced to 6.6 W compared to 11.3 W for LSTM, R² = 0.9979), confirming the efficiency of the proposed method.
+\vspace{0.15cm}
+
+\hspace{-1.5em}\textbf{Response:}
+Authors sincerely appreciate the reviewer’s encouragement and valuable feedback highlighting the strengths of our manuscript.
+\newline
+\newline
+
+\noindent\textbf{Weaknesses:} 
+
+\noindent\textbf{Comment 1:} While the MFF–LSTM integration is presented as novel, other works have already explored combinations of metaheuristics and deep learning (e.g., PSO-LSTM, DE-LSTM, GA-LSTM). The manuscript should clearly highlight "what is new beyond parameter tuning".
+\vspace{0.15cm}
+
+\hspace{-1.5em}\textbf{Response:} The authors agree that PSO-LSTM, DE-LSTM, and GA-LSTM metaheuristic combinations already exist. However, our proposed MFF-MSTM framework goes beyond conventional parameter optimization in the following key aspects. 
+\begin{itemize}
+    
+
+\item  \textbf{Beyond Parameter Tuning: }The elements in MFF, such as chaotic logistic maps, adaptive inertia weight, and Lévy flight, make the optimizer an adaptive and self-evolving framework rather than a fixed tuning mechanism of PSO-LSTM, DE-LSTM, and GA-LSTM. Thus, LSTM-MFF efficiently handles highly nonlinear and time-varying NZEBs energy data. \textbf{(Section: I-A, Page No.: 3, Column: Left, Color: Red)}
+
+\item \textbf{Empirical Significance:} The MFF introduces chaotic logistic maps, adaptive inertia weight, and Lévy flight. This improves the balance between exploration and exploitation, prevent premature convergence, and reduce computational overhead. This evidences the functional advantage of the proposed hybridization beyond conventional parameter tuning. In the future, this computationally efficient framework can be extended for real-time edge deployment.  \textbf{(Section: IV-D, Page No.: 9, Column: Right, Color: Red)}
+\end{itemize} 
+
+\noindent\textbf{Comment 2:} \textcolor{black}{Only one dataset (Portuguese household dataset) is used. Relying on a single case limits generalization. Including at least one or two more datasets (e.g., REFIT, UK-DALE, or PECAN Street) would strengthen external validity}
+\vspace{0.15cm}
+
+\hspace{-1.5em}\textbf{Response:}
+We thank the reviewer for the valuable suggestion regarding dataset diversity and agree that testing across multiple datasets (e.g., REFIT, UK-DALE, PECAN Street) would indeed enhance external validity. 
+
+However, incorporating these datasets within the present study is not straightforward due to significant differences in sampling resolution, appliance-level granularity, and preprocessing requirements compared with the Portuguese dataset. These disparities would require extensive harmonization efforts that are beyond the current scope.
+
+We have therefore focused on the Portuguese household dataset, which is widely used in the literature and ensures comparability with prior studies. We have explicitly acknowledged this limitation in the revised manuscript and highlighted the importance of future work on extending our model to REFIT, UK-DALE, and other diverse datasets to strengthen generalizability across regions and contexts.\newline
+\newline
+
+
+
+
+\noindent\textbf{Comment 3:} \noindent\textcolor{black}{The paper mentions “edge-based optimization”, but no deployment or computational complexity analysis is provided.}
+\vspace{0.15cm}
+
+\hspace{-1.5em}\textbf{Response:}
+\noindent\textcolor{black}{Reviewer's suggestion is well addressed. In the revised manuscript, we have added a discussion on a comparative analysis of computational complexity, given in the \textbf{Section IV, Table VII}. This comparison highlights framework's lightweight architecture. Further, the detailed discussion on how the proposed lightweight architecture can be deployed in real-time edge devices is provided in \textbf{(Section:V-F, Page No.:12, Column:Left-Right, Color:Cyan).}}\newline
+\newline
+
+%\noindent\textcolor{red}{Reviewer's suggestion is well addressed. In the revised manuscript, we have added a comparative analysis of computational complexity. ModLSTM features a lightweight architecture. The final reduced to a single-layer LSTM with 72 hidden units and a memory footprint under 2MB. This compact design can be extended to edge-based deployment. This can allow real-time energy management on low-power platforms such as Raspberry Pi, ARM Cortex-A processors, and NVIDIA Jetson boards.}\newline
+
+
+
+
+
+\noindent\textbf{Comment 4:} The literature review does not include the latest studies (2023–2025) on hybrid deep learning and swarm intelligence for energy forecasting. For example, Transformer-based models and newer bio-inspired optimizers (HHO, GWO, Aquila Optimizer) should be discussed.
+\newline
+
+%\vspace{0.05cm}
+\hspace{-1.5em}\textbf{Response:} Considering reviewer's observation, authors have included the latest studies (2023-2025) on hybrid deep learning and swarm intelligence for energy forecasting. The suggested models related studies have been cited as reference \textbf{[18],[19],[20] in section I} of the revised manuscript.\newline
+\newline
+
+\noindent\textbf{Comment 5:} The practical implications for policymakers, building designers, and energy managers are only briefly mentioned. Expanding this discussion would improve the paper’s impact.
+\vspace{0.15cm}
+
+\hspace{-1.5em}\textbf{Response:} In the revised version, we have extended the discussion by outlining how the proposed ModLSTM framework can be further implemented for policymakers, building designers, and energy managers.\newline
+\begin{itemize}
+    \item \textbf{Policymakers:} The proposed framework can be extended to evaluate policy-driven scenarios. The scenarios can be the impact of renewable energy incentives, demand-response regulations, or carbon pricing schemes. Thus, simulating energy demand under different policy assumptions, ModLSTM could help policymakers design data-driven strategies that accelerate NZEBs adoption.\newline
+\item \textbf{Building Designers:} Beyond forecasting, the proposed approach can be further integrated into building design simulation tools. In the future, ModLSTM predictions can be integrated with digital twin environments. This would allow designers to virtually test renewable integration, HVAC system, and storage configurations during the early design phase. This extension would enable proactive design optimization for NZEBs.\newline
+\item \textbf{Energy Managers:} The proposed study primarily focused on forecasting. However, future research can extend the framework to real-time energy management systems. The integration of ModLSTM predictions with control algorithms will support energy managers to automate load scheduling, optimize participation in demand-response systems, and dynamically manage energy storage. Overall, This would extend the framework from a forecasting model toward a decision-support and operational control system.\newline
+\end{itemize}
+
+\noindent\textcolor{black}{The detailed description about the same
+has been incorporated in the revised manuscript. \textbf{(Section:V-C, Page No.:13, Column:Left, Color:Red)}} \newline
+\newline
+
+
+
+\noindent\textcolor{black}{\noindent\textbf{Comment 6:} To support the “edge-based” claims, the authors should provide training time, number of parameters, memory usage, and inference latency.}
+\vspace{0.15cm}
+
+\hspace{-1.5em}\textbf{Response:}
+\noindent\textcolor{black}{The reviewer's suggestion is well addressed. We have included a comparison \textbf{Table VII} of computational complexity, memory required, and latency. The results show that ModLSTM converges faster than standard FF and has only ~1.2× training overhead as compared to LSTM. The lightweight architecture makes it suitable for smart edge devices in NZEBs. The detailed description about edge-based deployment
+has been incorporated in the revised manuscript \textbf{(Section: IV-F, Page No.:12, Column:Left-Right, Color: Cyan).}}\newline
+\newline
+
+
+
+
+\noindent\textcolor{black}{\noindent\textbf{Comment 7:} An ablation study showing the contribution of each MFF component (chaotic maps, levy flights, adaptive inertia) by disabling them step by step would strengthen the justification.}
+\vspace{0.15cm}
+
+
+
+\hspace{-1.5em}\textbf{Response:} \noindent\textcolor{black}{In response to reviewer's suggestion, an ablation study has been provided to better understand the contribution of each Modified Firefly (MFF) and its comparative analysis has been added in the revised manuscript. \textbf{(Section:IV-D, Page No.:9, Column:Right, Color:Red)}}\newline
+\newline
+
+
+
+
+
+
+\noindent\textbf{Comment 8:} The scalability of the method should be discussed, particularly its extension to multi-building or city-scale forecasting.
+\vspace{0.15cm}
+
+% \hspace{-1.5em}\textbf{Response:} \noindent\textcolor{black}{ Authors sincerely thanks to the reviewer for highlighting the scalability aspect of the proposed method. The proposed work focuses on single-building case study on Portuguese house dataset. In line with the reviewer's suggestion, we will extend the proposed methodology to larger scales.\newline
+% For multi-building or city-scale forecasting, the following point supports its scalability.}
+
+% \textcolor{black}{ 1. In the future, we will extend the ModLSTM framework by incorporating multi-source data fusion, such as weather, occupancy, and grid-level data and federated learning approaches. This will support distributed and collaborative training with shared model between multiple buildings. Such an extension would ensure privacy preservation during large-scale deployment across cities. We have expand this discussion in the revised manuscript. \textbf{(Section: V-A(1), Page No. 12, Color: Cyan)}}\newline
+% \newline
+
+\textbf{Response:}  We sincerely thank the reviewer for highlighting the scalability aspect of the proposed method. The current work primarily focuses on a single-building case study using the Portuguese house dataset. However, we agree that the extension of the methodology to multi-building or even city-scale forecasting is an important direction for future research. Accordingly, we have expanded the discussion in the revised manuscript.  
+
+For multi-building and city-scale scenarios, we envision the following key extensions that support scalability:  
+
+\begin{enumerate}
+    \item \textbf{Multi-source data fusion} -- The ModLSTM framework can be expanded to incorporate heterogeneous data sources such as weather forecasts, occupancy patterns, and grid-level signals. This would enhance the predictive capability across diverse building types and geographical contexts.  
+
+    \item \textbf{Federated learning approaches} -- By leveraging federated learning, the proposed framework can support distributed and collaborative training while enabling knowledge sharing across buildings. Importantly, this would preserve data privacy during large-scale deployments, making it suitable for applications across districts or entire cities.  
+\end{enumerate}
+
+These extensions will provide a pathway for adapting the framework beyond single-building forecasting, thus ensuring practical scalability for real-world large-scale energy management systems. We have expand this discussion in the revised manuscript. \textbf{(Section: V-A(1), Page No. 12, Color: Cyan)}
+\newline
+
+\noindent\textbf{Comment 9:} The paper should briefly address data privacy and integration challenges in smart buildings.
+\vspace{0.15cm}
+
+\hspace{-1.5em}\textbf{Response:} 
+\noindent\textcolor{black}{In response to the reviewer’s suggestion, we have expanded the manuscript to address the challenges of data privacy and integration in smart buildings.}
+\begin{itemize}
+
+\item  \textbf{Data Privacy:} In the present study, the proposed ModLSTM framework is evaluated using an open-source, anonymized dataset, ensuring that no personally identifiable information is exposed. Nevertheless, we recognize that real-world smart building deployments raise significant privacy concerns. To this end, we have discussed privacy-preserving approaches such as federated learning and differential privacy, which can safeguard user data during large-scale or real-time applications. In addition, fairness validation strategies are highlighted to detect and mitigate biases arising from variations in occupant behavior and appliance usage. \textbf{(Section: V-A(1), Page No: 12, Column: Right, Color: Cyan)}
+
+\item \textbf{Smart Buildings Integration:} We also acknowledge the integration challenges in connecting heterogeneous smart buildings. To address this, we have discussed extending the framework towards edge–cloud architectures that enable scalable and responsive deployment. Such integration would further ensure compatibility with emerging smart building standards, including BACnet and MQTT-based IoT platforms, thereby supporting interoperability at scale. \textbf{(Section: V-B(1), Page No: 12, Column: Left, Color: Cyan)}
+
+\end{itemize}
+\vspace{0.5cm}
+
+
+\noindent\textbf{Comment 10:} The abstract should include quantitative highlights (e.g., “RMSE reduced by 24\% compared to LSTM-FF, R² = 0.9979”).
+\vspace{0.15cm}
+
+\hspace{-1.5em}\textbf{Response:} \noindent\textcolor{black}{ Following reviewer's suggestion, the authors have added the quantitative performance metrics in the \textbf{Abstract} section  of the revised manuscript.}
+\newline
+%\noindent\textcolor{blue}{The results prove the efficacy of the
+%proposed methodology, as it achieved an RMSE of 23.55W, and R² of 0.99 outperformed as compared to the existing schemes.}\newline
+
+
+
+
+\noindent\textbf{Comment 11:} The conclusion could be expanded with future directions such as multi-source data fusion, transformer-based models, and federated learning.
+\vspace{0.15cm}
+
+\hspace{-1.5em}\textbf{Response:} \noindent\textcolor{black}{ As suggested by the reviewer, we have expanded  this study to highlight future research directions in the revised manuscript.}
+\noindent{Future work can be explored in the following directions.
+\begin{itemize}
+    \item \textbf{Multi-Source Data Fusion:} The current study uses time-series energy data from appliances of the building. In the future, it can be extended by fusing multiple sources such as weather conditions, occupancy patterns, and real-time IoT sensor data. This would allow the model to capture richer contextual dependencies and improve the accuracy of forecasts in dynamic environments.\textbf{(Section:V-A(1), Page.No: 12, Column: Right, Color: Cyan)}
+\item \textbf{Transformer-Based Model:} The proposed work shows how the ModLSTM framework effectively handles sequential dependencies. In the future, we will extend the work with implementation of transformer-based architectures with self-attention. This architecture will improve performance by effectively learning long-range dependencies without the limitations of fixed memory cells. \textbf{(Section:V-B(2), Page.No: 12, Column: Right, Color: Cyan)}
+\item \textbf{Federated Learning:} In the future, we will extend the proposed framework to distributed learning environments. In such an environment, multiple buildings can collaboratively train a shared model without exchanging raw data. This federated learning will preserve the privacy of the data. This will support large-scale deployment between buildings and cities. \textbf{(Section: V-A(2), Page.No: 12, Column: Right, Color: Cyan)}
+\newline
+\end{itemize}
+
+
+
+\noindent\textbf{Comment 12:} Several figures (e.g., Fig. 5–11) lack high resolution, clear captions, and statistical significance indicators.
+
+
+\hspace{-1.5em}\textbf{Response:} \noindent\textcolor{black}{As per reviewer's suggestions, authors have updated  Fig. 5 -Fig. 11 with high resolution versions to ensure clarity.}
+\newline
+
+\noindent\textbf{Comment 13:} The flowchart in Fig. 1 could be refined for better readability.
+
+
+\hspace{-1.5em}\textbf{Response:}
+\noindent\textcolor{black}{As reviewer suggested, the flowchart in \textbf{Fig. 1} has been carefully refined.  The updated flowchart includes improved labeling, alignment, and clearer visual representation.}\newline
+\newline
+\noindent\textbf{Comment 14:} The manuscript includes long, dense sentences and some repetition (especially in the explanation of LSTM gates). This should be simplified for clarity.
+\vspace{0.15cm}
+
+\hspace{-1.5em}\textbf{Response:} \noindent\textcolor{black}{In response to reviewer's suggestion, we have carefully revised the manuscript to improve readability by simplifying long and dense sentences.}
+
+In particular, in the methodology section, the explanation of the LSTM gates has been simplified to avoid repetition. The gates have been presented in a clear and concise way, with equations to support the text. \textbf{(Section:III-A  Page.No: 4-5, Column: Right-Left, Color: Magenta)}\newline
+\newline
+
+
+
+
+
+\begin{center}
+	\fontsize{14}{1}\textbf{\underline{Reviewer 3}}\\
+\end{center}
+
+
+
+\hspace{-2em} The work is good but there is a major room for further improvement. Please consider the following comments for further improvement.
+
+
+\noindent\textbf{Comment 1:} The figures appear blurred and unclear; please update them with higher-resolution versions.
+\vspace{0.15cm}
+
+\hspace{-1.5em}\textbf{Response:} \noindent\textcolor{black}{As per reviewer's suggestions, authors have updated the figures with high resolution versions to ensure clarity. The revised figures can be found in the revised manuscript (\textbf{Figs. 1-12}). }\newline
+\newline
+
+
+\noindent\textbf{Comment 2:} It would be better to present all tables in a single-column format spanning the page for improved readability.
+\vspace{0.15cm}
+
+\hspace{-1.5em}\textbf{Response:} \noindent\textcolor{black}{In response to reviewer's suggestion, authors have reformatted the width of the tables with increased readability and \textbf{Table-VII} formatted in single-column of the page width. The revised tables can be found in the revised manuscript.}
+\newline
+\newline
+
+
+\noindent\textbf{Comment 3:} The equations and algorithms are currently small in size; please enlarge them for better visibility.
+\vspace{0.15cm}
+
+\hspace{-1.5em}\textbf{Response:} \noindent\textcolor{black}{As per reviewer's suggestion, the equations and algorithm have been enlarged to improve the visibility and readability.}\newline
+\newline
+
+
+
+
+\noindent\textbf{Comment 4:} Consider adding a comparison table with state-of-the-art (SOTA) methods in the literature review (LR) discussion to highlight the contribution of your work.
+\vspace{0.15cm}
+
+\hspace{-1.5em}\textbf{Response:} \noindent\textcolor{black}{In response to reviewer's suggestion, authors have added a detailed comparison table in the Introduction section that summarizes the state-of-the-art (SOTA) prediction and optimization approaches along with their characteristics and limitations.  The detailed description of the same has been incorporated in the revised manuscript. \textbf{(Section: I, Page No.: 2, Table I, Color: Cyan)}}\newline
+\newline
+
+
+
+
+
+\noindent\textbf{Comment 5:} Can you justify the LSTM and Edge based energy optimization with some technical statements?
+\vspace{0.15cm}
+
+\hspace{-1.5em}\textbf{Response:}
+The authors thank the reviewer for this important comment.
+The choice of LSTM is motivated by its proven ability to capture long-term temporal dependencies in energy consumption data.
+This capability is essential for modeling periodic occupant behavior, appliance usage patterns, and the impact of external factors such as weather.
+Unlike conventional feedforward models, LSTMs use gating mechanisms to control information flow.
+These mechanisms mitigate the vanishing gradient problem.
+As a result, LSTMs enable more accurate sequence learning in building energy forecasting.
+
+From a deployment perspective, the trained ModLSTM model is inherently compact (a single-layer LSTM with 72 hidden units, which requires less than 2 MB of storage). This lightweight architecture makes it feasible for real-time inference on resource-constrained edge devices such as Raspberry Pi, ARM Cortex-A, and NVIDIA Jetson. Edge deployment offers key advantages in NZEBs, including low-latency decision making, reduced dependency on cloud connectivity, improved data privacy, and the ability to perform localized optimization (e.g., demand response and load shifting) at the building level.
+
+These technical considerations together justify both the use of LSTM and the focus on edge-based energy optimization. 
+The detailed description of the
+same has been incorporated in the revised manuscript \textbf{(Section: IV-F, Page No. 12:, Column: Left and Right, Color: Cyan)}
+\newline
+\newline
+
+
+\begin{center}
+	\fontsize{14}{1}\textbf{\underline{Reviewer 4}}\\
+\end{center}
+
+\hspace{-1.5em} For energy consumption forecasting in net-zero energy buildings, this study proposes a hybrid LSTM architecture based on an improved firefly algorithm. This algorithm optimizes the structure of LSTM by improving firefly algorithm. The technical route is clear, and it has academic rigor and certain innovation. The main problems are as follows:
+\newline 
+
+\noindent\textbf{Comment 1:} There are some mistakes in the article, which need to be corrected. \newline
+
+\noindent\textbf{(a)} In III. MATHEMATICAL MODELING, “The FF method is modified with additional parameters to resolve these issues of standard FF and to identify both local and global optimum values.”. The reference of "The FF method" in the sentence is unknown.
+\vspace{0.15cm}
+
+\hspace{-1.5em}\textbf{Response:} 
+\noindent\textcolor{black}{In Section III, the phrase “The FF method” refers to the conventional Firefly Algorithm (FF) introduced earlier in Subsection III-B(1), titled “The Conventional Firefly Approach.” This subsection presents the standard FF algorithm, its parameters, and working principle.}
+
+\textcolor{black}{The subsequent sentence then explains how this standard FF was extended by incorporating additional parameters such as logistic chaotic maps, Gauss maps, and Lévy flights. These modifications address key limitations of the conventional FF, namely premature convergence and restricted global search capability.}
+
+\textcolor{black}{The authors now clarified this reference in the revised manuscript to explicitly state that “\textbf{The FF method}” denotes the conventional Firefly Algorithm introduced in Subsection III-B(1).} \textbf{(Page No. 6, Column: Left-Right, Color: Blue)}\newline
+
+\noindent\textbf{(b):} In the same section, $\beta_t+1$ is inconsistent with the formula (18).
+\vspace{0.15cm}
+
+\hspace{-1.5em}\textbf{Response:} \noindent\textcolor{black}{Authors agree with reviewer's comment. The incorrect notation $\beta_t+1$ has been carefully corrected to $\beta_{t+1}$, which is now fully align with the formula (18).} \textbf{(Page No. 6, Column: Right, Color: Blue)}\newline
+\newline
+
+
+\noindent\textbf{Comment 2:} Please explain the source of the best hyperparameter of LSTM in Table II.
+
+
+\hspace{-1.5em}\textbf{Response:} 
+\noindent\textcolor{black}{In response to the reviewer’s suggestion, we have clarified that the best hyperparameters of LSTM in Table II were obtained through optimization rather than manual selection. The Firefly (FF) and Modified Firefly (MFF) algorithms explored predefined hyperparameter ranges, and the final values represent the optimized solutions based on validation MSE. This ensures both fairness and reproducibility.} \textbf{(Section: III, Page No.: 7, Column: Left, Color: Blue)}\newline
+
+\noindent\textbf{Comment 3:} Whether the initial hyper-parameters of LSTM are the same and how to select them when optimizing hyper-parameter with firefly and modified firefly methods.
+
+
+\hspace{-1.5em}\textbf{Response:} \noindent\textcolor{black}{The initial hyper-parameters of the LSTM were not fixed but defined within predefined ranges. The Firefly (FF) and Modified Firefly (MFF) algorithms were then used to search these ranges. In FF, the initial population was generated using uniform random sampling. In MFF, logistic chaotic maps created a more diverse population. Adaptive inertia weight and Lévy flight were further used for better exploration and exploitation. Thus, the initial values were not the same and the optimal hyper-parameters were adaptively selected through the respective optimization process. However, the authors have clarified this point in the revised manuscript.} \textbf{(Section: III, Page No.: 7, Column: Left, Color: Blue)}\newline\newline
+
+
+\noindent\textbf{Comment 4:}  In E. Performance Comparison with the Existing Schemes, Figure 8 can't reflect the contents in “Finally, LSTM-FF and LSTM-MFF both scored R2 close to 1\% and 2\%, whereas MAPE values to 1\%.” Please explain this issue in detail.
+\vspace{0.15cm}
+
+\hspace{-1.5em}\textbf{Response:} \noindent\textcolor{black}{We thank the reviewer for pointing out this mistake. We have rectified and added a detailed discussion of the illustration in \textbf{Fig. 8 }to clarify this issue. The detailed description of the same has been incorporated in the revised manuscript. \textbf{(Section: IV-E, Page No.: 10, Color: Blue)}}\newline
+\newline
+%\noindent\textcolor{blue}{ Fig. 8 presents MAPE among the baseline models and the proposed model. SVR and RFR have the highest percentage errors, but SAMFOR perform slightly better with 5\% error percentage. The figure shows the improved performance of the standard LSTM and LSTM-FF with MAPE around 3\%. The proposed LSTM-MFF obtains the least error, approximately 2.5\%. The R² values of LSTM-FF  and LSTM-MFF are 0.9978 and 0.9979, respectively. Both LSTM-FF and LSTM-MFF scores are closest to 1, as illustrated in Figure 9.}\newline
+
+\noindent\textbf{Comment 5:} The following articles are related to the energy consumption, I suggest the introduction be rewritten to acknowledge these existing work:
+
+
+i) Industrial robot energy consumption model identification: A coupling model-driven and data-driven paradigm(2025). Expert Systems with Applications.
+
+ii) Energy Consumption Prediction and Optimization of Industrial Robots Based on LSTM(2023). Journal of Manufacturing Systems
+
+iii) A novel hybrid LSTM and masked multi-head attention based network for energy consumption prediction of industrial robots(2025), Applied Energy. 
+\vspace{0.15cm}
+
+\hspace{-1.5em}\textbf{Response:} \noindent\textcolor{black}{As per reviewer's suggestion, the introduction section has been revised to incorporate the suggested related work. These articles are properly \textbf{cited as [26],[35],[36].}}\newline
+\newline
+\end{document}

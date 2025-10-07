@@ -41,16 +41,16 @@ def main() -> bool:
     print("ASHRAE SVR - Disjoint Building Splits")
     print("=" * 80)
 
-    # Preprocess
+    # Preprocess - standardized parameters
     X_train, y_train, X_val, y_val, X_test, y_test, target_scaler = preprocess_ashrae_disjoint_splits(
-        target_samples=ASHRAE_TRAINING_CONFIG["max_samples"],
-        train_fraction=ASHRAE_TRAINING_CONFIG["train_fraction"],
-        val_fraction=ASHRAE_TRAINING_CONFIG["val_fraction"],
-        test_fraction=ASHRAE_TRAINING_CONFIG["test_fraction"],
+        target_samples=250_000,
+        train_fraction=0.4,
+        val_fraction=0.2,
+        test_fraction=0.4,
     )
 
     # Build sequences (per building) then flatten to last timestep features
-    seq_len = ASHRAE_TRAINING_CONFIG["sequence_length"]
+    seq_len = 7  # Standardized sequence length
     X_tr_lstm, y_tr_lstm, X_va_lstm, y_va_lstm, X_te_lstm, y_te_lstm = get_ashrae_lstm_data_disjoint(
         X_train, y_train, X_val, y_val, X_test, y_test, seq_length=seq_len
     )
@@ -71,7 +71,7 @@ def main() -> bool:
     X_va_flat = build_aug_features(X_va_lstm)
     X_te_flat = build_aug_features(X_te_lstm)
 
-    # Hyperparameter tuning with reduced fits
+    # Reduced hyperparameter tuning for faster execution
     param_distributions = {
         "C": [0.1, 1.0, 10.0, 100.0],
         "epsilon": [0.001, 0.01, 0.1, 0.2],
@@ -82,9 +82,9 @@ def main() -> bool:
     tuner = RandomizedSearchCV(
         estimator=base_svr,
         param_distributions=param_distributions,
-        n_iter=8,
+        n_iter=8,  # Reduced to max 8 fits
         scoring="neg_mean_squared_error",
-        cv=2,
+        cv=2,  # Reduced folds to keep total fits low
         n_jobs=5,
         verbose=1,
         random_state=42,

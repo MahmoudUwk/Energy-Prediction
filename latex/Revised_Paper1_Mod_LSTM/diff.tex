@@ -1,0 +1,5 @@
+\RequirePackage{shellesc}
+\ShellEscape{latexdiff Main.tex main2.tex > Main-d.tex}
+\input{main2}
+\documentclass{dummy}
+\title{Demonstrating latexdiff}

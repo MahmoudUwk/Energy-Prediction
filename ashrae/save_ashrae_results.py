@@ -44,6 +44,15 @@ class ASHRAEResultsSaver:
     def save_metrics(self, metrics: Dict[str, float]) -> Path:
         """Save model metrics to CSV."""
         metrics_df = pd.DataFrame([metrics])
+        # Attach metadata for downstream consolidation
+        try:
+            metrics_df["timestamp"] = time.time()
+        except Exception:
+            pass
+        try:
+            metrics_df["algorithm"] = self.algorithm
+        except Exception:
+            pass
         metrics_path = self.results_dir / "metrics.csv"
 
         if metrics_path.exists():

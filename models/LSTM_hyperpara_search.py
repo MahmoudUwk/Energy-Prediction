@@ -175,6 +175,105 @@ def run_lstm_search(
             best_overall_score = best_fitness
             best_overall_params = best_params
 
+        # After search: train final model on train+val and save test predictions
+        try:
+            seq_len_best = int(best_params.get("seq", 23))
+            # Build windows for the best sequence length
+            X_train_win, y_train_win, X_val_win, y_val_win, X_test_win, y_test_win = windowing_func(
+                X_train_raw,
+                y_train_raw,
+                X_val_raw,
+                y_val_raw,
+                X_test_raw,
+                y_test_raw,
+                seq_length=seq_len_best,
+            )
+
+            # Combine train + val for final training
+            X_train_all = X_train_win
+            y_train_all = y_train_win.reshape(-1, 1)
+            if X_val_win.size and y_val_win.size:
+                X_train_all = np.vstack([X_train_win, X_val_win])
+                y_train_all = np.vstack([y_train_all, y_val_win.reshape(-1, 1)])
+
+            input_dim = (X_train_all.shape[1], X_train_all.shape[2])
+            output_dim = 1
+
+            final_model = _build_model(
+                input_dim=input_dim,
+                output_dim=output_dim,
+                units=int(best_params.get("units", 72)),
+                num_layers=int(best_params.get("num_layers", 1)),
+                learning_rate=float(best_params.get("learning_rate", 0.01)),
+            )
+
+            callbacks = [
+                EarlyStopping(
+                    monitor="val_loss",
+                    patience=cfg["patience"],
+                    restore_best_weights=True,
+                )
+            ]
+
+            # Validation data only if exists
+            fit_kwargs = {
+                "epochs": cfg["num_epochs"],
+                "batch_size": 2 ** cfg["batch_size_power"],
+                "verbose": 0,
+                "shuffle": True,
+                "callbacks": callbacks,
+            }
+            if X_val_win.size and y_val_win.size:
+                fit_kwargs["validation_data"] = (X_val_win, y_val_win.reshape(-1, 1))
+
+            final_model.fit(X_train_all, y_train_all, **fit_kwargs)
+
+            # Predict on test and inverse transform
+            y_test_pred_scaled = final_model.predict(X_test_win, verbose=0)
+            y_test_true = scaler.inverse_transform(y_test_win.reshape(-1, 1)).flatten()
+            y_test_pred = scaler.inverse_transform(y_test_pred_scaled.reshape(-1, 1)).flatten()
+
+            # Compute metrics
+            test_rmse = float(RMSE(y_test_true, y_test_pred))
+            test_mae = float(MAE(y_test_true, y_test_pred))
+            # R2 and MAPE (guard near-zero denominators)
+            test_r2 = float(R2(y_test_true, y_test_pred))
+            _mask = np.abs(y_test_true) > 1.0
+            test_mape = float(
+                100.0
+                * np.mean(
+                    np.abs((y_test_true[_mask] - y_test_pred[_mask]) / y_test_true[_mask])
+                )
+            ) if np.any(_mask) else float("inf")
+
+            # Save predictions and metrics under lstm_search
+            try:
+                from ashrae.save_ashrae_results import get_ashrae_results_saver
+
+                label = "LSTM-ModFF" if algorithm_name == "Mod_FireflyAlgorithm" else "LSTM-FF"
+                saver = get_ashrae_results_saver("lstm_search", label)
+                saver.save_all(
+                    metrics={
+                        "RMSE": test_rmse,
+                        "MAE": test_mae,
+                        "R2": test_r2,
+                        "MAPE": test_mape,
+                    },
+                    y_true=y_test_true,
+                    y_pred=y_test_pred,
+                    model_info={
+                        "best_params": best_params,
+                        "sequence_length": seq_len_best,
+                        "algorithm_name": algorithm_name,
+                    },
+                )
+                print(f"  ✓ Final test predictions saved for {label}", flush=True)
+            except Exception as save_exc:
+                print(f"  ✗ Failed to save final predictions: {save_exc}", flush=True)
+
+        except Exception as final_exc:
+            print(f"  ✗ Skipped final evaluation for {algorithm_name}: {final_exc}", flush=True)
+
     return {
         "best_params": best_overall_params,
         "best_score": best_overall_score,

@@ -27,11 +27,11 @@ def main() -> None:
     run_samfor()
 
     # LSTM hyperparameter searches
-    print("\n→ Running FireflyAlgorithm search...")
-    run_lstm_search_single("FireflyAlgorithm", output_suffix="_FA")
+    #print("\n→ Running FireflyAlgorithm search...")
+    #run_lstm_search_single("FireflyAlgorithm", output_suffix="_FA")
 
-    print("\n→ Running Mod_FireflyAlgorithm search...")
-    run_lstm_search_single("Mod_FireflyAlgorithm", output_suffix="_ModFF")
+    #print("\n→ Running Mod_FireflyAlgorithm search...")
+    #run_lstm_search_single("Mod_FireflyAlgorithm", output_suffix="_ModFF")
 
     print("\nAll ASHRAE runs completed.")
 
