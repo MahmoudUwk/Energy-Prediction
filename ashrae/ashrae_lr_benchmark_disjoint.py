@@ -15,15 +15,8 @@ from sklearn.linear_model import LinearRegression
 from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
 from sklearn.preprocessing import MinMaxScaler
 
-# Add current directory to path for imports
-import sys
-from pathlib import Path
-current_dir = Path(__file__).resolve().parent
-if str(current_dir) not in sys.path:
-    sys.path.insert(0, str(current_dir))
-
-from preprocessing_ashrae_disjoint import preprocess_ashrae_disjoint_splits
-from ashrae_config import (
+from .preprocessing_ashrae_disjoint import preprocess_ashrae_disjoint_splits
+from .ashrae_config import (
     ASHRAE_TRAINING_CONFIG,
     ASHRAE_BENCHMARK_CONFIG,
     ASHRAE_RESULTS_ROOT,
@@ -128,13 +121,6 @@ def main():
         print(f"      MAPE:  {metrics['MAPE']:.2f}%")
         print(f"      R²:    {metrics['R2']:.4f}")
         print(f"      RMSLE: {metrics['RMSLE']:.4f}")
-        
-        # Additional analysis
-        print(f"\n   📈 PREDICTION ANALYSIS:")
-        print(f"      • True mean: {y_true_orig.mean():.2f} kWh")
-        print(f"      • Pred mean: {y_pred_orig.mean():.2f} kWh")
-        print(f"      • True std: {y_true_orig.std():.2f} kWh")
-        print(f"      • Pred std: {y_pred_orig.std():.2f} kWh")
         
         # Save results
         print("\n5. Saving results...")

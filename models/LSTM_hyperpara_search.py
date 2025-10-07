@@ -107,11 +107,7 @@ def run_lstm_search(
     best_overall_params: dict[str, Any] | None = None
 
     from pathlib import Path
-
-    try:
-        from ashrae.ashrae_config import ASHRAE_RESULTS_ROOT
-    except ImportError:
-        ASHRAE_RESULTS_ROOT = Path("results/ashrae")
+    from ashrae.ashrae_config import ASHRAE_RESULTS_ROOT
 
     results_dir = ASHRAE_RESULTS_ROOT / "lstm_search"
     results_dir.mkdir(parents=True, exist_ok=True)

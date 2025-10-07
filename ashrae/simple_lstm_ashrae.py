@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import sys
 import time
 from pathlib import Path
 import numpy as np
@@ -10,21 +9,16 @@ from keras.optimizers import Adam
 from keras.callbacks import EarlyStopping
 
 def main():
-    # Add project root to path for imports when running as script
-    if __name__ == "__main__":
-        root = Path(__file__).resolve().parent.parent
-        if str(root) not in sys.path:
-            sys.path.insert(0, str(root))
 
     print("=" * 80)
     print("SIMPLE LSTM ASHRAE DATASET TRAINING")
     print("=" * 80)
 
-    from preprocessing_ashrae_disjoint import (
+    from .preprocessing_ashrae_disjoint import (
         preprocess_ashrae_disjoint_splits,
         get_ashrae_lstm_data_disjoint,
     )
-    from save_ashrae_results import save_ashrae_lstm_results
+    from .save_ashrae_results import save_ashrae_lstm_results
 
     # Load ASHRAE data - same as RFR
     print("Loading ASHRAE dataset...")

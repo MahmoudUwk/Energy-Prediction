@@ -11,7 +11,7 @@ import seaborn as sns
 from tools.preprocess_data2 import loadDatasetObj
 
 
-RESULTS_ROOT = Path("ashrae/results/ashrae")
+RESULTS_ROOT = Path("results/ashrae")
 FIGURES_DIR = RESULTS_ROOT / "figures"
 FIGURES_DIR.mkdir(parents=True, exist_ok=True)
 

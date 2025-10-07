@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import sys
 import time
 from pathlib import Path
 from typing import Dict
@@ -13,21 +12,16 @@ from sklearn.svm import SVR
 
 
 def main():
-    # Add project root to path for imports when running as script
-    if __name__ == "__main__":
-        root = Path(__file__).resolve().parent.parent
-        if str(root) not in sys.path:
-            sys.path.insert(0, str(root))
 
     print("=" * 80)
     print("SAMFOR ASHRAE DATASET TRAINING WITH HYPERPARAMETER TUNING")
     print("=" * 80)
 
-    # Import ASHRAE preprocessing and models after path setup
-    from preprocessing_ashrae_disjoint import preprocess_ashrae_disjoint_splits, get_ashrae_lstm_data_disjoint
+    # Import ASHRAE preprocessing and models
+    from .preprocessing_ashrae_disjoint import preprocess_ashrae_disjoint_splits, get_ashrae_lstm_data_disjoint
     from models.SAMFOR_trial1 import run_samfor
     from config import SAMFOR_SAMFOR_PARAMS
-    from save_ashrae_results import save_ashrae_samfor_results
+    from .save_ashrae_results import save_ashrae_samfor_results
 
     # Load ASHRAE data
     print("Loading ASHRAE dataset...")

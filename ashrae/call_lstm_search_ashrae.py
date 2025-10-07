@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from pathlib import Path
-import sys
 import os
 from datetime import datetime
 import csv
@@ -20,16 +19,11 @@ def run_lstm_search_ashrae(algorithms: List[str], output_suffix: str = ""):
     print(f"[CALLER] Starting LSTM hyperparameter search ({algo_names}){output_suffix}", flush=True)
     print(f"[CALLER] Algorithms: {algorithms}", flush=True)
 
-    # Ensure project root on sys.path so config/tools imports work
-    root = Path(__file__).resolve().parents[1]
-    if str(root) not in sys.path:
-        sys.path.insert(0, str(root))
-
     # Import search module to allow wrapping of internals
     import models.LSTM_hyperpara_search as hp
 
     # Import ASHRAE results saver for progress logging
-    from ashrae.save_ashrae_results import save_ashrae_lstm_results
+    from .save_ashrae_results import save_ashrae_lstm_results
 
     # Create unique progress path based on algorithms
     progress_filename = f"search_progress_{algo_names}{output_suffix}.csv"
@@ -69,9 +63,12 @@ def run_lstm_search_ashrae(algorithms: List[str], output_suffix: str = ""):
 
     # Legacy wrappers for artifacts/training are no longer used and have been removed
 
-    # Import ASHRAE preprocessing and config after path setup
-    from ashrae.preprocessing_ashrae_disjoint import preprocess_ashrae_disjoint_splits, get_ashrae_lstm_data_disjoint
-    from ashrae.ashrae_config import ASHRAE_TRAINING_CONFIG
+    # Import ASHRAE preprocessing and config
+    from .preprocessing_ashrae_disjoint import (
+        preprocess_ashrae_disjoint_splits,
+        get_ashrae_lstm_data_disjoint,
+    )
+    from .ashrae_config import ASHRAE_TRAINING_CONFIG
     from config import LSTM_SEARCH_CONFIG
     
     # Override algorithms in config
@@ -120,9 +117,8 @@ def run_lstm_search_ashrae(algorithms: List[str], output_suffix: str = ""):
     
     return results
 
-
-if __name__ == "__main__":
-    # Default: run both algorithms
-    run_lstm_search_ashrae(["Mod_FireflyAlgorithm", "FireflyAlgorithm"])
+def run_lstm_search_single(algorithm: str, output_suffix: str = ""):
+    """Convenience wrapper to run search for a single algorithm."""
+    return run_lstm_search_ashrae([algorithm], output_suffix=output_suffix)
 
 

@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import sys
 import time
 from pathlib import Path
 
@@ -11,22 +10,17 @@ from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 
 
 def main():
-    # Add project root to path for imports when running as script
-    if __name__ == "__main__":
-        root = Path(__file__).resolve().parent.parent
-        if str(root) not in sys.path:
-            sys.path.insert(0, str(root))
 
     print("=" * 80)
     print("RFR ASHRAE DATASET TRAINING WITH HYPERPARAMETER TUNING")
     print("=" * 80)
 
-    from preprocessing_ashrae_disjoint import (
+    from .preprocessing_ashrae_disjoint import (
         preprocess_ashrae_disjoint_splits,
         get_ashrae_lstm_data_disjoint,
     )
     from models.RFR_energy_data import train_and_evaluate_rfr
-    from save_ashrae_results import save_ashrae_rfr_results
+    from .save_ashrae_results import save_ashrae_rfr_results
     from config import SAMFOR_SAMFOR_PARAMS
 
     # Load ASHRAE data
