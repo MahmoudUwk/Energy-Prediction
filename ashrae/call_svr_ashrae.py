@@ -71,29 +71,13 @@ def main() -> bool:
     X_va_flat = build_aug_features(X_va_lstm)
     X_te_flat = build_aug_features(X_te_lstm)
 
-    # Reduced hyperparameter tuning for faster execution
-    param_distributions = {
-        "C": [0.1, 1.0, 10.0, 100.0],
-        "epsilon": [0.001, 0.01, 0.1, 0.2],
-        "gamma": ["scale", "auto", 0.01],
+    # Single iteration for faster testing
+    best_params = {
+        "C": 10.0,
+        "epsilon": 0.01,
+        "gamma": "scale"
     }
-
-    base_svr = SVR(kernel="rbf")
-    tuner = RandomizedSearchCV(
-        estimator=base_svr,
-        param_distributions=param_distributions,
-        n_iter=8,  # Reduced to max 8 fits
-        scoring="neg_mean_squared_error",
-        cv=2,  # Reduced folds to keep total fits low
-        n_jobs=5,
-        verbose=1,
-        random_state=42,
-    )
-    start_tune = time.time()
-    tuner.fit(X_tr_flat, y_tr_lstm)
-    tune_time = (time.time() - start_tune) / 60.0
-
-    best_params = tuner.best_params_
+    tune_time = 0.0
 
     # Final training on train+val
     X_train_all = np.vstack([X_tr_flat, X_va_flat])

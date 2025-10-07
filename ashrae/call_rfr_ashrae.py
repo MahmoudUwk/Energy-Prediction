@@ -55,38 +55,22 @@ def main():
 
     print(f"Train: {X_train_flat.shape}, Val: {X_val_flat.shape}, Test: {X_test_flat.shape}")
 
-    # Hyperparameter grid for RFR
-    param_grid = {
-        "n_estimators": [100, 300, 500],
-        "max_depth": [None, 10, 20, 40],
-        "min_samples_split": [2, 5, 10],
-        "min_samples_leaf": [1, 2, 4],
-        "max_features": ["sqrt", "log2", 0.5, None],
-        "bootstrap": [True, False],
-        "random_state": [0],
-        "n_jobs": [5],
+    # Single iteration for faster testing
+    best_params = {
+        "n_estimators": 100,
+        "max_depth": None,
+        "min_samples_split": 2,
+        "min_samples_leaf": 1,
+        "max_features": "sqrt",
+        "bootstrap": True,
+        "random_state": 0,
+        "n_jobs": 5,
     }
+    tune_time = 0.0
 
-    base_rfr = RandomForestRegressor()
-    start_tune = time.time()
-    grid_search = RandomizedSearchCV(
-        estimator=base_rfr,
-        param_distributions=param_grid,
-        n_iter=12,
-        scoring="neg_mean_squared_error",
-        cv=2,
-        n_jobs=5,
-        verbose=1,
-        random_state=42,
-    )
-    grid_search.fit(X_train_flat, y_tr_lstm)
-    tune_time = (time.time() - start_tune) / 60.0
-
-    print(f"Best params: {grid_search.best_params_}")
-    print(f"Best CV MSE: {-grid_search.best_score_:.4f}")
+    print(f"Using fixed params: {best_params}")
 
     # Final training on train+val with best params
-    best_params = grid_search.best_params_
     X_train_all = np.vstack([X_train_flat, X_val_flat])
     y_train_all = np.hstack([y_tr_lstm, y_va_lstm])
 

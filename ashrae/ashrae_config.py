@@ -8,7 +8,8 @@ from typing import Dict, Any, Tuple
 BASE_DIR = Path(__file__).resolve().parent.parent  # Project root
 ASHRAE_DATA_ROOT = BASE_DIR / "dataset" / "ASHRAE"
 ASHRAE_RESULTS_ROOT = BASE_DIR / "results" / "ashrae"
-ASHRAE_SPLITS_DIR = ASHRAE_RESULTS_ROOT / "splits"
+# Store splits outside results directory to avoid corruption
+ASHRAE_SPLITS_DIR = BASE_DIR / "ashrae" / "splits"
 ASHRAE_SPLITS_DIR.mkdir(parents=True, exist_ok=True)
 DISJOINT_SPLITS_FILE = ASHRAE_SPLITS_DIR / "disjoint_building_splits.json"
 

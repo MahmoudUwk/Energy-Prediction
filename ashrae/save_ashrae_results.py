@@ -329,7 +329,9 @@ def save_ashrae_lstm_results(
     **kwargs
 ) -> Dict[str, Path]:
     """Save LSTM results with standard metadata."""
-    saver = get_ashrae_results_saver("lstm", algorithm)
+    # Use "simple_lstm" directory for Simple LSTM, "lstm" for others
+    dir_key = "simple_lstm" if algorithm == "Simple_LSTM" else "lstm"
+    saver = get_ashrae_results_saver(dir_key, algorithm)
 
     model_info = {
         "algorithm": algorithm,

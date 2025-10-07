@@ -29,23 +29,24 @@ MODEL_DIRS = {
     "samfor": "SAMFOR", 
     "rfr": "RFR",
     "lstm": "LSTM",
+    "simple_lstm": "Simple-LSTM",
     "lstm_search": "LSTM-Search",
 }
 
 # Algorithm renaming for paper
 alg_rename = {
-    'LSTM-FF': 'LSTM FF',
-    'LSTM-ModFF': 'LSTM Modified FF (Proposed)',
-    'LSTM': 'LSTM without HP tuning',
+    'LSTM-FF': 'LSTM-FF',
+    'LSTM-ModFF': 'LSTM-ModFF',
+    'Simple-LSTM': 'Simple-LSTM',
     'RFR': 'RFR',
     'SAMFOR': 'SAMFOR',
     'SVR': 'SVR'
 }
 
 alg_rename_short = {
-    'LSTM-FF': 'LSTM FF',
-    'LSTM-ModFF': 'Proposed',
-    'LSTM': 'LSTM',
+    'LSTM-FF': 'LSTM-FF',
+    'LSTM-ModFF': 'LSTM-ModFF',
+    'Simple-LSTM': 'Simple-LSTM',
     'RFR': 'RFR',
     'SAMFOR': 'SAMFOR',
     'SVR': 'SVR'
@@ -227,10 +228,13 @@ def build_complexity_table() -> pd.DataFrame:
     if not tables:
         return pd.DataFrame()
     
-    df = pd.concat(tables, ignore_index=True)
-    
-    # Keep latest entry per model if duplicates
+    # Concatenate tables and handle duplicates
     try:
+        df = pd.concat(tables, ignore_index=True)
+        # Ensure unique column labels to avoid pandas reindexing errors
+        df = df.loc[:, ~df.columns.duplicated()]
+        
+        # Keep latest entry per model if duplicates
         if "timestamp" in df.columns:
             df = (
                 df.sort_values("timestamp")
@@ -239,8 +243,12 @@ def build_complexity_table() -> pd.DataFrame:
             )
         else:
             df = df.groupby("Model", as_index=False).tail(1)
-    except Exception:
-        df = df.groupby("Model", as_index=False).tail(1)
+        
+        # Reset index to avoid duplicate index issues
+        df = df.reset_index(drop=True)
+    except Exception as e:
+        print(f"Error in complexity table construction: {e}")
+        return pd.DataFrame()
     
     # Standardize column names and add missing columns with defaults
     complexity_columns = {
@@ -306,6 +314,9 @@ def load_predictions(model_key: str) -> Tuple[np.ndarray, np.ndarray] | None:
     content = data.get("payload", data) if isinstance(data, dict) else {}
     y_true = np.asarray(content.get("y_test", []))
     y_pred = np.asarray(content.get("y_test_pred", []))
+    # Clip predictions to be non-negative
+    if y_pred.size > 0:
+        y_pred = np.maximum(y_pred, 0.0)
     if y_true.size == 0 or y_pred.size == 0:
         return None
     return y_true, y_pred
@@ -351,7 +362,9 @@ def plot_bar(results_data, barWidth, linewidth, full_file_path, ind_plot, Metric
         # Calculate metrics
         RMSE_i = np.sqrt(np.mean((y_true - y_pred) ** 2))
         MAE_i = np.mean(np.abs(y_true - y_pred))
-        MAPE_i = 100.0 * np.mean(np.abs((y_true - y_pred) / y_true))
+        # Robust MAPE calculation (avoid division by zero)
+        mask = np.abs(y_true) > 1.0
+        MAPE_i = 100.0 * np.mean(np.abs((y_true[mask] - y_pred[mask]) / y_true[mask])) if np.any(mask) else float("inf")
         r2_score_i = r2_score(y_true, y_pred)
         
         row = [RMSE_i, MAE_i, MAPE_i, r2_score_i]
@@ -364,8 +377,8 @@ def plot_bar(results_data, barWidth, linewidth, full_file_path, ind_plot, Metric
         indeces_short.append(short_label)
         
         # Plot bar
-        plt.bar(counter, row[ind_plot], color=colors[counter], linewidth=linewidth, 
-                width=barWidth, hatch="xxxx", edgecolor=colors[counter], 
+        plt.bar(counter, row[ind_plot], color=colors[counter % len(colors)], linewidth=linewidth, 
+                width=barWidth, hatch="xxxx", edgecolor=colors[counter % len(colors)], 
                 label=full_label, fill=False)
     
     # Styling
@@ -410,28 +423,71 @@ def plot_metrics_bar(df: pd.DataFrame) -> None:
 
 def load_predictions_by_name(model_name: str) -> Tuple[np.ndarray, np.ndarray] | None:
     """Load predictions by model name (reverse lookup)"""
+    # Special handling for LSTM search models
+    if model_name == "LSTM-FF":
+        return load_lstm_search_predictions("LSTM-FF")
+    elif model_name == "LSTM-ModFF":
+        return load_lstm_search_predictions("LSTM-ModFF")
+    
     # Find the key for this model name
     for key, label in MODEL_DIRS.items():
         if label == model_name:
             return load_predictions(key)
     return None
 
+def load_lstm_search_predictions(model_name: str) -> Tuple[np.ndarray, np.ndarray] | None:
+    """Load specific LSTM search model predictions"""
+    art_dir = RESULTS_ROOT / "lstm_search" / "artifacts"
+    
+    # Try to load test predictions first
+    if model_name == "LSTM-FF":
+        test_obj_path = art_dir / "LSTM-FF.obj"
+    elif model_name == "LSTM-ModFF":
+        test_obj_path = art_dir / "LSTM-ModFF.obj"
+    else:
+        return None
+    
+    # Only load if test predictions exist
+    if test_obj_path.exists():
+        data = loadDatasetObj(str(test_obj_path))
+        content = data.get("payload", data) if isinstance(data, dict) else {}
+        y_true = np.asarray(content.get("y_test", []))
+        y_pred = np.asarray(content.get("y_test_pred", []))
+        if y_pred.size > 0:
+            y_pred = np.maximum(y_pred, 0.0)
+        if y_true.size > 0 and y_pred.size > 0:
+            return y_true, y_pred
+    
+    # No test predictions available - skip these models for bar plots
+    return None
+
 def plot_scatter_per_model() -> None:
     """Create scatter plots in paper style matching plot_results.py"""
     entries: List[Tuple[str, np.ndarray, np.ndarray]] = []
-    for key, label in MODEL_DIRS.items():
-        loaded = load_predictions(key)
-        if loaded is None:
+    # Load in display order matching metrics table labels
+    display_order = [
+        "LSTM-FF",
+        "LSTM-ModFF",
+        "Simple-LSTM",
+        "SVR",
+        "RFR",
+        "SAMFOR",
+    ]
+    for name in display_order:
+        preds = load_predictions_by_name(name)
+        if preds is None:
             continue
-        y_true, y_pred = loaded
-        entries.append((label, y_true, y_pred))
+        y_true, y_pred = preds
+        entries.append((name, y_true, y_pred))
     
     if not entries:
         print("No predictions found for scatter plots.")
         return
     
     # Paper-style scatter plot layout
-    fig, axs = plt.subplots(int(len(entries)/2), 2, figsize=(15, 8), dpi=150, facecolor='w', edgecolor='k')
+    n = len(entries)
+    rows = int(np.ceil(n / 2)) if n > 0 else 1
+    fig, axs = plt.subplots(rows, 2, figsize=(15, 8), dpi=150, facecolor='w', edgecolor='k')
     fig.subplots_adjust(hspace=0.5, wspace=0.1)
     axs = axs.ravel()
     
@@ -439,7 +495,7 @@ def plot_scatter_per_model() -> None:
         # Get proper label
         full_label = alg_rename.get(label, label)
         
-        axs[i].scatter(y_true, y_pred, alpha=0.5, s=15, color=colors[i], marker='o', linewidth=1.5)
+        axs[i].scatter(y_true, y_pred, alpha=0.5, s=15, color=colors[i % len(colors)], marker='o', linewidth=1.5)
         axs[i].set_title(full_label, fontsize=14, x=0.27, y=0.62)
         
         max_val_i = max(max(y_true), max(y_pred))
@@ -459,12 +515,20 @@ def plot_scatter_per_model() -> None:
 def plot_timeseries_snippets(window: int = 2000) -> None:
     """Create time series plots in paper style matching plot_results.py"""
     entries: List[Tuple[str, np.ndarray, np.ndarray]] = []
-    for key, label in MODEL_DIRS.items():
-        loaded = load_predictions(key)
-        if loaded is None:
+    display_order = [
+        "LSTM-FF",
+        "LSTM-ModFF",
+        "Simple-LSTM",
+        "SVR",
+        "RFR",
+        "SAMFOR",
+    ]
+    for name in display_order:
+        preds = load_predictions_by_name(name)
+        if preds is None:
             continue
-        y_true, y_pred = loaded
-        entries.append((label, y_true[:window], y_pred[:window]))
+        y_true, y_pred = preds
+        entries.append((name, y_true[:window], y_pred[:window]))
     
     if not entries:
         print("No predictions found for time series plots.")
