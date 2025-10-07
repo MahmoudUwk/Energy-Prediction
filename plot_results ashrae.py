@@ -49,9 +49,11 @@ def load_predictions(model_key: str) -> Tuple[np.ndarray, np.ndarray] | None:
     obj_path = latest_artifact(model_key)
     if obj_path is None:
         return None
-    payload = loadDatasetObj(str(obj_path))
-    y_true = np.asarray(payload.get("y_test", []))
-    y_pred = np.asarray(payload.get("y_test_pred", []))
+    data = loadDatasetObj(str(obj_path))
+    # Support unified envelope {algorithm, model_name, timestamp, payload}
+    content = data.get("payload", data) if isinstance(data, dict) else {}
+    y_true = np.asarray(content.get("y_test", []))
+    y_pred = np.asarray(content.get("y_test_pred", []))
     if y_true.size == 0 or y_pred.size == 0:
         return None
     return y_true, y_pred
