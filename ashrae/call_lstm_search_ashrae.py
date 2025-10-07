@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from pathlib import Path
 import os
+import sys
 from datetime import datetime
 import csv
 from typing import List
@@ -25,9 +26,10 @@ def run_lstm_search_ashrae(algorithms: List[str], output_suffix: str = ""):
     # Import ASHRAE results saver for progress logging
     from .save_ashrae_results import save_ashrae_lstm_results
 
-    # Create unique progress path based on algorithms
+    # Create unique progress path based on algorithms (under unified results root)
+    from .ashrae_config import ASHRAE_RESULTS_ROOT
     progress_filename = f"search_progress_{algo_names}{output_suffix}.csv"
-    progress_path = root / "results" / "ashrae" / progress_filename
+    progress_path = ASHRAE_RESULTS_ROOT / progress_filename
     progress_path.parent.mkdir(parents=True, exist_ok=True)
 
     # Create CSV header if it doesn't exist

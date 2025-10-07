@@ -270,10 +270,12 @@ def preprocess_ashrae_disjoint_splits(
         if use_fixed and splits_file:
             try:
                 with open(splits_file, "w") as f:
+                    # Ensure lists are JSON-serializable (cast numpy types to int)
+                    to_int = lambda arr: [int(x) for x in list(arr)]
                     json.dump({
-                        "train": train_buildings,
-                        "val": val_buildings,
-                        "test": test_buildings,
+                        "train": to_int(train_buildings),
+                        "val": to_int(val_buildings),
+                        "test": to_int(test_buildings),
                     }, f)
                 print(f"   ✓ Saved fixed building splits to: {splits_file}")
             except Exception as e:
