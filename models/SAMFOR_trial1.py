@@ -113,9 +113,10 @@ def run_samfor(X_train, y_train, X_test, y_test, scaler, seq_length, save_path_s
     # Convert numpy scalars to Python floats for proper CSV serialization
     saved_files = save_ashrae_samfor_results(
         metrics={
-            "RMSE": float(rmse), 
-            "MAE": float(mae), 
-            "MAPE": float(mape)
+            "RMSE": float(rmse),
+            "MAE": float(mae),
+            "R2": float(1 - np.sum((y_true - y_pred) ** 2) / np.sum((y_true - y_true.mean()) ** 2)),
+            "MAPE": float(mape),
         },
         y_true=y_true,
         y_pred=y_pred,

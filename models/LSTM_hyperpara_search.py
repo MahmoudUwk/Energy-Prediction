@@ -143,10 +143,14 @@ def run_lstm_search(
 
         artifact_path: Path | None = None
         if best_eval is not None:
-            artifact_filename = f"best_{algorithm_name}{suffix_tag}.obj"
-            artifact_path = results_dir / artifact_filename
             try:
-                save_object(best_eval, artifact_path)
+                # Save unified artifact envelope via ASHRAE saver
+                from ashrae.save_ashrae_results import save_ashrae_search_artifact
+                artifact_path = save_ashrae_search_artifact(
+                    algorithm=algorithm_name,
+                    payload={"best_evaluation": best_eval},
+                    name=f"best_{algorithm_name}{suffix_tag}",
+                )
                 print(f"  ✓ Best artifact saved to {artifact_path}", flush=True)
             except Exception as exc:
                 print(f"  ✗ Failed to save best artifact: {exc}", flush=True)

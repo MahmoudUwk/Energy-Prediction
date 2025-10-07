@@ -21,9 +21,9 @@ from tools.preprocess_data2 import (
     inverse_transf,
     log_results_LSTM,
     prepare_lstm_targets,
-    save_object,
     subset_lstm_features,
 )
+from ashrae.save_ashrae_results import get_ashrae_results_saver
 
 
 # LSTM utility functions moved to preprocess_data2.py
@@ -107,8 +107,8 @@ def _persist_results(
         log_results_LSTM(row, datatype_opt, str(save_path))
 
     if LSTM_TRAINING_CONFIG["persist_models"]:
-        filename = save_path / f"{alg_name}.obj"
-        save_object({"y_test": y_true, "y_test_pred": y_pred}, filename)
+        saver = get_ashrae_results_saver("lstm", algorithm=alg_name)
+        saver.save_artifact(payload={"y_test": y_true, "y_test_pred": y_pred})
 
 
 def main():

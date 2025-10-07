@@ -65,7 +65,7 @@ class ASHRAEResultsSaver:
         **kwargs
     ) -> Path:
         """
-        Save unscaled predictions and test data.
+        Save unscaled predictions and test data with a unified envelope.
 
         Args:
             y_true: Ground truth values (unscaled)
@@ -74,21 +74,35 @@ class ASHRAEResultsSaver:
             **kwargs: Additional metadata (timing, params, etc.)
         """
         alg_name = algorithm or self.algorithm
-
-        # Prepare artifact data
-        artifact_data = {
+        payload = {
             "y_test": y_true,
             "y_test_pred": y_pred,
+            **kwargs,
+        }
+        return self.save_artifact(payload=payload, algorithm=alg_name)
+
+    def save_artifact(
+        self,
+        payload: Dict[str, Any],
+        name: str | None = None,
+        algorithm: str | None = None,
+        **kwargs,
+    ) -> Path:
+        """Save a generic artifact with a unified envelope schema.
+
+        The saved object includes: algorithm, model_name, timestamp, and payload.
+        """
+        alg_name = algorithm or self.algorithm
+        artifact_data: Dict[str, Any] = {
             "algorithm": alg_name,
             "model_name": self.model_name,
             "timestamp": time.time(),
-            **kwargs
+            "payload": payload,
+            **kwargs,
         }
-
-        # Save artifact
-        artifact_path = self.artifacts_dir / f"{alg_name}.obj"
+        filename = f"{name or alg_name}.obj"
+        artifact_path = self.artifacts_dir / filename
         save_object(artifact_data, artifact_path)
-
         return artifact_path
 
     def save_model_info(self, model_info: Dict[str, Any]) -> Path:
@@ -191,6 +205,17 @@ def get_ashrae_results_saver(model_name: str, algorithm: str = None) -> ASHRAERe
     except Exception:
         from .ashrae_config import ASHRAE_RESULTS_ROOT  # type: ignore
     return ASHRAEResultsSaver(ASHRAE_RESULTS_ROOT, model_name, algorithm)
+
+
+def save_ashrae_search_artifact(
+    algorithm: str,
+    payload: Dict[str, Any],
+    name: str | None = None,
+    **kwargs,
+) -> Path:
+    """Convenience: save LSTM search artifacts under lstm_search model."""
+    saver = get_ashrae_results_saver("lstm_search", algorithm)
+    return saver.save_artifact(payload=payload, name=name, **kwargs)
 
 
 # Convenience functions for common use cases

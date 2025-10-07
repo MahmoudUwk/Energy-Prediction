@@ -26,9 +26,9 @@ from tools.preprocess_data2 import (
     inverse_transf,
     log_results,
     persist_model_results,
-    save_object,
     time_call,
 )
+from ashrae.save_ashrae_results import get_ashrae_results_saver
 
 
 # Utility functions moved to preprocess_data2.py
@@ -74,18 +74,17 @@ def _train_and_evaluate(
         persist_models_list=SAMFOR_PERSIST_MODELS,
     )
 
-    # Persist unscaled arrays for plotting/scatter later
-    save_object(
-        {
+    # Persist unified artifact via ASHRAE saver
+    saver = get_ashrae_results_saver("svr", algorithm=name)
+    saver.save_artifact(
+        payload={
             "y_test": np.asarray(y_true).flatten(),
             "y_test_pred": np.asarray(y_pred).flatten(),
             "seq_length": seq_length,
-            "algorithm": name,
             "datatype": datatype_opt,
             "train_time_min": train_elapsed / 60,
             "test_time_s": test_elapsed,
-        },
-        save_path / f"{name}.obj",
+        }
     )
     
     return {
